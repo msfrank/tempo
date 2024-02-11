@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+if (NOT TARGET Tempo::TempoUtils)
+  include(${CMAKE_CURRENT_LIST_DIR}/Tempo-targets.cmake)
+endif ()
+
+check_required_components(Tempo)

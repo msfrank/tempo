@@ -1,0 +1,82 @@
+
+# do not run moc automatically
+set(CMAKE_AUTOMOC OFF)
+
+# build TempoSecurity as a shared library
+add_library(TempoSecurity SHARED)
+add_library(Tempo::TempoSecurity ALIAS TempoSecurity)
+
+set(TEMPO_SECURITY_INCLUDES
+    include/tempo_security/abstract_private_key_generator.h
+    include/tempo_security/certificate_key_pair.h
+    include/tempo_security/csr_key_pair.h
+    include/tempo_security/ecc_private_key_generator.h
+    include/tempo_security/generate_utils.h
+    include/tempo_security/rsa_key.h
+    include/tempo_security/rsa_private_key_generator.h
+    include/tempo_security/security_result.h
+    include/tempo_security/security_types.h
+    include/tempo_security/tempo_security.h
+    include/tempo_security/x509_certificate.h
+    include/tempo_security/x509_certificate_signing_request.h
+    include/tempo_security/x509_store.h
+    )
+set_target_properties(TempoSecurity PROPERTIES PUBLIC_HEADER "${TEMPO_SECURITY_INCLUDES}")
+
+target_sources(TempoSecurity
+    PRIVATE
+    src/csr_key_pair.cpp
+    src/certificate_key_pair.cpp
+    src/rsa_key.cpp
+    src/rsa_private_key_generator.cpp
+    src/security_result.cpp
+    src/security_types.cpp
+    src/x509_certificate.cpp
+    src/x509_certificate_signing_request.cpp
+    src/x509_store.cpp
+    src/generate_utils.cpp
+    src/ecc_private_key_generator.cpp
+)
+
+# set the library version
+set_target_properties(TempoSecurity PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
+
+# set the RPATH if on OS X
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set_target_properties(TempoSecurity PROPERTIES MACOSX_RPATH TRUE)
+endif()
+
+set_target_properties(TempoSecurity PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# set the public header include path differently on the target depending on the interface
+target_include_directories(TempoSecurity PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+
+target_link_libraries(TempoSecurity
+    PUBLIC
+    Tempo::TempoUtils
+    absl::flat_hash_map
+    PRIVATE
+    openssl::openssl
+    )
+
+#add_executable(generate-key-pair
+#    src/generate_key_pair.cpp
+#    )
+#
+#target_link_libraries(generate-key-pair
+#    TempoCommand
+#    TempoSecurity
+#    TempoUtils
+#    )
+
+# install targets
+install(TARGETS TempoSecurity EXPORT Tempo-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tempo_security
+    )
+
+# add testing subdirectory
+add_subdirectory(test)

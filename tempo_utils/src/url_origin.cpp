@@ -1,0 +1,159 @@
+
+#include <tempo_utils/internal/url_data.h>
+#include <tempo_utils/log_message.h>
+#include <tempo_utils/url_origin.h>
+
+tempo_utils::UrlOrigin::UrlOrigin()
+{
+}
+
+tempo_utils::UrlOrigin::UrlOrigin(std::shared_ptr<internal::UrlData> priv)
+    : m_priv(priv)
+{
+    TU_ASSERT (m_priv != nullptr);
+}
+
+tempo_utils::UrlOrigin::UrlOrigin(const UrlOrigin &other)
+    : m_priv(other.m_priv)
+{
+}
+
+bool
+tempo_utils::UrlOrigin::isValid() const
+{
+    return m_priv != nullptr;
+}
+
+bool
+tempo_utils::UrlOrigin::isEmpty() const
+{
+    if (m_priv == nullptr)
+        return true;
+    return !hasScheme() && !hasHost() && !hasPort();
+}
+
+
+bool
+tempo_utils::UrlOrigin::hasScheme() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return !m_priv->uri.get_protocol().empty();
+}
+
+bool
+tempo_utils::UrlOrigin::hasHost() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return m_priv->uri.has_hostname();
+}
+
+bool
+tempo_utils::UrlOrigin::hasPort() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return m_priv->uri.has_port();
+}
+
+std::string
+tempo_utils::UrlOrigin::getScheme() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return std::string(schemeView());
+}
+
+std::string_view
+tempo_utils::UrlOrigin::schemeView() const
+{
+    if (m_priv == nullptr)
+        return {};
+    auto protocol = m_priv->uri.get_protocol();
+    if (!protocol.empty() && protocol.back() == ':')
+        return std::string_view(protocol.data(), protocol.size() - 1);
+    return protocol;
+}
+
+std::string
+tempo_utils::UrlOrigin::getHost() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return std::string(m_priv->uri.get_hostname());
+}
+
+std::string_view
+tempo_utils::UrlOrigin::hostView() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return m_priv->uri.get_hostname();
+}
+
+std::string
+tempo_utils::UrlOrigin::getPort() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return std::string(m_priv->uri.get_port());
+}
+
+std::string_view
+tempo_utils::UrlOrigin::portView() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return m_priv->uri.get_port();
+}
+
+std::string
+tempo_utils::UrlOrigin::getHostAndPort() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return std::string(m_priv->uri.get_host());
+}
+
+std::string_view
+tempo_utils::UrlOrigin::hostAndPortView() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return m_priv->uri.get_host();
+}
+
+std::string
+tempo_utils::UrlOrigin::toString() const
+{
+    std::string origin;
+    if (hasScheme() && hasHost()) {
+        origin.append(schemeView());
+        origin.append("://");
+        origin.append(hostView());
+        if (hasPort()) {
+            origin.push_back(':');
+            origin.append(portView());
+        }
+    }
+    return origin;
+}
+
+bool
+tempo_utils::UrlOrigin::operator==(const UrlOrigin &other) const
+{
+    if (m_priv == nullptr)
+        return other.m_priv == nullptr;
+    if (other.m_priv == nullptr)
+        return false;
+    return schemeView() == other.schemeView()
+           && hostView() == other.hostView()
+           && portView() == other.portView();
+}
+
+bool
+tempo_utils::UrlOrigin::operator!=(const UrlOrigin &other) const
+{
+    return !(*this == other);
+}

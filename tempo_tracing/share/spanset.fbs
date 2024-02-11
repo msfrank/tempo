@@ -1,0 +1,81 @@
+namespace tts1;
+
+file_identifier "TTS1";                         // 4 byte magic for Tempo tracing spanset major version 1
+
+enum SpansetVersion : uint8 {
+    Unknown,
+    Version1,
+}
+
+enum TrueFalseNil : uint8 { Nil = 0, False, True }
+
+table TrueFalseNilValue { tfn: TrueFalseNil; }
+table Int64Value        { i64: int64; }
+table Float64Value      { f64: float64; }
+table UInt64Value       { u64: uint64; }
+table UInt32Value       { u32: uint32; }
+table UInt16Value       { u16: uint16; }
+table UInt8Value        { u8: uint8; }
+table StringValue       { utf8: string; }
+
+union Value {
+    TrueFalseNilValue,
+    Int64Value,
+    Float64Value,
+    UInt64Value,
+    UInt32Value,
+    UInt16Value,
+    UInt8Value,
+    StringValue,
+}
+
+table NamespaceDescriptor {
+    ns_url: string;
+}
+
+table AttributeDescriptor {
+    attr_ns: uint32;                            // namespace of the attribute
+    attr_type: uint32;                          // the type of the attribute. this only has meaning relative to the ns
+    attr_value: Value;                          // value of the attribute
+}
+
+enum LogSeverity : uint8 {
+    Fatal,
+    Error,
+    Warn,
+    Info,
+    Verbose,
+    VeryVerbose,
+}
+
+table LogDescriptor {
+    log_ts: uint64;                             // timestamp of the log event (in epoch millis)
+    log_severity: LogSeverity;                  // severity of the log event
+    log_fields: [uint32];                       // array of offsets to attribute descriptors
+}
+
+table SpanDescriptor {
+    span_id: uint64;                            // the span id
+    operation_name: string;                     // the span operation name
+    parent: uint32;                             // the offset of the parent span in the spanset, or INVALID_ADDRESS_U32 if this is a root span
+    parent_id: uint64;                          // the id of the parent span, or 0 if this is a root span
+    children: [uint32];                         // array of offsets to children of this span
+    span_start: uint64;                         // the timestamp (in epoch millis) representing the start of the span
+    span_end: uint64;                           // the timestamp (in epoch millis) representing the end of the span
+    span_tags: [uint32];                        // array of offsets to attribute descriptors
+    span_logs: [uint32];                        // array of offsets to log descriptors
+}
+
+table Spanset {
+    abi: SpansetVersion;                        // target ABI the spanset was generated for
+    trace_id_hi: uint64;                        // the high 64 bits of the trace id
+    trace_id_lo: uint64;                        // the low 64 bits of the trace id
+    namespaces: [NamespaceDescriptor];          // array of namespace descriptors
+    spans: [SpanDescriptor];                    // array of span descriptors
+    attrs: [AttributeDescriptor];               // array of attribute descriptors
+    logs: [LogDescriptor];                      // array of log descriptors
+    roots: [uint32];                            // array of offsets to spans which have no parent span (root spans)
+    errors: [uint32];                           // array of offsets to spans marked as failed
+}
+
+root_type Spanset;

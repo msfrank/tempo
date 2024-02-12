@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.27)
 
-project(Tempo)
+project(tempo)
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(IS_DEBUG_BUILD ON)
@@ -246,26 +246,26 @@ gtest_discover_tests(tempo_testsuite)
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-    cmake/TempoConfig.cmake.in
-    TempoConfig.cmake
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Tempo"
+    cmake/tempo-config.cmake.in
+    tempo-config.cmake
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tempo"
     PATH_VARS CMAKE_INSTALL_BINDIR CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_DATADIR
     )
 
-write_basic_package_version_file(TempoConfigVersion.cmake
+write_basic_package_version_file(tempo-config-version.cmake
     VERSION "${FULL_VERSION}"
     COMPATIBILITY SameMajorVersion
     )
 
-install(EXPORT Tempo-targets
+install(EXPORT tempo-targets
     COMPONENT Devel
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Tempo"
-    NAMESPACE Tempo::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tempo"
+    NAMESPACE tempo::
     )
 
 install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/TempoConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/TempoConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/tempo-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/tempo-config-version.cmake"
     COMPONENT Devel
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Tempo"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tempo"
     )

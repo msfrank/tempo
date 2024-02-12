@@ -2,9 +2,9 @@
 # do not run moc automatically
 set(CMAKE_AUTOMOC OFF)
 
-# build TempoConfig as a shared library
-add_library(TempoConfig SHARED)
-add_library(Tempo::TempoConfig ALIAS TempoConfig)
+# build tempo_config as a shared library
+add_library(tempo_config SHARED)
+add_library(tempo::tempo_config ALIAS tempo_config)
 
 set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/abstract_config_parser.h
@@ -20,7 +20,7 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/program_config.h
     include/tempo_config/workspace_config.h
     )
-set_target_properties(TempoConfig PROPERTIES PUBLIC_HEADER "${TEMPO_CONFIG_INCLUDES}")
+set_target_properties(tempo_config PROPERTIES PUBLIC_HEADER "${TEMPO_CONFIG_INCLUDES}")
 
 # generate antlr4 files for Tempo config grammar
 add_custom_command (
@@ -50,7 +50,7 @@ add_custom_command (
       ${CMAKE_CURRENT_SOURCE_DIR}/share/ConfigLexer.g4 ${CMAKE_CURRENT_SOURCE_DIR}/share/ConfigParser.g4
 )
 
-target_sources(TempoConfig
+target_sources(tempo_config
     PRIVATE
     src/base_conversions.cpp
     src/config_result.cpp
@@ -88,27 +88,27 @@ target_sources(TempoConfig
     )
 
 # set the library version
-set_target_properties(TempoConfig PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
+set_target_properties(tempo_config PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
 
 # set the RPATH if on OS X
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(TempoConfig PROPERTIES MACOSX_RPATH TRUE)
+    set_target_properties(tempo_config PROPERTIES MACOSX_RPATH TRUE)
 endif()
 
-set_target_properties(TempoConfig PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(tempo_config PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # set the public header include path differently on the target depending on the interface
-target_include_directories(TempoConfig PUBLIC
+target_include_directories(tempo_config PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
 # include private headers
-target_include_directories(TempoConfig PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
+target_include_directories(tempo_config PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 
-target_link_libraries(TempoConfig
+target_link_libraries(tempo_config
     PUBLIC
-    Tempo::TempoUtils
+    tempo::tempo_utils
     absl::flat_hash_map
     absl::strings
     absl::time
@@ -121,7 +121,7 @@ target_link_libraries(TempoConfig
     )
 
 # install targets
-install(TARGETS TempoConfig EXPORT Tempo-targets
+install(TARGETS tempo_config EXPORT tempo-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tempo_config
     )

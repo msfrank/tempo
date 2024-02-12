@@ -26,7 +26,7 @@ set(TEMPO_UTILS_TEST_CASES
 
 add_executable(tempo_utils_testsuite ${TEMPO_UTILS_TEST_CASES})
 target_link_libraries(tempo_utils_testsuite PUBLIC
-    Tempo::TempoUtils
+    tempo::tempo_utils
     gtest::gtest
     )
 gtest_discover_tests(tempo_utils_testsuite)
@@ -35,6 +35,6 @@ gtest_discover_tests(tempo_utils_testsuite)
 
 add_library(TempoUtilsTestSuite OBJECT ${TEMPO_UTILS_TEST_CASES})
 target_link_libraries(TempoUtilsTestSuite PUBLIC
-    Tempo::TempoUtils
+    tempo::tempo_utils
     gtest::gtest
     )

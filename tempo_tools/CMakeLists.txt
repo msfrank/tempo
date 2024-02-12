@@ -5,9 +5,9 @@ set_target_properties(tempo-bytes2code PROPERTIES INSTALL_RPATH_USE_LINK_PATH TR
 
 target_link_libraries(tempo-bytes2code
     PUBLIC
-    Tempo::TempoCommand
-    Tempo::TempoConfig
-    Tempo::TempoUtils
+    tempo::tempo_command
+    tempo::tempo_config
+    tempo::tempo_utils
     absl::strings
     absl::time
     absl::time_zone
@@ -16,9 +16,6 @@ target_link_libraries(tempo-bytes2code
     )
 
 # install targets
-install(
-    TARGETS
-      tempo-bytes2code
-    EXPORT Tempo-targets
+install(TARGETS tempo-bytes2code EXPORT tempo-targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )

@@ -13,7 +13,7 @@ set(TEST_CASES
 
 add_executable(tempo_allocator_testsuite ${TEST_CASES})
 target_link_libraries(tempo_allocator_testsuite PUBLIC
-    Tempo::TempoAllocator
+    tempo::tempo_allocator
     gtest::gtest
     )
 gtest_discover_tests(tempo_allocator_testsuite)
@@ -22,6 +22,6 @@ gtest_discover_tests(tempo_allocator_testsuite)
 
 add_library(TempoAllocatorTestSuite OBJECT ${TEST_CASES})
 target_link_libraries(TempoAllocatorTestSuite PUBLIC
-    Tempo::TempoAllocator
+    tempo::tempo_allocator
     gtest::gtest
     )

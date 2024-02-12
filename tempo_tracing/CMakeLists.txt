@@ -2,9 +2,9 @@
 # do not run moc automatically
 set(CMAKE_AUTOMOC OFF)
 
-# build TempoBuild as a shared library
-add_library(TempoTracing SHARED)
-add_library(Tempo::TempoTracing ALIAS TempoTracing)
+# build tempo_tracing as a shared library
+add_library(tempo_tracing SHARED)
+add_library(tempo::tempo_tracing ALIAS tempo_tracing)
 
 set(TEMPO_TRACING_INCLUDES
     include/tempo_tracing/active_scope.h
@@ -25,9 +25,9 @@ set(TEMPO_TRACING_INCLUDES
     include/tempo_tracing/tracing_schema.h
     include/tempo_tracing/tracing_types.h
     )
-set_target_properties(TempoTracing PROPERTIES PUBLIC_HEADER "${TEMPO_TRACING_INCLUDES}")
+set_target_properties(tempo_tracing PROPERTIES PUBLIC_HEADER "${TEMPO_TRACING_INCLUDES}")
 
-# generate flatbuffer files for archetype IDL
+# generate flatbuffer files for spanset IDL
 add_custom_command (
     OUTPUT
       ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset.h
@@ -41,7 +41,7 @@ add_custom_command (
       ${CMAKE_CURRENT_SOURCE_DIR}/share/spanset.fbs
 )
 
-# generate header containing the assembly schema
+# generate header containing the spanset schema
 add_custom_command(
     OUTPUT
       ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset_schema.h
@@ -56,7 +56,7 @@ add_custom_command(
       ${CMAKE_CURRENT_SOURCE_DIR}/share/spanset.fbs
 )
 
-target_sources(TempoTracing PRIVATE
+target_sources(tempo_tracing PRIVATE
     src/active_scope.cpp
     src/enter_scope.cpp
     src/error_walker.cpp
@@ -83,28 +83,28 @@ target_sources(TempoTracing PRIVATE
     )
 
 # set the library version
-set_target_properties(TempoTracing PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
+set_target_properties(tempo_tracing PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
 
 # set the RPATH if on OS X
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(TempoTracing PROPERTIES MACOSX_RPATH TRUE)
+    set_target_properties(tempo_tracing PROPERTIES MACOSX_RPATH TRUE)
 endif()
 
-set_target_properties(TempoTracing PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(tempo_tracing PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # set the public header include path differently on the target depending on the interface
-target_include_directories(TempoTracing PUBLIC
+target_include_directories(tempo_tracing PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
 # make private headers visible internally
-target_include_directories(TempoTracing PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
+target_include_directories(tempo_tracing PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 
-target_link_libraries(TempoTracing
+target_link_libraries(tempo_tracing
     PUBLIC
-    Tempo::TempoUtils
+    tempo::tempo_utils
     absl::time
     fmt::fmt
     PRIVATE
@@ -112,7 +112,7 @@ target_link_libraries(TempoTracing
     )
 
 # install targets
-install(TARGETS TempoTracing EXPORT Tempo-targets
+install(TARGETS tempo_tracing EXPORT tempo-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tempo_tracing
     )

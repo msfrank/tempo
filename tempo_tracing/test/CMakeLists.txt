@@ -18,7 +18,7 @@ target_include_directories(tempo_tracing_testsuite PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/../src
     )
 target_link_libraries(tempo_tracing_testsuite PUBLIC
-    Tempo::TempoTracing
+    tempo::tempo_tracing
     flatbuffers::flatbuffers
     gtest::gtest
     )
@@ -32,7 +32,7 @@ target_include_directories(TempoTracingTestSuite PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/../src
 )
 target_link_libraries(TempoTracingTestSuite PUBLIC
-    Tempo::TempoTracing
+    tempo::tempo_tracing
     flatbuffers::flatbuffers
     gtest::gtest
     )

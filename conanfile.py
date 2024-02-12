@@ -78,4 +78,4 @@ class Tempo(ConanFile):
 
     def package_info(self):
         self.cpp_info.set_property("cmake_find_mode", "none")
-        self.cpp_info.builddirs.append(join("lib", "cmake", "Tempo"))
+        self.cpp_info.builddirs.append(join("lib", "cmake", "tempo"))

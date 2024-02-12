@@ -2,9 +2,9 @@
 # do not run moc automatically
 set(CMAKE_AUTOMOC OFF)
 
-# build TempoUtils as a shared library
-add_library(TempoUtils SHARED)
-add_library(Tempo::TempoUtils ALIAS TempoUtils)
+# build tempo_utils as a shared library
+add_library(tempo_utils SHARED)
+add_library(tempo::tempo_utils ALIAS tempo_utils)
 
 set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/attr.h
@@ -61,9 +61,9 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/uuid.h
     include/tempo_utils/vocabulary_cache.h
     )
-set_target_properties(TempoUtils PROPERTIES PUBLIC_HEADER "${TEMPO_UTILS_INCLUDES}")
+set_target_properties(tempo_utils PROPERTIES PUBLIC_HEADER "${TEMPO_UTILS_INCLUDES}")
 
-target_sources(TempoUtils
+target_sources(tempo_utils
     PRIVATE
     src/attr.cpp
     src/attr_result.cpp
@@ -114,22 +114,22 @@ target_sources(TempoUtils
 )
 
 # set the library version
-set_target_properties(TempoUtils PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
+set_target_properties(tempo_utils PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
 
 # set the RPATH if on OS X
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(TempoUtils PROPERTIES MACOSX_RPATH TRUE)
+    set_target_properties(tempo_utils PROPERTIES MACOSX_RPATH TRUE)
 endif()
 
-set_target_properties(TempoUtils PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(tempo_utils PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # set the public header include path differently on the target depending on the interface
-target_include_directories(TempoUtils PUBLIC
+target_include_directories(tempo_utils PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
-target_link_libraries(TempoUtils
+target_link_libraries(tempo_utils
     PUBLIC
     absl::flat_hash_map
     absl::strings
@@ -145,7 +145,7 @@ target_link_libraries(TempoUtils
     )
 
 # install targets
-install(TARGETS TempoUtils EXPORT Tempo-targets
+install(TARGETS tempo_utils EXPORT tempo-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tempo_utils
     )

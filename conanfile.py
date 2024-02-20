@@ -8,12 +8,13 @@ from conan.tools.files import copy
 class Tempo(ConanFile):
     name = 'tempo'
     version = '0.0.1'
-    url = ''
-    description = ''
+    license = 'BSD-3-Clause'
+    url = 'https://github.com/msfrank/tempo'
+    description = 'Utility libraries for the Zuri project'
 
     settings = 'os', 'compiler', 'build_type', 'arch'
     options = {'shared': [True, False], 'compiler.cppstd': ['17', '20'], 'build_type': ['Debug', 'Release']}
-    default_options = {'shared': True, 'compiler.cppstd': 20, 'build_type': 'Debug'}
+    default_options = {'shared': True, 'compiler.cppstd': '20', 'build_type': 'Debug'}
 
     exports_sources = (
         'CMakeLists.txt',

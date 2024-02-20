@@ -154,6 +154,12 @@ else()
     message(STATUS "gperftools profiler not enabled")
 endif(${USE_PROFILER})
 
+# include needed CMake features
+include(CMakePackageConfigHelpers)
+include(CTest)
+include(GNUInstallDirs)
+include(GoogleTest)
+
 #######################################################################
 #
 # configure tools and paths
@@ -201,10 +207,6 @@ message(STATUS "version is ${FULL_VERSION}")
 #
 #######################################################################
 
-include(CTest)
-include(GNUInstallDirs)
-include(GoogleTest)
-
 add_subdirectory(tempo_allocator)
 add_subdirectory(tempo_command)
 add_subdirectory(tempo_config)
@@ -242,8 +244,6 @@ gtest_discover_tests(tempo_testsuite)
 # create cmake package config
 #
 #######################################################################
-
-include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
     cmake/tempo-config.cmake.in

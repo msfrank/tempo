@@ -4,7 +4,6 @@
 #include <string>
 
 #include <absl/container/flat_hash_map.h>
-#include <boost/variant.hpp>
 
 #include "attr_result.h"
 #include "integer_types.h"

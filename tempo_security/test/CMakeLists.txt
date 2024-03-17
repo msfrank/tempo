@@ -6,6 +6,7 @@ include(GoogleTest)
 
 set(TEST_CASES
     csr_key_pair_tests.cpp
+    ecc_key_tests.cpp
     rsa_key_tests.cpp
     certificate_key_pair_tests.cpp
     x509_certificate_signing_request_tests.cpp

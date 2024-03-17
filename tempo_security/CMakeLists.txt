@@ -10,6 +10,7 @@ set(TEMPO_SECURITY_INCLUDES
     include/tempo_security/abstract_private_key_generator.h
     include/tempo_security/certificate_key_pair.h
     include/tempo_security/csr_key_pair.h
+    include/tempo_security/ecc_key.h
     include/tempo_security/ecc_private_key_generator.h
     include/tempo_security/generate_utils.h
     include/tempo_security/rsa_key.h
@@ -25,8 +26,11 @@ set_target_properties(tempo_security PROPERTIES PUBLIC_HEADER "${TEMPO_SECURITY_
 
 target_sources(tempo_security
     PRIVATE
-    src/csr_key_pair.cpp
     src/certificate_key_pair.cpp
+    src/csr_key_pair.cpp
+    src/ecc_key.cpp
+    src/ecc_private_key_generator.cpp
+    src/generate_utils.cpp
     src/rsa_key.cpp
     src/rsa_private_key_generator.cpp
     src/security_result.cpp
@@ -34,8 +38,6 @@ target_sources(tempo_security
     src/x509_certificate.cpp
     src/x509_certificate_signing_request.cpp
     src/x509_store.cpp
-    src/generate_utils.cpp
-    src/ecc_private_key_generator.cpp
 )
 
 # set the library version

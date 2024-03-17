@@ -1,6 +1,8 @@
 #ifndef TEMPO_SECURITY_ABSTRACT_PRIVATE_KEY_GENERATOR_H
 #define TEMPO_SECURITY_ABSTRACT_PRIVATE_KEY_GENERATOR_H
 
+#include <filesystem>
+
 #include <openssl/evp.h>
 
 #include "security_types.h"
@@ -23,6 +25,13 @@ namespace tempo_security {
          * @return
          */
         virtual EVP_PKEY *generatePrivateKey() const = 0;
+
+        /**
+         *
+         * @param pemPrivateKeyFile
+         * @return
+         */
+        virtual bool isValidPrivateKey(const std::filesystem::path &pemPrivateKeyFile) const = 0;
     };
 }
 

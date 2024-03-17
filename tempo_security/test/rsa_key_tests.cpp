@@ -19,7 +19,7 @@ public:
             keygen,
             "test_O",
             "test_OU",
-            "test_CN",
+            "ssKeyPair",
             1,
             std::chrono::seconds{60},
             std::filesystem::current_path(),

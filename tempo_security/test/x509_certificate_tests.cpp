@@ -23,7 +23,7 @@ public:
             *keygen,
             "test_O",
             "test_OU",
-            "test_CN",
+            "ssKeyPair",
             1,
             std::chrono::seconds{60},
             std::filesystem::current_path(),
@@ -68,7 +68,7 @@ TEST_P(X509Certificate, TestReadCertificate)
     ASSERT_TRUE (cert->getSerialNumber() == 1);
     ASSERT_EQ (cert->getOrganization(), std::string("test_O"));
     ASSERT_EQ (cert->getOrganizationalUnit(), std::string("test_OU"));
-    ASSERT_EQ (cert->getCommonName(), std::string("test_CN"));
+    ASSERT_EQ (cert->getCommonName(), std::string("ssKeyPair"));
     ASSERT_FALSE (cert->isCertificateAuthority());
     TU_CONSOLE_OUT << cert->toString();
 }
@@ -83,7 +83,7 @@ public:
             *keygen,
             "test_O",
             "test_OU",
-            "test_CN",
+            "caKeyPair",
             1,
             std::chrono::seconds{60},
             -1,
@@ -132,7 +132,7 @@ TEST_P(X509CACertificate, TestReadCACertificate)
     ASSERT_TRUE (cert->getSerialNumber() == 1);
     ASSERT_EQ (cert->getOrganization(), std::string("test_O"));
     ASSERT_EQ (cert->getOrganizationalUnit(), std::string("test_OU"));
-    ASSERT_EQ (cert->getCommonName(), std::string("test_CN"));
+    ASSERT_EQ (cert->getCommonName(), std::string("caKeyPair"));
     ASSERT_TRUE (cert->isCertificateAuthority());
     TU_CONSOLE_OUT << cert->toString();
 }

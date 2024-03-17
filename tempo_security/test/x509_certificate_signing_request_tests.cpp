@@ -24,7 +24,7 @@ public:
             *keygen,
             "test_O",
             "test_OU",
-            "test_CN",
+            "csrKeyPair",
             std::filesystem::current_path(),
             tempo_utils::generate_name("test_key_XXXXXXXX")).orElseThrow();
         ASSERT_TRUE (m_csrKeyPair.isValid());
@@ -60,11 +60,11 @@ TEST_P(X509CertificateSigningRequest, TestReadCertificateSigningRequest)
     auto csrKeyPair = getCSRKeyPair();
     auto readFileResult = tempo_security::X509CertificateSigningRequest::readFile(csrKeyPair.getPemRequestFile());
     ASSERT_TRUE (readFileResult.isResult());
-    auto cert = readFileResult.getResult();
+    auto req = readFileResult.getResult();
     TU_CONSOLE_OUT << "pemRequestFile is " << csrKeyPair.getPemRequestFile();
-    ASSERT_TRUE (cert->isValid());
-    ASSERT_EQ (cert->getOrganization(), std::string("test_O"));
-    ASSERT_EQ (cert->getOrganizationalUnit(), std::string("test_OU"));
-    ASSERT_EQ (cert->getCommonName(), std::string("test_CN"));
-    TU_CONSOLE_OUT << cert->toString();
+    ASSERT_TRUE (req->isValid());
+    ASSERT_EQ (req->getOrganization(), std::string("test_O"));
+    ASSERT_EQ (req->getOrganizationalUnit(), std::string("test_OU"));
+    ASSERT_EQ (req->getCommonName(), std::string("csrKeyPair"));
+    TU_CONSOLE_OUT << req->toString();
 }

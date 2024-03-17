@@ -33,7 +33,7 @@ TEST_P(CertificateKeyPair, TestGenerateSelfSignedCertificateKeyPair)
         *keygen,
         "test_O",
         "test_OU",
-        "test_CN",
+        "ssKeyPair",
         1,
         std::chrono::seconds{60},
         std::filesystem::current_path(),
@@ -41,14 +41,19 @@ TEST_P(CertificateKeyPair, TestGenerateSelfSignedCertificateKeyPair)
     ASSERT_TRUE (generateKeyPairResult.isResult());
     auto keypair = generateKeyPairResult.getResult();
 
-    auto readFileResult = tempo_security::X509Certificate::readFile(
-        keypair.getPemCertificateFile());
+    auto readFileResult = tempo_security::X509Certificate::readFile(keypair.getPemCertificateFile());
     ASSERT_TRUE (readFileResult.isResult());
     auto cert = readFileResult.getResult();
 
+    ASSERT_TRUE (cert->isValid());
+    ASSERT_EQ ("test_O", cert->getOrganization());
+    ASSERT_EQ ("test_OU", cert->getOrganizationalUnit());
+    ASSERT_EQ ("ssKeyPair", cert->getCommonName());
+
+    ASSERT_TRUE (keygen->isValidPrivateKey(keypair.getPemPrivateKeyFile()));
+
     ASSERT_TRUE (std::filesystem::remove(keypair.getPemPrivateKeyFile()));
     ASSERT_TRUE (std::filesystem::remove(keypair.getPemCertificateFile()));
-    ASSERT_TRUE (cert->isValid());
 }
 
 TEST_P(CertificateKeyPair, TestGenerateCACertificateKeyPair)
@@ -58,7 +63,7 @@ TEST_P(CertificateKeyPair, TestGenerateCACertificateKeyPair)
         *keygen,
         "test_O",
         "test_OU",
-        "test_CN",
+        "caKeyPair",
         1,
         std::chrono::seconds{60},
         -1,
@@ -72,9 +77,15 @@ TEST_P(CertificateKeyPair, TestGenerateCACertificateKeyPair)
     ASSERT_TRUE (readFileResult.isResult());
     auto cert = readFileResult.getResult();
 
+    ASSERT_TRUE (cert->isValid());
+    ASSERT_EQ ("test_O", cert->getOrganization());
+    ASSERT_EQ ("test_OU", cert->getOrganizationalUnit());
+    ASSERT_EQ ("caKeyPair", cert->getCommonName());
+
+    ASSERT_TRUE (keygen->isValidPrivateKey(keypair.getPemPrivateKeyFile()));
+
     ASSERT_TRUE (std::filesystem::remove(keypair.getPemPrivateKeyFile()));
     ASSERT_TRUE (std::filesystem::remove(keypair.getPemCertificateFile()));
-    ASSERT_TRUE (cert->isValid());
 }
 
 TEST_P(CertificateKeyPair, TestGenerateCertificateKeyPairFromCA)
@@ -84,7 +95,7 @@ TEST_P(CertificateKeyPair, TestGenerateCertificateKeyPairFromCA)
         *keygen,
         "test_O",
         "test_OU",
-        "test_CN",
+        "keyPair",
         1,
         std::chrono::seconds{60},
         -1,
@@ -98,7 +109,13 @@ TEST_P(CertificateKeyPair, TestGenerateCertificateKeyPairFromCA)
     ASSERT_TRUE (readFileResult.isResult());
     auto cert = readFileResult.getResult();
 
+    ASSERT_TRUE (cert->isValid());
+    ASSERT_EQ ("test_O", cert->getOrganization());
+    ASSERT_EQ ("test_OU", cert->getOrganizationalUnit());
+    ASSERT_EQ ("keyPair", cert->getCommonName());
+
+    ASSERT_TRUE (keygen->isValidPrivateKey(keypair.getPemPrivateKeyFile()));
+
     ASSERT_TRUE (std::filesystem::remove(keypair.getPemPrivateKeyFile()));
     ASSERT_TRUE (std::filesystem::remove(keypair.getPemCertificateFile()));
-    ASSERT_TRUE (cert->isValid());
 }

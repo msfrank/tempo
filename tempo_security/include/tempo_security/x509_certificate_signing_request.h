@@ -35,6 +35,10 @@ namespace tempo_security {
         X509CertificateSigningRequest(const std::filesystem::path &pemRequestFile, X509_REQ *req);
     };
 
+    struct CSRValidationParams {
+
+    };
+
     tempo_utils::Result<std::string> generate_certificate_from_csr(
         std::string_view pemRequestBytes,
         const CertificateKeyPair &caKeyPair,

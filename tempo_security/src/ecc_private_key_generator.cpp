@@ -6,6 +6,7 @@
 
 #include <tempo_security/ecc_private_key_generator.h>
 #include <tempo_utils/log_message.h>
+#include "tempo_security/ecc_key.h"
 
 tempo_security::ECCPrivateKeyGenerator::ECCPrivateKeyGenerator(int ecCurveNid)
     : m_ecCurveNid(ecCurveNid)
@@ -43,4 +44,11 @@ tempo_security::ECCPrivateKeyGenerator::generatePrivateKey() const
     if (pkey)
         EVP_PKEY_free(pkey);
     return nullptr;
+}
+
+bool
+tempo_security::ECCPrivateKeyGenerator::isValidPrivateKey(const std::filesystem::path &pemPrivateKeyFile) const
+{
+    ECCKey key(pemPrivateKeyFile);
+    return key.isValid();
 }

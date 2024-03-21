@@ -36,14 +36,20 @@ namespace tempo_security {
     };
 
     struct CSRValidationParams {
-
+        std::string organization;
+        std::string organizationalUnit;
+        std::string commonName;
     };
+
+    //typedef bool (*CSRValidatorFunc)(CSRValidationParams &);
+    using CSRValidatorFunc = std::function<bool(CSRValidationParams &)>;
 
     tempo_utils::Result<std::string> generate_certificate_from_csr(
         std::string_view pemRequestBytes,
         const CertificateKeyPair &caKeyPair,
         int serial,
-        std::chrono::seconds validity);
+        std::chrono::seconds validity,
+        CSRValidatorFunc validator = nullptr);
 
     tempo_utils::Result<std::filesystem::path> generate_certificate_from_csr(
         const std::filesystem::path &pemRequestFile,
@@ -51,7 +57,8 @@ namespace tempo_security {
         int serial,
         std::chrono::seconds validity,
         const std::filesystem::path &certificateDestDirectory,
-        std::string_view certificateFilenameStem);
+        std::string_view certificateFilenameStem,
+        CSRValidatorFunc validator = nullptr);
 }
 
 #endif // TEMPO_SECURITY_X509_CERTIFICATE_SIGNING_REQUEST_H

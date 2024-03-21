@@ -25,8 +25,8 @@ TEST(Url, TestParseUrlWithAllComponents)
     ASSERT_EQ (url.getUsername(), "core-1.0.0");
     ASSERT_EQ (url.getHost(), "zuri.dev");
     ASSERT_EQ (url.getPath(), "/core");
-    ASSERT_EQ (url.getQuery(), "?key=value");
-    ASSERT_EQ (url.getFragment(), "#Char");
+    ASSERT_EQ (url.getQuery(), "key=value");
+    ASSERT_EQ (url.getFragment(), "Char");
 
     ASSERT_EQ (url.toString(), "dev.zuri.pkg://core-1.0.0@zuri.dev/core?key=value#Char");
 }
@@ -40,8 +40,8 @@ TEST(Url, TestParseUrlWithNoScheme)
     ASSERT_EQ (url.getUsername(), "core-1.0.0");
     ASSERT_EQ (url.getHost(), "zuri.dev");
     ASSERT_EQ (url.getPath(), "/core");
-    ASSERT_EQ (url.getQuery(), "?key=value");
-    ASSERT_EQ (url.getFragment(), "#Char");
+    ASSERT_EQ (url.getQuery(), "key=value");
+    ASSERT_EQ (url.getFragment(), "Char");
 
     ASSERT_EQ (url.toString(), "//core-1.0.0@zuri.dev/core?key=value#Char");
 }
@@ -67,11 +67,11 @@ TEST(Url, TestParseUrlWithPathOnlyLeadingDot)
 
     ASSERT_FALSE (url.hasScheme());
     ASSERT_FALSE (url.hasAuthority());
-    ASSERT_EQ (url.getPath(), "/core");
+    ASSERT_EQ (url.getPath(), "./core");
     ASSERT_FALSE (url.hasQuery());
     ASSERT_FALSE (url.hasFragment());
 
-    ASSERT_EQ (url.toString(), "/core");
+    ASSERT_EQ (url.toString(), "./core");
 }
 
 TEST(Url, TestParseUrlWithPathOnlyNoLeadingSlash)
@@ -81,11 +81,11 @@ TEST(Url, TestParseUrlWithPathOnlyNoLeadingSlash)
 
     ASSERT_FALSE (url.hasScheme());
     ASSERT_FALSE (url.hasAuthority());
-    ASSERT_EQ (url.getPath(), "/core");
+    ASSERT_EQ (url.getPath(), "core");
     ASSERT_FALSE (url.hasQuery());
     ASSERT_FALSE (url.hasFragment());
 
-    ASSERT_EQ (url.toString(), "/core");
+    ASSERT_EQ (url.toString(), "core");
 }
 
 TEST(Url, TestParseUrlWithSchemeAndPathOnlyNoLeadingSlash)
@@ -110,8 +110,8 @@ TEST(Url, TestParseUrlWithNoSchemeOrAuthority)
     ASSERT_FALSE (url.hasScheme());
     ASSERT_FALSE (url.hasAuthority());
     ASSERT_EQ (url.getPath(), "/core");
-    ASSERT_EQ (url.getQuery(), "?key=value");
-    ASSERT_EQ (url.getFragment(), "#Char");
+    ASSERT_EQ (url.getQuery(), "key=value");
+    ASSERT_EQ (url.getFragment(), "Char");
 
     ASSERT_EQ (url.toString(), "/core?key=value#Char");
 }
@@ -124,8 +124,8 @@ TEST(Url, TestParseUrlWithNoSchemeOrAuthorityOrPath)
     ASSERT_FALSE (url.hasScheme());
     ASSERT_FALSE (url.hasAuthority());
     ASSERT_FALSE (url.hasPath());
-    ASSERT_EQ (url.getQuery(), "?key=value");
-    ASSERT_EQ (url.getFragment(), "#Char");
+    ASSERT_EQ (url.getQuery(), "key=value");
+    ASSERT_EQ (url.getFragment(), "Char");
 
     ASSERT_EQ (url.toString(), "?key=value#Char");
 }
@@ -160,7 +160,7 @@ TEST(Url, TestParseUrlWithRelativeFragmentOnly)
     ASSERT_FALSE (url.hasAuthority());
     ASSERT_FALSE (url.hasPath());
     ASSERT_FALSE (url.hasQuery());
-    ASSERT_EQ (url.getFragment(), "#Char");
+    ASSERT_EQ (url.getFragment(), "Char");
 
     ASSERT_EQ (url.toString(), "#Char");
 }

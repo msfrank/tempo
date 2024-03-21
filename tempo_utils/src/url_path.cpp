@@ -1,7 +1,4 @@
 
-#include <ada.h>
-#include <ada/url_aggregator-inl.h>
-
 #include <tempo_utils/internal/url_data.h>
 #include <tempo_utils/log_message.h>
 #include <tempo_utils/unicode.h>
@@ -63,67 +60,16 @@ tempo_utils::UrlPathPart::parent()
 }
 
 tempo_utils::UrlPath::UrlPath()
-    : m_parts()
 {
-}
-
-inline std::string_view::size_type
-next_segment(std::string_view path, tu_int16 &index, std::pair<tu_int16,tu_int16> &segment)
-{
-    auto found = path.find('/', index);
-
-    tu_int16 count;
-    if (found == std::string_view::npos) {
-        count = path.size() - index;
-        segment = {index, count};
-        index = path.size();
-    } else {
-        count = found - index;
-        segment = {index, count};
-        index = found + 1;
-    }
-
-    return found;
 }
 
 tempo_utils::UrlPath::UrlPath(std::shared_ptr<internal::UrlData> priv)
     : m_priv(priv)
 {
-    // special case: no url
-    if (m_priv == nullptr)
-        return;
-
-    // special case: url path component is empty
-    auto path = m_priv->uri.get_pathname();
-    if (path.empty())
-        return;
-
-    // path length cannot exeed 2^15 because we use int16 for tracking offsets
-    TU_ASSERT (path.size() < std::numeric_limits<tu_int16>::max());
-
-    tu_int16 index = 0;
-    std::pair<tu_int16,tu_int16> segment;
-    std::string_view::size_type found;
-
-    found = next_segment(path, index, segment);
-
-    do {
-        m_parts.push_back(segment);
-        found = next_segment(path, index, segment);
-    } while (!(segment.second == 0 && found == std::string_view::npos));
-}
-
-tempo_utils::UrlPath::UrlPath(
-    std::shared_ptr<internal::UrlData> priv,
-    std::vector<std::pair<tu_int16,tu_int16>> &&parts)
-    : m_priv(priv),
-      m_parts(std::move(parts))
-{
 }
 
 tempo_utils::UrlPath::UrlPath(const UrlPath &other)
-    : m_priv(other.m_priv),
-      m_parts(other.m_parts)
+    : m_priv(other.m_priv)
 {
 }
 
@@ -136,20 +82,25 @@ tempo_utils::UrlPath::isValid() const
 bool
 tempo_utils::UrlPath::isEmpty() const
 {
-    if (m_parts.empty())
+    if (!isValid())
         return true;
-    if (m_parts.size() == 1) {
-        const auto &part = m_parts.front();
-        if (part.first == 0 && part.second == 0)
-            return true;
-    }
-    return false;
+    return m_priv->url.encoded_segments().empty();
+}
+
+bool
+tempo_utils::UrlPath::isAbsolute() const
+{
+    if (!isValid())
+        return false;
+    return m_priv->url.encoded_segments().is_absolute();
 }
 
 int
 tempo_utils::UrlPath::numParts() const
 {
-    return m_parts.empty()? 0 : m_parts.size() - 1;
+    if (!isValid())
+        return 0;
+    return m_priv->url.encoded_segments().size();
 }
 
 tempo_utils::UrlPathPart
@@ -158,19 +109,22 @@ tempo_utils::UrlPath::getPart(int index) const
     return UrlPathPart(partView(index));
 }
 
+/**
+ * Returns the percent-encoded path segment at the specified index. The index can be positive or negative; in
+ * the negative case the indexing starts from the end of the path.
+ * @param index The index.
+ * @return A string view containing the percent-encoded path part, or an empty string view if the index was invalid.
+ */
 std::string_view
 tempo_utils::UrlPath::partView(int index) const
 {
-    if (m_priv == nullptr)
+    if (!isValid())
         return {};
-    // skip the absolute path marker
-    index++;
-    if (0 <= index && index < static_cast<int>(m_parts.size())) {
-        auto &segment = m_parts[index];
-        auto path = m_priv->uri.get_pathname();
-        return path.substr(segment.first, segment.second);
-    }
-    return {};
+    if (numParts() <= index || index < 0 - numParts())
+        return {};
+    auto iterator = m_priv->url.encoded_segments().begin();
+    std::advance(iterator, index);
+    return *iterator;
 }
 
 tempo_utils::UrlPathPart
@@ -188,7 +142,7 @@ tempo_utils::UrlPath::headView() const
 tempo_utils::UrlPathPart
 tempo_utils::UrlPath::getLast() const
 {
-    if (m_parts.empty())
+    if (!isValid())
         return {};
     return getPart(numParts() - 1);
 }
@@ -196,7 +150,7 @@ tempo_utils::UrlPath::getLast() const
 std::string_view
 tempo_utils::UrlPath::lastView() const
 {
-    if (m_parts.empty())
+    if (!isValid())
         return {};
     return partView(numParts() - 1);
 }
@@ -298,11 +252,10 @@ tempo_utils::UrlPath::pathView() const
 {
     if (m_priv == nullptr)
         return {};
-    auto view = m_priv->uri.get_pathname();
-//    if (view.back() == '/')
-//        return std::string_view(view.data(), view.size() - 1);
-    return view;
+    return m_priv->url.encoded_path();
 }
+
+static const boost::urls::static_url<8> kUrlPathTraverseBase("path://");
 
 tempo_utils::UrlPath
 tempo_utils::UrlPath::traverse(const UrlPathPart &part)
@@ -312,7 +265,16 @@ tempo_utils::UrlPath::traverse(const UrlPathPart &part)
         appended.append("/");
     }
     appended.append(part.partView());
-    return fromString(appended);
+
+    if (appended.size() > 1024)
+        return {};
+    boost::urls::static_url<1024> url(appended);
+    if (url.empty())
+        return {};
+
+    url.normalize();
+
+    return fromString(url.buffer());
 }
 
 std::string
@@ -343,17 +305,21 @@ tempo_utils::UrlPath::operator!=(const UrlPath &other) const
     return pathView() != other.pathView();
 }
 
+/**
+ * Construct a new UrlPath from the specified string. Note that this function will successfully parse a full URI
+ * or URI reference as well as a path.
+ *
+ * @param s The string to parse.
+ * @return A new UrlPath containing the path, or an empty UrlPath if the input string was invalid.
+ */
 tempo_utils::UrlPath
 tempo_utils::UrlPath::fromString(std::string_view s)
 {
-    ada::result<ada::url_aggregator> parseUrlResult = ada::parse<ada::url_aggregator>(s, nullptr);
-    if (parseUrlResult)
-        return UrlPath(std::make_shared<internal::UrlData>(std::move(*parseUrlResult)));
-
-    ada::url_aggregator base;
-    ada::result<ada::url_aggregator> parseUrlWithBaseResult = ada::parse<ada::url_aggregator>(s, &base);
-    if (parseUrlWithBaseResult)
-        return UrlPath(std::make_shared<internal::UrlData>(std::move(*parseUrlWithBaseResult)));
-
-    return UrlPath();
+    auto priv = std::make_shared<internal::UrlData>();
+    priv->data = s;
+    auto parseUrlResult = boost::urls::parse_uri_reference(priv->data);
+    if (parseUrlResult.has_error())
+        return {};
+    priv->url = *parseUrlResult;
+    return UrlPath(priv);
 }

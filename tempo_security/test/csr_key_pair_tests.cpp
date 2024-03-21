@@ -127,3 +127,67 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSR)
     ASSERT_TRUE (std::filesystem::remove(csrKeyPair.getPemRequestFile()));
     ASSERT_TRUE (std::filesystem::remove(pemCertificateFile));
 }
+
+TEST_P(CSRKeyPair, TestSignCertificateFromCSRFailsOnValidation)
+{
+    auto *keygen = GetParam();
+    auto generateCsrResult = tempo_security::generate_csr_key_pair(
+        *keygen,
+        "test_O",
+        "test_OU",
+        "csrKeyPair",
+        std::filesystem::current_path(),
+        tempo_utils::generate_name("test_XXXXXXXX"));
+    ASSERT_TRUE (generateCsrResult.isResult());
+    auto csrKeyPair = generateCsrResult.getResult();
+
+    auto generateCertificateResult = tempo_security::generate_certificate_from_csr(
+        csrKeyPair.getPemRequestFile(),
+        getCAKeyPair(),
+        1,
+        std::chrono::seconds{60},
+        std::filesystem::current_path(),
+        tempo_utils::generate_name("test_XXXXXXXX"),
+        [](const tempo_security::CSRValidationParams &params) -> bool {
+            return false;
+        });
+
+    ASSERT_TRUE (generateCertificateResult.isStatus());
+}
+
+TEST_P(CSRKeyPair, TestSignCertificateFromCSRPassesParams)
+{
+    auto *keygen = GetParam();
+    auto generateCsrResult = tempo_security::generate_csr_key_pair(
+        *keygen,
+        "test_O",
+        "test_OU",
+        "csrKeyPair",
+        std::filesystem::current_path(),
+        tempo_utils::generate_name("test_XXXXXXXX"));
+    ASSERT_TRUE (generateCsrResult.isResult());
+    auto csrKeyPair = generateCsrResult.getResult();
+
+    std::string organization;
+    std::string organizationalUnit;
+    std::string commonName;
+
+    auto generateCertificateResult = tempo_security::generate_certificate_from_csr(
+        csrKeyPair.getPemRequestFile(),
+        getCAKeyPair(),
+        1,
+        std::chrono::seconds{60},
+        std::filesystem::current_path(),
+        tempo_utils::generate_name("test_XXXXXXXX"),
+        [&](const tempo_security::CSRValidationParams &params) -> bool {
+            organization = params.organization;
+            organizationalUnit = params.organizationalUnit;
+            commonName = params.commonName;
+            return true;
+        });
+
+    ASSERT_TRUE (generateCertificateResult.isResult());
+    ASSERT_EQ ("test_O", organization);
+    ASSERT_EQ ("test_OU", organizationalUnit);
+    ASSERT_EQ ("csrKeyPair", commonName);
+}

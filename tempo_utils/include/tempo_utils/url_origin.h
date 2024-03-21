@@ -36,7 +36,7 @@ namespace tempo_utils {
     private:
         std::shared_ptr<internal::UrlData> m_priv;
 
-        UrlOrigin(std::shared_ptr<internal::UrlData> priv);
+        explicit UrlOrigin(std::shared_ptr<internal::UrlData> priv);
 
         friend class Url;
     };

@@ -89,7 +89,7 @@ namespace tempo_utils {
 
         static Url fromAbsolute(
             std::string_view scheme,
-            UrlAuthority authority,
+            const UrlAuthority &authority,
             std::string_view path = {},
             std::string_view query = {},
             std::string_view fragment = {});
@@ -101,13 +101,13 @@ namespace tempo_utils {
             std::string_view fragment = {});
 
         static Url fromAuthority(
-            UrlAuthority authority,
+            const UrlAuthority &authority,
             std::string_view path = {},
             std::string_view query = {},
             std::string_view fragment = {});
 
         static Url fromOrigin(
-            UrlOrigin origin,
+            const UrlOrigin &origin,
             std::string_view path = {},
             std::string_view query = {},
             std::string_view fragment = {});

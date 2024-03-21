@@ -135,11 +135,11 @@ target_link_libraries(tempo_utils
     absl::strings
     absl::time
     absl::time_zone
-    boost::headers
     fmt::fmt
     icu::icu
     PRIVATE
-    ada::ada
+    Boost::headers
+    Boost::url
     croaring::croaring
     hdrhistogram::hdrhistogram
     )

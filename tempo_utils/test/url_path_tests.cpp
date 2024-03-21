@@ -2,13 +2,28 @@
 
 #include <tempo_utils/tempo_utils.h>
 
+TEST(UrlPath, TestParseEmptyString)
+{
+    auto urlPath = tempo_utils::UrlPath::fromString("");
+    ASSERT_TRUE (urlPath.isValid());
+
+    ASSERT_TRUE (urlPath.isEmpty());
+    ASSERT_FALSE (urlPath.isAbsolute());
+    ASSERT_EQ (0, urlPath.numParts());
+
+    ASSERT_EQ ("", urlPath.toString());
+}
+
 TEST(UrlPath, TestParseSingleSlash)
 {
     auto urlPath = tempo_utils::UrlPath::fromString("/");
     ASSERT_TRUE (urlPath.isValid());
 
     ASSERT_TRUE (urlPath.isEmpty());
+    ASSERT_TRUE (urlPath.isAbsolute());
     ASSERT_EQ (0, urlPath.numParts());
+
+    ASSERT_EQ ("/", urlPath.toString());
 }
 
 TEST(UrlPath, TestParseSingleDot)
@@ -16,9 +31,12 @@ TEST(UrlPath, TestParseSingleDot)
     auto urlPath = tempo_utils::UrlPath::fromString(".");
     ASSERT_TRUE (urlPath.isValid());
 
-    // a single dot path is equivalent to "/"
-    ASSERT_TRUE (urlPath.isEmpty());
-    ASSERT_EQ (0, urlPath.numParts());
+    ASSERT_FALSE (urlPath.isEmpty());
+    ASSERT_FALSE (urlPath.isAbsolute());
+    ASSERT_EQ (1, urlPath.numParts());
+    ASSERT_EQ (".", urlPath.partView(0));
+
+    ASSERT_EQ (".", urlPath.toString());
 }
 
 TEST(UrlPath, TestParseDoubleDot)
@@ -26,9 +44,12 @@ TEST(UrlPath, TestParseDoubleDot)
     auto urlPath = tempo_utils::UrlPath::fromString("..");
     ASSERT_TRUE (urlPath.isValid());
 
-    // a double dot path is equivalent to "/"
-    ASSERT_TRUE (urlPath.isEmpty());
-    ASSERT_EQ (0, urlPath.numParts());
+    ASSERT_FALSE (urlPath.isEmpty());
+    ASSERT_FALSE (urlPath.isAbsolute());
+    ASSERT_EQ (1, urlPath.numParts());
+    ASSERT_EQ ("..", urlPath.partView(0));
+
+    ASSERT_EQ ("..", urlPath.toString());
 }
 
 TEST(UrlPath, TestParseAbsoluteInputWithSingleSegment)
@@ -278,8 +299,9 @@ TEST(UrlPath, TestTraverseParentSegment)
     auto urlPath = basePath.traverse(tempo_utils::UrlPathPart::parent());
 
     ASSERT_FALSE(urlPath.isEmpty());
-    ASSERT_EQ (1, urlPath.numParts());
+    ASSERT_EQ (2, urlPath.numParts());
     ASSERT_EQ ("foo", urlPath.partView(0));
+    ASSERT_EQ ("", urlPath.partView(1));
 }
 
 TEST(UrlPath, TestTraverseMultipleSegments)

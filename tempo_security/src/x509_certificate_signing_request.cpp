@@ -40,12 +40,10 @@ tempo_security::X509CertificateSigningRequest::getPemRequestFile() const
     return m_pemRequestFile;
 }
 
-std::string
-tempo_security::X509CertificateSigningRequest::getOrganization() const
+static std::string
+get_organization(X509_REQ *req)
 {
-    if (!isValid())
-        return {};
-    auto *dn = X509_REQ_get_subject_name(m_req);
+    auto *dn = X509_REQ_get_subject_name(req);
 
     std::string organization;
     int lastpos = -1;
@@ -55,7 +53,7 @@ tempo_security::X509CertificateSigningRequest::getOrganization() const
         lastpos = X509_NAME_get_index_by_NID(dn, NID_organizationName, lastpos);
         if (lastpos == -1)
             break;
-        if (found == true)
+        if (found)
             return {};
         auto *entry = X509_NAME_get_entry(dn, lastpos);
         auto *data = X509_NAME_ENTRY_get_data(entry);
@@ -72,11 +70,17 @@ tempo_security::X509CertificateSigningRequest::getOrganization() const
 }
 
 std::string
-tempo_security::X509CertificateSigningRequest::getOrganizationalUnit() const
+tempo_security::X509CertificateSigningRequest::getOrganization() const
 {
     if (!isValid())
         return {};
-    auto *dn = X509_REQ_get_subject_name(m_req);
+    return get_organization(m_req);
+}
+
+static std::string
+get_organizational_unit(X509_REQ *req)
+{
+    auto *dn = X509_REQ_get_subject_name(req);
 
     std::string organizationalUnit;
     int lastpos = -1;
@@ -103,11 +107,17 @@ tempo_security::X509CertificateSigningRequest::getOrganizationalUnit() const
 }
 
 std::string
-tempo_security::X509CertificateSigningRequest::getCommonName() const
+tempo_security::X509CertificateSigningRequest::getOrganizationalUnit() const
 {
     if (!isValid())
         return {};
-    auto *dn = X509_REQ_get_subject_name(m_req);
+    return get_organizational_unit(m_req);
+}
+
+static std::string
+get_common_name(X509_REQ *req)
+{
+    auto *dn = X509_REQ_get_subject_name(req);
 
     std::string commonName;
     int lastpos = -1;
@@ -117,7 +127,7 @@ tempo_security::X509CertificateSigningRequest::getCommonName() const
         lastpos = X509_NAME_get_index_by_NID(dn, NID_commonName, lastpos);
         if (lastpos == -1)
             break;
-        if (found == true)
+        if (found)
             return {};
         auto *entry = X509_NAME_get_entry(dn, lastpos);
         auto *data = X509_NAME_ENTRY_get_data(entry);
@@ -131,6 +141,14 @@ tempo_security::X509CertificateSigningRequest::getCommonName() const
     }
 
     return commonName;
+}
+
+std::string
+tempo_security::X509CertificateSigningRequest::getCommonName() const
+{
+    if (!isValid())
+        return {};
+    return get_common_name(m_req);
 }
 
 std::string
@@ -197,14 +215,30 @@ struct SignCertCtx {
     }
 };
 
+static bool
+validate_csr(const SignCertCtx &ctx, tempo_security::CSRValidatorFunc validator)
+{
+    tempo_security::CSRValidationParams params;
+    params.organization = get_organization(ctx.req);
+    params.organizationalUnit = get_organizational_unit(ctx.req);
+    params.commonName = get_common_name(ctx.req);
+    return validator(params);
+}
+
 static tempo_utils::Status
 generate_certificate_from_X509_REQ(
     SignCertCtx &ctx,
     const tempo_security::CertificateKeyPair &caKeyPair,
     int serial,
-    std::chrono::seconds validity)
+    std::chrono::seconds validity,
+    tempo_security::CSRValidatorFunc validator)
 {
     TU_ASSERT (ctx.req != nullptr);
+
+    // if a validator function is specified then perform validation
+    if (validator && !validate_csr(ctx, validator))
+        return tempo_security::SecurityStatus::forCondition(
+            tempo_security::SecurityCondition::kSigningFailure, "error validating certificate request");
 
     // load the CA cert
     auto *cacrt_bio = BIO_new(BIO_s_file());
@@ -274,7 +308,8 @@ tempo_security::generate_certificate_from_csr(
     std::string_view pemRequestBytes,
     const CertificateKeyPair &caKeyPair,
     int serial,
-    std::chrono::seconds validity)
+    std::chrono::seconds validity,
+    CSRValidatorFunc validator)
 {
     SignCertCtx ctx;
 
@@ -291,7 +326,7 @@ tempo_security::generate_certificate_from_csr(
             "failed to read certificate signing request");
     }
 
-    auto status = generate_certificate_from_X509_REQ(ctx, caKeyPair, serial, validity);
+    auto status = generate_certificate_from_X509_REQ(ctx, caKeyPair, serial, validity, validator);
     TU_RETURN_IF_NOT_OK (status);
 
     // write the cert bytes
@@ -315,7 +350,8 @@ tempo_security::generate_certificate_from_csr(
     int serial,
     std::chrono::seconds validity,
     const std::filesystem::path &certificateDestDirectory,
-    std::string_view certificateFilenameStem)
+    std::string_view certificateFilenameStem,
+    CSRValidatorFunc validator)
 {
     SignCertCtx ctx;
 
@@ -333,7 +369,7 @@ tempo_security::generate_certificate_from_csr(
     }
 
     // generate the certificate from the csr
-    auto status = generate_certificate_from_X509_REQ(ctx, caKeyPair, serial, validity);
+    auto status = generate_certificate_from_X509_REQ(ctx, caKeyPair, serial, validity, validator);
     TU_RETURN_IF_NOT_OK (status);
 
     std::filesystem::path pemCertificateFile = certificateDestDirectory / certificateFilenameStem;

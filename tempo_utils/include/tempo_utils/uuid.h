@@ -6,6 +6,7 @@
 #include <absl/hash/hash.h>
 
 #include "integer_types.h"
+#include "result.h"
 
 namespace tempo_utils {
 
@@ -13,11 +14,14 @@ namespace tempo_utils {
     public:
         UUID();
 
-        bool isValid();
+        bool isValid() const;
+        bool isNil() const;
 
         std::string toString() const;
 
+        static UUID nilUUID();
         static UUID randomUUID();
+        static UUID parse(std::string_view s);
 
         bool operator==(const UUID &other) const;
         bool operator!=(const UUID &other) const;

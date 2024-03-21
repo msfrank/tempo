@@ -29,27 +29,65 @@ static tempo_utils::LoggingConfiguration loggingConfiguration = {
     false,
     nullptr,
 };
-static std::FILE *logSink = stderr;
+static std::FILE *loggingSink = stderr;
 
+/**
+ * Initialize logging with the given configuration.
+ *
+ * @param config The logging configuration.
+ * @return true if initialization succeeds, otherwise false upon failure. As a special
+ *   case, if initialization has already run, then this function does nothing and returns
+ *   true.
+ */
 bool
 tempo_utils::init_logging(const LoggingConfiguration &config)
 {
     std::lock_guard lock(globalLock);
     loggingConfiguration = config;
     if (loggingConfiguration.logFile) {
-        logSink = loggingConfiguration.logFile;
+        loggingSink = loggingConfiguration.logFile;
     } else if (loggingConfiguration.logToStdout) {
-        logSink = stdout;
+        loggingSink = stdout;
     } else {
-        logSink = stderr;
+        loggingSink = stderr;
     }
     return true;
 }
 
+/**
+ * Return the current logging configuration.
+ *
+ * @return The logging configuration.
+ */
+tempo_utils::LoggingConfiguration
+tempo_utils::get_logging_configuration()
+{
+    std::lock_guard lock(globalLock);
+    return loggingConfiguration;
+}
+
+/**
+ * Return a FILE pointer for the current logging sink.
+ *
+ * @return The FILE pointer. This should not be closed via fclose; use `cleanup_logging` instead.
+ */
+FILE *
+tempo_utils::get_logging_sink()
+{
+    std::lock_guard lock(globalLock);
+    return loggingSink;
+}
+
+/**
+ * Clean up logging resources.
+ *
+ * @return true if cleanup succeeds, otherwise false upon failure. As a special case,
+ *   if initialization has already run, then this function does nothing and returns true.
+ */
 bool
 tempo_utils::cleanup_logging()
 {
-    return false;
+    return true;
 }
 
 tempo_utils::LogCategory::LogCategory(char const *category)
@@ -63,6 +101,16 @@ tempo_utils::LogCategory::category() const
     return m_category;
 }
 
+/**
+ * Write a log message.
+ *
+ * @param ts Timestamp when the log event was generated.
+ * @param severity The severity of the log event.
+ * @param filePath Path to the file where the log event was generated.
+ * @param lineNr Line number in where the log event was generated.
+ * @param log The log message.
+ * @return true if the log was written to a sink, otherwise false.
+ */
 bool
 tempo_utils::write_log(
     const absl::Time &ts,
@@ -102,8 +150,8 @@ tempo_utils::write_log(
     }
 
     if (loggingConfiguration.displayShortForm) {
-        std::fwrite(log.c_str(), log.size(), 1, logSink);
-        std::fwrite("\n", 1, 1, logSink);
+        std::fwrite(log.c_str(), log.size(), 1, loggingSink);
+        std::fwrite("\n", 1, 1, loggingSink);
     }
     else {
         auto msg = absl::StrCat(
@@ -111,16 +159,23 @@ tempo_utils::write_log(
             " ", severityNames[static_cast<int>(severity)],
             " ", filePath, ":", lineNr,
             " ", log, "\n");
-        std::fwrite(msg.c_str(), msg.size(), 1, logSink);
+        std::fwrite(msg.c_str(), msg.size(), 1, loggingSink);
     }
 
     if (loggingConfiguration.flushEveryMessage) {
-        std::fflush(logSink);
+        std::fflush(loggingSink);
     }
 
     return true;
 }
 
+/**
+ * Write log to the console.
+ *
+ * @param severity The severity of the log event.
+ * @param log The log message.
+ * @return true if the log was written to console, otherwise false.
+ */
 bool
 tempo_utils::write_console(LogSeverity severity, const std::string &log)
 {

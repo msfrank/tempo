@@ -16,6 +16,7 @@ namespace tempo_utils {
 
     enum class KnownUrlScheme {
         Unknown,
+        NoScheme,
         Http,
         Https,
         File,

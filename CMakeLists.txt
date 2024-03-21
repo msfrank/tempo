@@ -102,7 +102,7 @@ endif()
 find_package(absl REQUIRED)
 
 # find required Boost dependencies
-find_package(boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS headers url)
 
 # find required Antlr dependency
 find_package(antlr REQUIRED)
@@ -119,9 +119,6 @@ find_package(icu REQUIRED)
 # find required Fmt dependency
 find_package(fmt REQUIRED)
 
-# find required Ada dependency
-find_package(ada REQUIRED)
-
 # find required jemalloc dependency
 find_package(jemalloc REQUIRED)
 
@@ -133,11 +130,6 @@ find_package(croaring REQUIRED)
 
 # find required Hdr Histogram dependency
 find_package(hdrhistogram REQUIRED)
-
-# find required dependencies which may come from the platform
-#find_package(ZLIB REQUIRED)
-#find_package(BZip2 REQUIRED)
-#find_package(LibXml2 REQUIRED)
 
 # find java build tool dependency for antlr
 find_package(Java REQUIRED)

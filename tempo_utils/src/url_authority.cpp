@@ -37,7 +37,7 @@ tempo_utils::UrlAuthority::hasUsername() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.has_non_empty_username();
+    return !m_priv->url.encoded_user().empty();
 }
 
 bool
@@ -45,7 +45,7 @@ tempo_utils::UrlAuthority::hasPassword() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.has_password();
+    return !m_priv->url.encoded_password().empty();
 }
 
 bool
@@ -53,7 +53,7 @@ tempo_utils::UrlAuthority::hasCredentials() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.has_credentials();
+    return m_priv->url.has_userinfo();
 }
 
 bool
@@ -61,7 +61,7 @@ tempo_utils::UrlAuthority::hasHost() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.has_hostname();
+    return !m_priv->url.encoded_host().empty();
 }
 
 bool
@@ -69,7 +69,7 @@ tempo_utils::UrlAuthority::hasPort() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.has_port();
+    return m_priv->url.has_port();
 }
 
 std::string
@@ -77,7 +77,7 @@ tempo_utils::UrlAuthority::getUsername() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_username());
+    return boost::urls::make_pct_string_view(usernameView())->decode();
 }
 
 std::string_view
@@ -85,7 +85,7 @@ tempo_utils::UrlAuthority::usernameView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_username();
+    return m_priv->url.encoded_user();
 }
 
 std::string
@@ -93,7 +93,7 @@ tempo_utils::UrlAuthority::getPassword() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_password());
+    return boost::urls::pct_string_view(passwordView()).decode();
 }
 
 std::string_view
@@ -101,7 +101,7 @@ tempo_utils::UrlAuthority::passwordView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_password();
+    return m_priv->url.encoded_password();
 }
 
 std::string
@@ -109,7 +109,7 @@ tempo_utils::UrlAuthority::getHost() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_hostname());
+    return m_priv->url.host();
 }
 
 std::string_view
@@ -117,7 +117,7 @@ tempo_utils::UrlAuthority::hostView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_hostname();
+    return m_priv->url.encoded_host();
 }
 
 std::string
@@ -125,7 +125,7 @@ tempo_utils::UrlAuthority::getPort() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_port());
+    return m_priv->url.port();
 }
 
 std::string_view
@@ -133,7 +133,7 @@ tempo_utils::UrlAuthority::portView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_port();
+    return m_priv->url.port();
 }
 
 std::string
@@ -141,7 +141,7 @@ tempo_utils::UrlAuthority::getHostAndPort() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_host());
+    return boost::urls::pct_string_view(hostAndPortView()).decode();
 }
 
 std::string_view
@@ -149,34 +149,31 @@ tempo_utils::UrlAuthority::hostAndPortView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_host();
+    return m_priv->url.encoded_host_and_port();
+}
+
+std::string_view
+tempo_utils::UrlAuthority::authorityView() const
+{
+    return m_priv->url.authority().buffer();
 }
 
 std::string
 tempo_utils::UrlAuthority::toString() const
 {
-    std::string authority;
-    if (hasCredentials()) {
-        authority.append(usernameView());
-        if (hasPassword()) {
-            authority.push_back(':');
-            authority.append(passwordView());
-        }
-        authority.push_back('@');
-    }
-    return authority.append(hostAndPortView());
+    return boost::urls::pct_string_view(authorityView()).decode();
 }
 
 bool
 tempo_utils::UrlAuthority::operator==(const UrlAuthority &other) const
 {
+    if (m_priv.get() == other.m_priv.get())
+        return true;
     if (m_priv == nullptr)
         return other.m_priv == nullptr;
     if (other.m_priv == nullptr)
         return false;
-    return usernameView() == other.usernameView()
-           && passwordView() == other.passwordView()
-           && hostAndPortView() == other.hostAndPortView();
+    return boost::urls::authority_view(m_priv->url) == boost::urls::authority_view(other.m_priv->url);
 }
 
 bool

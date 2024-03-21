@@ -32,6 +32,8 @@ namespace tempo_utils {
         std::string getHostAndPort() const;
         std::string_view hostAndPortView() const;
 
+        std::string_view authorityView() const;
+
         std::string toString() const;
 
         bool operator==(const UrlAuthority &other) const;
@@ -40,7 +42,7 @@ namespace tempo_utils {
     private:
         std::shared_ptr<internal::UrlData> m_priv;
 
-        UrlAuthority(std::shared_ptr<internal::UrlData> priv);
+        explicit UrlAuthority(std::shared_ptr<internal::UrlData> priv);
 
         friend class Url;
     };

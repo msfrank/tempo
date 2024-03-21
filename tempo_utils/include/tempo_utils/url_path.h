@@ -38,6 +38,7 @@ namespace tempo_utils {
 
         bool isValid() const;
         bool isEmpty() const;
+        bool isAbsolute() const;
 
         int numParts() const;
         UrlPathPart getPart(int index) const;
@@ -75,12 +76,12 @@ namespace tempo_utils {
 
     private:
         std::shared_ptr<internal::UrlData> m_priv;
-        std::vector<std::pair<tu_int16,tu_int16>> m_parts;
+//        std::vector<std::pair<tu_int16,tu_int16>> m_parts;
 
-        UrlPath(std::shared_ptr<internal::UrlData> priv);
-        UrlPath(
-            std::shared_ptr<internal::UrlData> priv,
-            std::vector<std::pair<tu_int16,tu_int16>> &&parts);
+        explicit UrlPath(std::shared_ptr<internal::UrlData> priv);
+//        UrlPath(
+//            std::shared_ptr<internal::UrlData> priv,
+//            std::vector<std::pair<tu_int16,tu_int16>> &&parts);
 
         friend class Url;
 

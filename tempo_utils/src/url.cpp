@@ -2,7 +2,6 @@
 #include <filesystem>
 
 #include <absl/strings/str_cat.h>
-#include <ada.h>
 
 #include <tempo_utils/internal/url_data.h>
 #include <tempo_utils/unicode.h>
@@ -85,7 +84,7 @@ tempo_utils::Url::hasScheme() const
 {
     if (m_priv == nullptr)
         return false;
-    return !m_priv->uri.get_protocol().empty();
+    return m_priv->url.has_scheme();
 }
 
 bool
@@ -93,10 +92,14 @@ tempo_utils::Url::hasOrigin() const
 {
     if (m_priv == nullptr)
         return false;
-    const auto &uri = m_priv->uri;
-    if (uri.type == ada::scheme::FILE)
-        return !uri.get_protocol().empty();
-    return !uri.get_protocol().empty() && !uri.get_hostname().empty();
+    const auto &url = m_priv->url;
+    // an origin must have a scheme
+    if (!url.has_scheme())
+        return false;
+    // as a special case a file scheme is considered to have an origin even if there is no authority
+    if (url.scheme_id() == boost::urls::scheme::file)
+        return true;
+    return url.has_authority();
 }
 
 bool
@@ -104,8 +107,7 @@ tempo_utils::Url::hasAuthority() const
 {
     if (m_priv == nullptr)
         return false;
-    const auto &uri = m_priv->uri;
-    return uri.has_hostname() || uri.has_credentials();
+    return m_priv->url.has_authority();
 }
 
 bool
@@ -113,7 +115,7 @@ tempo_utils::Url::hasPath() const
 {
     if (m_priv == nullptr)
         return false;
-    return !m_priv->uri.get_pathname().empty();
+    return !m_priv->url.encoded_path().empty();
 }
 
 bool
@@ -121,7 +123,7 @@ tempo_utils::Url::hasQuery() const
 {
     if (m_priv == nullptr)
         return false;
-    return !m_priv->uri.get_search().empty();
+    return !m_priv->url.encoded_query().empty();
 }
 
 bool
@@ -129,7 +131,7 @@ tempo_utils::Url::hasFragment() const
 {
     if (m_priv == nullptr)
         return false;
-    return !m_priv->uri.get_hash().empty();
+    return !m_priv->url.encoded_fragment().empty();
 }
 
 bool
@@ -141,12 +143,16 @@ tempo_utils::Url::isKnownScheme() const
 tempo_utils::KnownUrlScheme
 tempo_utils::Url::getKnownScheme() const
 {
-    switch (ada::scheme::get_scheme_type(schemeView())) {
-        case ada::scheme::HTTP:
+    if (m_priv == nullptr)
+        return KnownUrlScheme::Unknown;
+    switch (m_priv->url.scheme_id()) {
+        case boost::urls::scheme::none:
+            return KnownUrlScheme::NoScheme;
+        case boost::urls::scheme::http:
             return KnownUrlScheme::Http;
-        case ada::scheme::HTTPS:
+        case boost::urls::scheme::https:
             return KnownUrlScheme::Https;
-        case ada::scheme::FILE:
+        case boost::urls::scheme::file:
             return KnownUrlScheme::File;
         default:
             return KnownUrlScheme::Unknown;
@@ -166,10 +172,7 @@ tempo_utils::Url::schemeView() const
 {
     if (m_priv == nullptr)
         return {};
-    auto protocol = m_priv->uri.get_protocol();
-    if (!protocol.empty() && protocol.back() == ':')
-        return std::string_view(protocol.data(), protocol.size() - 1);
-    return protocol;
+    return m_priv->url.scheme();
 }
 
 std::string
@@ -177,7 +180,7 @@ tempo_utils::Url::getHost() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_hostname());
+    return boost::urls::pct_string_view(hostView()).decode();
 }
 
 std::string_view
@@ -185,7 +188,7 @@ tempo_utils::Url::hostView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_hostname();
+    return m_priv->url.encoded_host();
 }
 
 std::string
@@ -193,7 +196,7 @@ tempo_utils::Url::getPort() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_port());
+    return m_priv->url.port();
 }
 
 std::string_view
@@ -201,15 +204,7 @@ tempo_utils::Url::portView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_port();
-}
-
-std::string
-tempo_utils::Url::getHostAndPort() const
-{
-    if (m_priv == nullptr)
-        return {};
-    return std::string(m_priv->uri.get_host());
+    return m_priv->url.port();
 }
 
 std::string_view
@@ -217,7 +212,15 @@ tempo_utils::Url::hostAndPortView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_host();
+    return m_priv->url.encoded_host_and_port();
+}
+
+std::string
+tempo_utils::Url::getHostAndPort() const
+{
+    if (m_priv == nullptr)
+        return {};
+    return boost::urls::pct_string_view(hostAndPortView()).decode();
 }
 
 std::string
@@ -225,7 +228,7 @@ tempo_utils::Url::getUsername() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_username());
+    return boost::urls::pct_string_view(usernameView()).decode();
 }
 
 std::string_view
@@ -233,7 +236,7 @@ tempo_utils::Url::usernameView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_username();
+    return m_priv->url.encoded_user();
 }
 
 std::string
@@ -241,7 +244,7 @@ tempo_utils::Url::getPassword() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_password());
+    return boost::urls::pct_string_view(passwordView()).decode();
 }
 
 std::string_view
@@ -249,7 +252,7 @@ tempo_utils::Url::passwordView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_password();
+    return m_priv->url.encoded_password();
 }
 
 std::string
@@ -257,7 +260,7 @@ tempo_utils::Url::getPath() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_pathname());
+    return m_priv->url.path();
 }
 
 std::string_view
@@ -265,7 +268,7 @@ tempo_utils::Url::pathView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_pathname();
+    return m_priv->url.encoded_path();
 }
 
 std::string
@@ -273,7 +276,7 @@ tempo_utils::Url::getQuery() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_search());
+    return m_priv->url.query();
 }
 
 std::string_view
@@ -281,7 +284,7 @@ tempo_utils::Url::queryView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_search();
+    return m_priv->url.encoded_query();
 }
 
 std::string
@@ -289,7 +292,7 @@ tempo_utils::Url::getFragment() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_hash());
+    return m_priv->url.fragment();
 }
 
 std::string_view
@@ -297,15 +300,15 @@ tempo_utils::Url::fragmentView() const
 {
     if (m_priv == nullptr)
         return {};
-    return m_priv->uri.get_hash();
+    return m_priv->url.encoded_fragment();
 }
 
 std::string_view
 tempo_utils::Url::uriView() const
 {
     if (m_priv == nullptr)
-        return std::string_view();
-    return m_priv->uri.get_href();
+        return {};
+    return m_priv->data;
 }
 
 tempo_utils::Url
@@ -351,7 +354,7 @@ tempo_utils::Url::toString() const
 {
     if (m_priv == nullptr)
         return {};
-    return std::string(m_priv->uri.get_href());
+    return boost::urls::pct_string_view(m_priv->data).decode();
 }
 
 std::filesystem::path
@@ -370,24 +373,24 @@ tempo_utils::Url::validate(tu_uint16 validations) const
 
     // if no validations are specified then only check for empty url (this is equivalent to isValid)
     if (validations == 0)
-        return !m_priv->uri.get_href().empty();
+        return !m_priv->url.empty();
 
     // otherwise perform each specified check
-    if (validations & kHasScheme && m_priv->uri.get_protocol().empty())
+    if (validations & kHasScheme && !hasScheme())
         return false;
-    if (validations & kHasUsername && m_priv->uri.get_username().empty())
+    if (validations & kHasUsername && usernameView().empty())
         return false;
-    if (validations & kHasPassword && m_priv->uri.get_password().empty())
+    if (validations & kHasPassword && passwordView().empty())
         return false;
-    if (validations & kHasHost && m_priv->uri.get_hostname().empty())
+    if (validations & kHasHost && hostView().empty())
         return false;
-    if (validations & kHasPort && m_priv->uri.get_port().empty())
+    if (validations & kHasPort && portView().empty())
         return false;
-    if (validations & kHasPath && m_priv->uri.get_pathname().empty())
+    if (validations & kHasPath && pathView().empty())
         return false;
-    if (validations & kHasQuery && m_priv->uri.get_search().empty())
+    if (validations & kHasQuery && queryView().empty())
         return false;
-    if (validations & kHasFragment && m_priv->uri.get_hash().empty())
+    if (validations & kHasFragment && fragmentView().empty())
         return false;
 
     return true;
@@ -396,8 +399,13 @@ tempo_utils::Url::validate(tu_uint16 validations) const
 bool
 tempo_utils::Url::operator==(const tempo_utils::Url &other) const
 {
-    return m_priv.get() == other.m_priv.get()
-        || uriView() == other.uriView();
+    if (m_priv.get() == other.m_priv.get())
+        return true;
+    if (m_priv == nullptr)
+        return other.m_priv == nullptr;
+    if (other.m_priv == nullptr)
+        return false;
+    return m_priv->url == other.m_priv->url;
 }
 
 bool
@@ -409,22 +417,19 @@ tempo_utils::Url::operator!=(const tempo_utils::Url &other) const
 tempo_utils::Url
 tempo_utils::Url::fromString(std::string_view s)
 {
-    ada::result<ada::url_aggregator> parseUrlResult = ada::parse<ada::url_aggregator>(s, nullptr);
-    if (parseUrlResult)
-        return Url(std::make_shared<internal::UrlData>(std::move(*parseUrlResult)));
-
-    ada::url_aggregator base;
-    ada::result<ada::url_aggregator> parseUrlWithBaseResult = ada::parse<ada::url_aggregator>(s, &base);
-    if (parseUrlWithBaseResult)
-        return Url(std::make_shared<internal::UrlData>(std::move(*parseUrlWithBaseResult)));
-
-    return Url();
+    auto priv = std::make_shared<internal::UrlData>();
+    priv->data = s;
+    auto parseUrlResult = boost::urls::parse_uri_reference(priv->data);
+    if (parseUrlResult.has_error())
+        return {};
+    priv->url = *parseUrlResult;
+    return Url(priv);
 }
 
 tempo_utils::Url
 tempo_utils::Url::fromAbsolute(
     std::string_view scheme,
-    UrlAuthority authority,
+    const UrlAuthority &authority,
     std::string_view path,
     std::string_view query,
     std::string_view fragment)
@@ -470,7 +475,7 @@ tempo_utils::Url::fromAbsolute(
 
 tempo_utils::Url
 tempo_utils::Url::fromAuthority(
-    UrlAuthority authority,
+    const UrlAuthority &authority,
     std::string_view path,
     std::string_view query,
     std::string_view fragment)
@@ -516,7 +521,7 @@ tempo_utils::Url::fromAuthority(
 
 tempo_utils::Url
 tempo_utils::Url::fromOrigin(
-    UrlOrigin origin,
+    const UrlOrigin &origin,
     std::string_view path,
     std::string_view query,
     std::string_view fragment)

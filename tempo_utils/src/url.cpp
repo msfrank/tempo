@@ -417,6 +417,8 @@ tempo_utils::Url::operator!=(const tempo_utils::Url &other) const
 tempo_utils::Url
 tempo_utils::Url::fromString(std::string_view s)
 {
+    if (s.empty())
+        return {};
     auto priv = std::make_shared<internal::UrlData>();
     priv->data = s;
     auto parseUrlResult = boost::urls::parse_uri_reference(priv->data);
@@ -620,6 +622,65 @@ tempo_utils::Url::fromFilesystemPath(const std::filesystem::path &path)
     s.append(absolutePath.relative_path().generic_string());
 
     return fromString(s);
+}
+
+tempo_utils::Url
+tempo_utils::Url::withScheme(std::string_view scheme) const
+{
+    if (m_priv == nullptr)
+        return {};
+    boost::url updated(m_priv->url);
+    if (scheme.empty()) {
+        updated.remove_scheme();
+    } else {
+        updated.set_scheme(scheme);
+    }
+    return fromString(updated.buffer());
+}
+
+tempo_utils::Url
+tempo_utils::Url::withPath(std::string_view path) const
+{
+    if (m_priv == nullptr)
+        return {};
+    boost::url updated(m_priv->url);
+    if (path.empty()) {
+        updated.set_path("");
+        updated.set_path_absolute(false);
+    } else {
+        updated.set_path(path);
+        bool isAbsolute = path.starts_with('/');
+        updated.set_path_absolute(isAbsolute);
+    }
+    return fromString(updated.buffer());
+}
+
+tempo_utils::Url
+tempo_utils::Url::withQuery(std::string_view query) const
+{
+    if (m_priv == nullptr)
+        return {};
+    boost::url updated(m_priv->url);
+    if (query.empty()) {
+        updated.remove_query();
+    } else {
+        updated.set_query(query);
+    }
+    return fromString(updated.buffer());
+}
+
+tempo_utils::Url
+tempo_utils::Url::withFragment(std::string_view fragment) const
+{
+    if (m_priv == nullptr)
+        return {};
+    boost::url updated(m_priv->url);
+    if (fragment.empty()) {
+        updated.remove_fragment();
+    } else {
+        updated.set_fragment(fragment);
+    }
+    return fromString(updated.buffer());
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(tempo_utils::LogMessage &&message, const tempo_utils::Url &uri)

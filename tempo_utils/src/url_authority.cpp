@@ -155,12 +155,16 @@ tempo_utils::UrlAuthority::hostAndPortView() const
 std::string_view
 tempo_utils::UrlAuthority::authorityView() const
 {
+    if (m_priv == nullptr)
+        return {};
     return m_priv->url.authority().buffer();
 }
 
 std::string
 tempo_utils::UrlAuthority::toString() const
 {
+    if (m_priv == nullptr)
+        return {};
     return boost::urls::pct_string_view(authorityView()).decode();
 }
 

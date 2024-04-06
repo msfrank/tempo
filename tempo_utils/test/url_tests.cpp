@@ -2,19 +2,27 @@
 
 #include <tempo_utils/tempo_utils.h>
 
-//TEST(Url, TestConstructUrl)
-//{
-//    tempo_utils::Url url("dev.zuri.pkg", "core-1.0.0@zuri.dev", "/core", "key=value", "Char");
-//    ASSERT_TRUE (tempo_utils::is_valid_uri(uri));
-//
-//    ASSERT_EQ (url.getScheme(), "dev.zuri.pkg");
-//    ASSERT_EQ (url.getAuthority(), "core-1.0.0@zuri.dev");
-//    ASSERT_EQ (url.getPath(), "/core");
-//    ASSERT_EQ (url.getQuery(), "key=value");
-//    ASSERT_EQ (url.getFragment(), "Char");
-//
-//    ASSERT_EQ (url.toString(), "dev.zuri.pkg://core-1.0.0@zuri.dev/core?key=value#Char");
-//}
+TEST(Url, TestEmptyUrl)
+{
+    auto url = tempo_utils::Url::fromString("");
+    ASSERT_FALSE (url.validate());
+
+    ASSERT_FALSE (url.isValid());
+    ASSERT_FALSE (url.isAbsolute());
+    ASSERT_FALSE (url.isRelative());
+    ASSERT_FALSE (url.isKnownScheme());
+    ASSERT_FALSE (url.isAuthority());
+    ASSERT_FALSE (url.isFragment());
+
+    ASSERT_EQ (url.getScheme(), "");
+    ASSERT_EQ (url.getUsername(), "");
+    ASSERT_EQ (url.getHost(), "");
+    ASSERT_EQ (url.getPath(), "");
+    ASSERT_EQ (url.getQuery(), "");
+    ASSERT_EQ (url.getFragment(), "");
+
+    ASSERT_EQ (url.toString(), "");
+}
 
 TEST(Url, TestParseUrlWithAllComponents)
 {
@@ -273,4 +281,48 @@ TEST(Url, TestTraverseRelativeUrl)
     auto url = baseUrl.traverse(tempo_utils::UrlPathPart("baz"));
 
     ASSERT_EQ (url.toString(), "/foo/bar/baz");
+}
+
+TEST(Url, TestUpdateUrlScheme)
+{
+    auto urlNoScheme = tempo_utils::Url::fromString("//localhost/foo");
+
+    ASSERT_EQ ("http://localhost/foo", urlNoScheme.withScheme("http").toString());
+
+    auto urlWithScheme = tempo_utils::Url::fromString("http://localhost/foo");
+    ASSERT_EQ ("https://localhost/foo", urlWithScheme.withScheme("https").toString());
+    ASSERT_EQ ("//localhost/foo", urlWithScheme.withScheme("").toString());
+}
+
+TEST(Url, TestUpdateUrlPath)
+{
+    auto urlNoPath = tempo_utils::Url::fromString("http://localhost");
+
+    ASSERT_EQ ("http://localhost/foo", urlNoPath.withPath("/foo").toString());
+
+    auto urlWithPath = tempo_utils::Url::fromString("http://localhost/foo");
+    ASSERT_EQ ("http://localhost/bar", urlWithPath.withPath("/bar").toString());
+    ASSERT_EQ ("http://localhost", urlWithPath.withPath("").toString());
+}
+
+TEST(Url, TestUpdateUrlQuery)
+{
+    auto urlNoQuery = tempo_utils::Url::fromString("http://localhost/foo");
+
+    ASSERT_EQ ("http://localhost/foo?added", urlNoQuery.withQuery("added").toString());
+
+    auto urlWithQuery = tempo_utils::Url::fromString("http://localhost/foo?existing");
+    ASSERT_EQ ("http://localhost/foo?changed", urlWithQuery.withQuery("changed").toString());
+    ASSERT_EQ ("http://localhost/foo", urlWithQuery.withQuery("").toString());
+}
+
+TEST(Url, TestUpdateUrlFragment)
+{
+    auto urlNoFragment = tempo_utils::Url::fromString("http://localhost/foo");
+
+    ASSERT_EQ ("http://localhost/foo#added", urlNoFragment.withFragment("added").toString());
+
+    auto urlWithFragment = tempo_utils::Url::fromString("http://localhost/foo#existing");
+    ASSERT_EQ ("http://localhost/foo#changed", urlWithFragment.withFragment("changed").toString());
+    ASSERT_EQ ("http://localhost/foo", urlWithFragment.withFragment("").toString());
 }

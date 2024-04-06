@@ -32,7 +32,6 @@ tempo_utils::UrlOrigin::isEmpty() const
     return !hasScheme() && !hasHost() && !hasPort();
 }
 
-
 bool
 tempo_utils::UrlOrigin::hasScheme() const
 {

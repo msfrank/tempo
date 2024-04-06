@@ -127,6 +127,11 @@ namespace tempo_utils {
 
         static Url fromFilesystemPath(const std::filesystem::path &path);
 
+        Url withScheme(std::string_view scheme) const;
+        Url withPath(std::string_view path) const;
+        Url withQuery(std::string_view query) const;
+        Url withFragment(std::string_view fragment) const;
+
         template <typename H>
         friend H AbslHashValue(H h, const tempo_utils::Url &uri) {
             auto view = uri.uriView();

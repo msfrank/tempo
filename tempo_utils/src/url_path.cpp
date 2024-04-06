@@ -214,6 +214,8 @@ tempo_utils::UrlPath::isParentOf(const UrlPath &other) const
 bool
 tempo_utils::UrlPath::isChildOf(const UrlPath &other) const
 {
+    if (m_priv == nullptr)
+        return false;
     return other.isParentOf(*this);
 }
 
@@ -244,6 +246,8 @@ tempo_utils::UrlPath::isAncestorOf(const UrlPath &other) const
 bool
 tempo_utils::UrlPath::isDescendentOf(const UrlPath &other) const
 {
+    if (m_priv == nullptr)
+        return false;
     return other.isAncestorOf(*this);
 }
 
@@ -254,8 +258,6 @@ tempo_utils::UrlPath::pathView() const
         return {};
     return m_priv->url.encoded_path();
 }
-
-static const boost::urls::static_url<8> kUrlPathTraverseBase("path://");
 
 tempo_utils::UrlPath
 tempo_utils::UrlPath::traverse(const UrlPathPart &part)
@@ -280,6 +282,8 @@ tempo_utils::UrlPath::traverse(const UrlPathPart &part)
 std::string
 tempo_utils::UrlPath::toString() const
 {
+    if (m_priv == nullptr)
+        return {};
     return std::string(pathView());
 }
 

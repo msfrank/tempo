@@ -55,7 +55,7 @@ class Tempo(ConanFile):
         flatbuffers = self.dependencies['flatbuffers'].buildenv_info.vars(self)
 
         tc = CMakeToolchain(self)
-        tc.variables['PACKAGE_VERSION'] = self.version
+        tc.variables['TEMPO_PACKAGE_VERSION'] = self.version
         tc.variables['ANTLR_TOOL_JAR'] = antlr.get('ANTLR_TOOL_JAR')
         tc.variables['FLATBUFFERS_FLATC'] = flatbuffers.get('FLATBUFFERS_FLATC')
         tc.generate()

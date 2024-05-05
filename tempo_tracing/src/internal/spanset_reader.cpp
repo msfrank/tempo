@@ -1,25 +1,14 @@
 
+#include <flatbuffers/idl.h>
+
+#include <tempo_tracing/generated/spanset_schema.h>
 #include <tempo_tracing/internal/spanset_reader.h>
 #include <tempo_tracing/tracing_types.h>
 
-tempo_tracing::internal::SpansetReader::SpansetReader()
-    : m_bytes(),
-      m_spanset(nullptr)
-{
-}
-
-tempo_tracing::internal::SpansetReader::SpansetReader(std::shared_ptr<const std::string> bytes)
+tempo_tracing::internal::SpansetReader::SpansetReader(std::span<const tu_uint8> bytes)
     : m_bytes(bytes)
 {
-    if (!m_bytes->empty()) {
-        m_spanset = tts1::GetSpanset(m_bytes->data());
-    }
-}
-
-tempo_tracing::internal::SpansetReader::SpansetReader(const tempo_tracing::internal::SpansetReader &other)
-    : m_bytes(other.m_bytes),
-      m_spanset(other.m_spanset)
-{
+    m_spanset = tts1::GetSpanset(m_bytes.data());
 }
 
 bool
@@ -155,8 +144,21 @@ tempo_tracing::internal::SpansetReader::numErrors() const
     return m_spanset->errors()? m_spanset->errors()->size() : 0;
 }
 
-std::shared_ptr<const std::string>
-tempo_tracing::internal::SpansetReader::getBytes() const
+std::span<const tu_uint8>
+tempo_tracing::internal::SpansetReader::bytesView() const
 {
     return m_bytes;
+}
+
+std::string
+tempo_tracing::internal::SpansetReader::dumpJson() const
+{
+    flatbuffers::Parser parser;
+    parser.Parse((const char *) tempo_tracing::schema::spanset::data);
+    parser.opts.strict_json = true;
+
+    std::string jsonData;
+    auto *err = GenText(parser, m_bytes.data(), &jsonData);
+    TU_ASSERT (err == nullptr);
+    return jsonData;
 }

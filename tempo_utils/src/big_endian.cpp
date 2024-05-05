@@ -3,6 +3,13 @@
 
 #include <tempo_utils/big_endian.h>
 
+/**
+ * Read a big-endian encoded uint16 from `array` and return the value after converting to host order.
+ * Note that this function does not perform any bounds checking on `array`.
+ *
+ * @param array pointer to an array containing at least 2 bytes.
+ * @return the unsigned 16bit value.
+ */
 tu_uint16
 tempo_utils::read_u16(const tu_uint8 array[2])
 {
@@ -12,6 +19,13 @@ tempo_utils::read_u16(const tu_uint8 array[2])
     return BE16_TO_H(ns);
 }
 
+/**
+ * Read a big-endian encoded int16 from `array` and return the value after converting to host order.
+ * Note that this function does not perform any bounds checking on `array`.
+ *
+ * @param array pointer to an array containing at least 2 bytes.
+ * @return the signed 16bit value.
+ */
 tu_int16
 tempo_utils::read_i16(const tu_uint8 array[2])
 {
@@ -21,6 +35,13 @@ tempo_utils::read_i16(const tu_uint8 array[2])
     return BE16_TO_H(ns);
 }
 
+/**
+ * Read a big-endian encoded uint32 from `array` and return the value after converting to host order.
+ * Note that this function does not perform any bounds checking on `array`.
+ *
+ * @param array pointer to an array containing at least 4 bytes.
+ * @return the unsigned 32bit value.
+ */
 tu_uint32
 tempo_utils::read_u32(const tu_uint8 array[4])
 {
@@ -30,6 +51,13 @@ tempo_utils::read_u32(const tu_uint8 array[4])
     return BE32_TO_H(nl);
 }
 
+/**
+ * Read a big-endian encoded int32 from `array` and return the value after converting to host order.
+ * Note that this function does not perform any bounds checking on `array`.
+ *
+ * @param array pointer to an array containing at least 4 bytes.
+ * @return the signed 32bit value.
+ */
 tu_int32
 tempo_utils::read_i32(const tu_uint8 array[4])
 {
@@ -39,6 +67,13 @@ tempo_utils::read_i32(const tu_uint8 array[4])
     return BE32_TO_H(nl);
 }
 
+/**
+ * Read a big-endian encoded uint64 from `array` and return the value after converting to host order.
+ * Note that this function does not perform any bounds checking on `array`.
+ *
+ * @param array pointer to an array containing at least 8 bytes.
+ * @return the unsigned 64bit value.
+ */
 tu_uint64
 tempo_utils::read_u64(const tu_uint8 array[8])
 {
@@ -48,6 +83,13 @@ tempo_utils::read_u64(const tu_uint8 array[8])
     return BE64_TO_H(nll);
 }
 
+/**
+ * Read a big-endian encoded int64 from `array` and return the value after converting to host order.
+ * Note that this function does not perform any bounds checking on `array`.
+ *
+ * @param array pointer to an array containing at least 8 bytes.
+ * @return the signed 64bit value.
+ */
 tu_int64
 tempo_utils::read_i64(const tu_uint8 array[8])
 {

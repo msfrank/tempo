@@ -3,6 +3,7 @@
 #include <openssl/pem.h>
 #include <openssl/x509v3.h>
 
+#include <tempo_security/security_result.h>
 #include <tempo_security/x509_certificate.h>
 #include <tempo_utils/file_result.h>
 #include <tempo_utils/log_stream.h>
@@ -230,6 +231,29 @@ err:
                 tempo_utils::FileCondition::kAccessDenied,
                 "access denied for {}", pemCertificateFile.string());
         default:
-            return tempo_utils::PosixStatus::fromError(errno);
+            return SecurityStatus::forCondition(
+                SecurityCondition::kParseError, "failed to parse PEM X509 certificate");
     }
+}
+
+tempo_utils::Result<std::shared_ptr<tempo_security::X509Certificate>>
+tempo_security::X509Certificate::fromString(
+    std::string_view pemCertificateString)
+{
+    X509 *x509 = nullptr;
+    auto *bio = BIO_new(BIO_s_mem());
+    if (bio == nullptr)
+        goto err;
+    if (!BIO_write(bio, pemCertificateString.data(), static_cast<int>(pemCertificateString.size())))
+        goto err;
+    if (!PEM_read_bio_X509(bio, &x509, nullptr, nullptr))
+        goto err;
+    BIO_free(bio);
+    return std::shared_ptr<X509Certificate>(new X509Certificate(x509));
+
+err:
+    if (bio != nullptr)
+        BIO_free(bio);
+    return SecurityStatus::forCondition(
+        SecurityCondition::kParseError, "failed to parse PEM X509 certificate");
 }

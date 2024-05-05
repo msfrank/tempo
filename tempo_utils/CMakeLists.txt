@@ -10,6 +10,7 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/attr.h
     include/tempo_utils/attr_result.h
     include/tempo_utils/bytes_appender.h
+    include/tempo_utils/bytes_iterator.h
     include/tempo_utils/compressed_bitmap.h
     include/tempo_utils/daemon_process.h
     include/tempo_utils/date_time.h
@@ -68,6 +69,7 @@ target_sources(tempo_utils
     src/attr.cpp
     src/attr_result.cpp
     src/bytes_appender.cpp
+    src/bytes_iterator.cpp
     src/compressed_bitmap.cpp
     src/daemon_process.cpp
     src/date_time.cpp

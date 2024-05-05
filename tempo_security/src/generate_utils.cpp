@@ -520,7 +520,7 @@ tempo_security::generate_self_signed_key_pair(
         (const unsigned char*) commonName.data(), commonName.length(), -1, 0);
 
     // set v3 extensions
-    //add_x509_ext(nullptr, ctx.crt, NID_netscape_comment, "example comment extension");
+    add_x509_ext(nullptr, ctx.crt, NID_netscape_comment, "example comment extension");
 
     // this is a self-signed cert so set issuer to the same value as subject
     X509_set_issuer_name(ctx.crt, dn);

@@ -3,6 +3,7 @@
 #include <tempo_tracing/spanset_state.h>
 #include <tempo_tracing/tempo_spanset.h>
 #include <tempo_tracing/tracing_types.h>
+#include <tempo_utils/memory_bytes.h>
 
 tempo_tracing::SpansetState::SpansetState(tempo_utils::TraceId id)
     : m_id(id),
@@ -259,7 +260,6 @@ tempo_tracing::SpansetState::toSpanset() const
     buffer.Finish(spanset, tts1::SpansetIdentifier());
 
     // copy the flatbuffer into our own byte array and instantiate package
-    auto bytes = std::make_shared<const std::string>((
-        const char *) buffer.GetBufferPointer(), buffer.GetSize());
+    auto bytes = tempo_utils::MemoryBytes::copy(buffer.GetBufferSpan());
     return tempo_tracing::TempoSpanset(bytes);
 }

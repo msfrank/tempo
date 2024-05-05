@@ -18,21 +18,21 @@ namespace tempo_security {
         ~X509CertificateSigningRequest();
 
         bool isValid() const;
-        std::filesystem::path getPemRequestFile() const;
         std::string getOrganization() const;
         std::string getOrganizationalUnit() const;
         std::string getCommonName() const;
         std::string toString() const;
 
         static tempo_utils::Result<std::shared_ptr<X509CertificateSigningRequest>> readFile(
-            const std::filesystem::path &pemCertificateFile);
+            const std::filesystem::path &pemCSRFile);
+        static tempo_utils::Result<std::shared_ptr<X509CertificateSigningRequest>> fromString(
+            std::string_view &pemCSRString);
 
     private:
-        std::filesystem::path m_pemRequestFile;
         X509_REQ *m_req;
 
         X509CertificateSigningRequest();
-        X509CertificateSigningRequest(const std::filesystem::path &pemRequestFile, X509_REQ *req);
+        explicit X509CertificateSigningRequest(X509_REQ *req);
     };
 
     struct CSRValidationParams {

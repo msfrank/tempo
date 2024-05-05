@@ -38,6 +38,16 @@ tempo_utils::BytesAppender::appendU32(tu_uint32 u32)
 }
 
 void
+tempo_utils::BytesAppender::appendU64(tu_uint64 u64)
+{
+    TU_ASSERT (m_bytes != nullptr);
+    auto size = m_bytes->size();
+    m_bytes->resize(size + 8);
+    auto *ptr = ((tu_uint8 *) m_bytes->data()) + size;
+    write_u64(u64, ptr);
+}
+
+void
 tempo_utils::BytesAppender::appendBytes(std::span<const tu_uint8> bytes)
 {
     TU_ASSERT (m_bytes != nullptr);

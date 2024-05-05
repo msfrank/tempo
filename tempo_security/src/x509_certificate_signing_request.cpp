@@ -14,11 +14,8 @@ tempo_security::X509CertificateSigningRequest::X509CertificateSigningRequest()
 {
 }
 
-tempo_security::X509CertificateSigningRequest::X509CertificateSigningRequest(
-    const std::filesystem::path &pemRequestFile,
-    X509_REQ *req)
-    : m_pemRequestFile(pemRequestFile),
-      m_req(req)
+tempo_security::X509CertificateSigningRequest::X509CertificateSigningRequest(X509_REQ *req)
+    : m_req(req)
 {
     TU_ASSERT (m_req != nullptr);
 }
@@ -32,12 +29,6 @@ bool
 tempo_security::X509CertificateSigningRequest::isValid() const
 {
     return m_req != nullptr;
-}
-
-std::filesystem::path
-tempo_security::X509CertificateSigningRequest::getPemRequestFile() const
-{
-    return m_pemRequestFile;
 }
 
 static std::string
@@ -165,17 +156,17 @@ tempo_security::X509CertificateSigningRequest::toString() const
 
 tempo_utils::Result<std::shared_ptr<tempo_security::X509CertificateSigningRequest>>
 tempo_security::X509CertificateSigningRequest::readFile(
-    const std::filesystem::path &pemRequestFile)
+    const std::filesystem::path &pemCSRFile)
 {
     X509_REQ *req = nullptr;
-    auto *bio = BIO_new_file(pemRequestFile.c_str(), "rx");
+    auto *bio = BIO_new_file(pemCSRFile.c_str(), "rx");
     if (bio == nullptr)
         goto err;
     if (!PEM_read_bio_X509_REQ(bio, &req, nullptr, nullptr))
         goto err;
     BIO_free(bio);
     return std::shared_ptr<X509CertificateSigningRequest>(
-        new X509CertificateSigningRequest(pemRequestFile, req));
+        new X509CertificateSigningRequest(req));
 
     err:
     if (bio != nullptr)
@@ -184,14 +175,38 @@ tempo_security::X509CertificateSigningRequest::readFile(
         case ENOENT:
             return tempo_utils::FileStatus::forCondition(
                 tempo_utils::FileCondition::kFileNotFound,
-                "certificate file {} not found", pemRequestFile.string());
+                "certificate signing request file {} not found", pemCSRFile.string());
         case EACCES:
             return tempo_utils::FileStatus::forCondition(
                 tempo_utils::FileCondition::kAccessDenied,
-                "access denied for {}", pemRequestFile.string());
+                "access denied for {}", pemCSRFile.string());
         default:
-            return tempo_utils::PosixStatus::fromError(errno);
+            return SecurityStatus::forCondition(
+                SecurityCondition::kParseError, "failed to parse PEM X509 certificate signing request");
     }
+}
+
+tempo_utils::Result<std::shared_ptr<tempo_security::X509CertificateSigningRequest>>
+tempo_security::X509CertificateSigningRequest::fromString(
+    std::string_view &pemCSRString)
+{
+    X509_REQ *req = nullptr;
+    auto *bio = BIO_new(BIO_s_mem());
+    if (bio == nullptr)
+        goto err;
+    if (!BIO_write(bio, pemCSRString.data(), static_cast<int>(pemCSRString.size())))
+        goto err;
+    if (!PEM_read_bio_X509_REQ(bio, &req, nullptr, nullptr))
+        goto err;
+    BIO_free(bio);
+    return std::shared_ptr<X509CertificateSigningRequest>(
+        new X509CertificateSigningRequest(req));
+
+err:
+    if (bio != nullptr)
+        BIO_free(bio);
+    return SecurityStatus::forCondition(
+        SecurityCondition::kParseError, "failed to parse PEM X509 certificate signing request");
 }
 
 /*

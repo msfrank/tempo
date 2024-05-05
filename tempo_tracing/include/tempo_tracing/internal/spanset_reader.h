@@ -1,6 +1,7 @@
 #ifndef TEMPO_TRACING_INTERNAL_SPANSET_READER_H
 #define TEMPO_TRACING_INTERNAL_SPANSET_READER_H
 
+#include <span>
 #include <string>
 
 #include <tempo_tracing/generated/spanset.h>
@@ -11,9 +12,7 @@ namespace tempo_tracing::internal {
     class SpansetReader {
 
     public:
-        SpansetReader();
-        explicit SpansetReader(std::shared_ptr<const std::string> bytes);
-        SpansetReader(const SpansetReader &other);
+        explicit SpansetReader(std::span<const tu_uint8> bytes);
 
         bool isValid() const;
 
@@ -39,10 +38,12 @@ namespace tempo_tracing::internal {
         uint32_t getError(uint32_t index) const;
         uint32_t numErrors() const;
 
-        std::shared_ptr<const std::string> getBytes() const;
+        std::span<const tu_uint8> bytesView() const;
+
+        std::string dumpJson() const;
 
     private:
-        std::shared_ptr<const std::string> m_bytes;
+        std::span<const tu_uint8> m_bytes;
         const tts1::Spanset *m_spanset;
     };
 

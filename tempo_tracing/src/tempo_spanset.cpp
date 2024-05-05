@@ -6,15 +6,22 @@ tempo_tracing::TempoSpanset::TempoSpanset()
 {
 }
 
-tempo_tracing::TempoSpanset::TempoSpanset(std::shared_ptr<const std::string> bytes)
+tempo_tracing::TempoSpanset::TempoSpanset(std::shared_ptr<const tempo_utils::ImmutableBytes> immutableBytes)
+    : m_bytes(immutableBytes)
 {
-    if (!bytes->empty()) {
-        m_reader = std::make_shared<internal::SpansetReader>(bytes);
-    }
+    TU_ASSERT (m_bytes != nullptr);
+    std::span<const tu_uint8> bytes(m_bytes->getData(), m_bytes->getSize());
+    m_reader = std::make_shared<const internal::SpansetReader>(bytes);
+}
+
+tempo_tracing::TempoSpanset::TempoSpanset(std::span<const tu_uint8> unownedBytes)
+{
+    m_reader = std::make_shared<const internal::SpansetReader>(unownedBytes);
 }
 
 tempo_tracing::TempoSpanset::TempoSpanset(const tempo_tracing::TempoSpanset &other)
-    : m_reader(other.m_reader)
+    : m_bytes(other.m_bytes),
+      m_reader(other.m_reader)
 {
 }
 
@@ -66,10 +73,26 @@ tempo_tracing::TempoSpanset::getReader() const
     return m_reader;
 }
 
-std::shared_ptr<const std::string>
-tempo_tracing::TempoSpanset::getBytes() const
+std::span<const tu_uint8>
+tempo_tracing::TempoSpanset::bytesView() const
 {
-    if (m_reader == nullptr)
+    if (!isValid())
         return {};
-    return m_reader->getBytes();
+    return m_reader->bytesView();
+}
+
+/**
+ * Verify that the given span of bytes is a valid spanset.
+ *
+ * @param bytes The span of bytes containing a spanset.
+ * @param noIdentifier If true, then there is no identifier sequence preceding the data.
+ * @return true if bytes refers to a valid spanset, otherwise false.
+ */
+bool
+tempo_tracing::TempoSpanset::verify(std::span<const tu_uint8> bytes, bool noIdentifier)
+{
+    flatbuffers::Verifier verifier(bytes.data(), bytes.size());
+    if (noIdentifier)
+        return verifier.VerifyBuffer<tts1::Spanset>();
+    return verifier.VerifyBuffer<tts1::Spanset>(tts1::SpansetIdentifier());
 }

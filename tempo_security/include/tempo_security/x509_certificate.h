@@ -33,6 +33,8 @@ namespace tempo_security {
 
         static tempo_utils::Result<std::shared_ptr<X509Certificate>> readFile(
             const std::filesystem::path &pemCertificateFile);
+        static tempo_utils::Result<std::shared_ptr<X509Certificate>> fromString(
+            std::string_view pemCertificateString);
 
     private:
         X509 *m_x509;

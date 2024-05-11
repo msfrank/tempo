@@ -79,7 +79,7 @@ tempo_utils::HdrHistogram::getMaxValue() const
 }
 
 int64_t
-tempo_utils::HdrHistogram::getPercentileValue(double percentile)
+tempo_utils::HdrHistogram::getPercentileValue(double percentile) const
 {
     if (m_histogram)
         return hdr_value_at_percentile((hdr_histogram_t *) m_histogram, percentile);

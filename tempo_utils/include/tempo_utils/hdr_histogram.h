@@ -5,6 +5,9 @@
 
 namespace tempo_utils {
 
+    /**
+     *
+     */
     class HdrHistogram {
 
     public:
@@ -20,7 +23,7 @@ namespace tempo_utils {
 
         tu_int64 getMinValue() const;
         tu_int64 getMaxValue() const;
-        tu_int64 getPercentileValue(double percentile);
+        tu_int64 getPercentileValue(double percentile) const;
         double getMean() const;
         double getStddev() const;
 

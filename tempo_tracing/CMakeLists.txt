@@ -80,6 +80,8 @@ target_sources(tempo_tracing PRIVATE
 
     ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset.h
     ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset_schema.h
+
+    ${TEMPO_TRACING_INCLUDES}
     )
 
 # set the library version

@@ -23,6 +23,7 @@ class Tempo(ConanFile):
         'tempo_command/*',
         'tempo_config/*',
         'tempo_security/*',
+        'tempo_test/*',
         'tempo_tools/*',
         'tempo_tracing/*',
         'tempo_utils/*',

@@ -8,6 +8,17 @@
 #include <tempo_utils/log_message.h>
 #include "tempo_security/ecc_key.h"
 
+tempo_security::ECCPrivateKeyGenerator::ECCPrivateKeyGenerator(ECCurveId curveId)
+{
+    switch (curveId) {
+        case ECCurveId::Prime256v1:
+            m_ecCurveNid = NID_X9_62_prime256v1;
+            break;
+        default:
+            TU_UNREACHABLE();
+    }
+}
+
 tempo_security::ECCPrivateKeyGenerator::ECCPrivateKeyGenerator(int ecCurveNid)
     : m_ecCurveNid(ecCurveNid)
 {

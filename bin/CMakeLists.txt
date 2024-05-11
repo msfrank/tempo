@@ -1,0 +1,3 @@
+
+add_subdirectory(tempo_bytes2code)
+add_subdirectory(tempo_generate_keypair)

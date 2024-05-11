@@ -195,18 +195,12 @@ message(STATUS "version is ${FULL_VERSION}")
 
 #######################################################################
 #
-# add library targets from subdirectories
+# add targets from subdirectories
 #
 #######################################################################
 
-add_subdirectory(tempo_allocator)
-add_subdirectory(tempo_command)
-add_subdirectory(tempo_config)
-add_subdirectory(tempo_security)
-add_subdirectory(tempo_test)
-add_subdirectory(tempo_tools)
-add_subdirectory(tempo_tracing)
-add_subdirectory(tempo_utils)
+add_subdirectory(bin)
+add_subdirectory(lib)
 
 #######################################################################
 #

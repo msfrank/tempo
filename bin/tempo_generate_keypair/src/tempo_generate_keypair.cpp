@@ -1,31 +1,59 @@
 
-#include <project_config.h>
-
 #include <tempo_command/command_help.h>
 #include <tempo_command/command_parser.h>
 #include <tempo_security/certificate_key_pair.h>
+#include <tempo_security/ecc_private_key_generator.h>
+#include <tempo_security/generate_utils.h>
+#include <tempo_security/rsa_private_key_generator.h>
 #include <tempo_config/base_conversions.h>
+#include <tempo_config/enum_conversions.h>
 #include <tempo_utils/log_stream.h>
 #include <tempo_utils/url.h>
 
-tempo_utils::Status
-run(int argc, char *argv[])
+enum class KeyType { ECC, RSA, };
+
+static std::unique_ptr<tempo_security::AbstractPrivateKeyGenerator>
+create_key_generator(KeyType keyType)
 {
-    tempo_config::PathParser installDirectoryParser(std::filesystem::current_path());
+    switch (keyType) {
+        case KeyType::ECC: {
+            tempo_security::ECCurveId curveId = tempo_security::ECCurveId::Prime256v1;
+            return std::make_unique<tempo_security::ECCPrivateKeyGenerator>(curveId);
+        }
+        case KeyType::RSA: {
+            int keyBits = tempo_security::kRSAKeyBits;
+            int publicExponent = tempo_security::kRSAPublicExponent;
+            return std::make_unique<tempo_security::RSAPrivateKeyGenerator>(keyBits, publicExponent);
+        }
+        default:
+            return {};
+    }
+}
+
+tempo_utils::Status
+run(int argc, const char *argv[])
+{
+    tempo_config::PathParser outputDirectoryParser(std::filesystem::current_path());
     tempo_config::PathParser signingCertificateParser(std::filesystem::path{});
     tempo_config::PathParser signingPrivateKeyParser(std::filesystem::path{});
     tempo_config::StringParser fileNameParser(std::string{});
-    tempo_config::StringParser organizationParser(std::string{});
-    tempo_config::StringParser organizationalUnitParser(std::string{});
+    tempo_config::StringParser organizationParser;
+    tempo_config::StringParser organizationalUnitParser;
     tempo_config::StringParser commonNameParser;
     tempo_config::IntegerParser validitySecondsParser(60*60*24*365);
     tempo_config::IntegerParser serialNumberParser;
     tempo_config::IntegerParser pathlenParser(-1);
-    tempo_config::BooleanParser isCAParser(false);
-    tempo_config::BooleanParser isSelfSignedParser(false);
+    tempo_config::BooleanParser isCAParser;
+    tempo_config::BooleanParser isSelfSignedParser;
+
+    tempo_config::EnumTParser<KeyType> keyTypeParser({
+        {"ECC", KeyType::ECC},
+        {"RSA", KeyType::RSA},
+    });
 
     std::vector<tempo_command::Default> defaults = {
-        {"installDirectory", {}, "install directory", "DIR"},
+        {"keyType", {}, "private key type", "TYPE"},
+        {"outputDirectory", Option(std::filesystem::current_path().string()), "the output directory", "DIR"},
         {"signingCertificate", {}, "signing certificate file", "FILE"},
         {"signingPrivateKey", {}, "signing private key file", "FILE"},
         {"fileName", {}, "the keypair file name prefix", "NAME"},
@@ -34,13 +62,14 @@ run(int argc, char *argv[])
         {"commonName", {}, "the subject common name", "NAME"},
         {"validitySeconds", {}, "the duration in which the certificate is valid", "SECONDS"},
         {"serialNumber", {}, "the certificate serial number", "SERIAL"},
-        {"pathlen", {}, "the certificate serial number", "NUM"},
-        {"isCA", {}, "the certificate should be a CA", {}},
-        {"isSelfSigned", {}, "the certificate should be self-signed", {}},
+        {"pathlen", {}, "the path length constraint on the CA certificate", "LENGTH"},
+        {"isCA", Option(std::string("false")), "the certificate should be a CA", {}},
+        {"isSelfSigned", Option(std::string("false")), "the certificate should be self-signed", {}},
     };
 
     std::vector<tempo_command::Grouping> groupings = {
-        {"installDirectory", {"--install-directory"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
+        {"keyType", {"-t", "--key-type"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
+        {"outputDirectory", {"-o", "--output-directory"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"signingCertificate", {"--signing-certificate"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"signingPrivateKey", {"--signing-private-key"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"fileName", {"--file-name"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
@@ -49,7 +78,7 @@ run(int argc, char *argv[])
         {"commonName", {"--common-name"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"validitySeconds", {"--validity"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"serialNumber", {"--serial"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"pathlen", {"--pathlen"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
+        {"pathlen", {"--path-length"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"isCA", {"--ca"}, tempo_command::GroupingType::NO_ARGUMENT},
         {"isSelfSigned", {"--self-signed"}, tempo_command::GroupingType::NO_ARGUMENT},
         {"help", {"-h", "--help"}, tempo_command::GroupingType::HELP_FLAG},
@@ -57,7 +86,8 @@ run(int argc, char *argv[])
     };
 
     std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "installDirectory"},
+        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "keyType"},
+        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "outputDirectory"},
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "signingCertificate"},
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "signingPrivateKey"},
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "fileName"},
@@ -92,7 +122,7 @@ run(int argc, char *argv[])
             return status;
         switch (commandStatus.getCondition()) {
             case tempo_command::CommandCondition::kHelpRequested:
-                tempo_command::display_help_and_exit({"generate-key-pair"},
+                tempo_command::display_help_and_exit({"tempo-generate-keypair"},
                     "generate a key-pair",
                     {}, groupings, optMappings, argMappings, defaults);
             default:
@@ -112,10 +142,15 @@ run(int argc, char *argv[])
 
     TU_LOG_INFO << "config:\n" << tempo_command::command_config_to_string(config);
 
-    // determine the install directory
-    std::filesystem::path installDirectory;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(installDirectory, installDirectoryParser,
-        config, "installDirectory"));
+    // determine the key type
+    KeyType keyType;
+    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(keyType, keyTypeParser,
+        config, "keyType"));
+
+    // determine the output directory
+    std::filesystem::path outputDirectory;
+    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(outputDirectory, outputDirectoryParser,
+        config, "outputDirectory"));
 
     // determine the signing certificate path
     std::filesystem::path signingCertificateFile;
@@ -170,67 +205,80 @@ run(int argc, char *argv[])
     TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(isSelfSigned, isSelfSignedParser,
         config, "isSelfSigned"));
 
+    // construct the key generator based on the key type
+    auto keygen = create_key_generator(keyType);
+
     tempo_security::CertificateKeyPair keyPair;
 
     //
     if (isCA) {
         if (isSelfSigned) {
-            keyPair = tempo_security::generate_self_signed_rsa_ca_key_pair(
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_self_signed_ca_key_pair(
+                *keygen,
                 organization,
                 organizationalUnit,
                 commonName,
                 serialNumber,
                 std::chrono::seconds(validitySeconds),
                 pathlen,
-                installDirectory,
-                fileName);
+                outputDirectory,
+                fileName));
         } else {
-            tempo_security::CertificateKeyPair caKeyPair(signingPrivateKeyFile, signingCertificateFile);
-            keyPair = tempo_security::generate_rsa_ca_key_pair(
+            tempo_security::CertificateKeyPair caKeyPair;
+            TU_ASSIGN_OR_RETURN (caKeyPair, tempo_security::CertificateKeyPair::load(
+                signingPrivateKeyFile, signingCertificateFile));
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_ca_key_pair(
                 caKeyPair,
+                *keygen,
                 organization,
                 organizationalUnit,
                 commonName,
                 serialNumber,
                 std::chrono::seconds(validitySeconds),
                 pathlen,
-                installDirectory,
-                fileName);
+                outputDirectory,
+                fileName));
         }
     }
     else {
         if (isSelfSigned) {
-            keyPair = tempo_security::generate_self_signed_rsa_key_pair(
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_self_signed_key_pair(
+                *keygen,
                 organization,
                 organizationalUnit,
                 commonName,
                 serialNumber,
                 std::chrono::seconds(validitySeconds),
-                installDirectory,
-                fileName);
+                outputDirectory,
+                fileName));
         } else {
-            tempo_security::CertificateKeyPair caKeyPair(signingPrivateKeyFile, signingCertificateFile);
-            keyPair = tempo_security::generate_rsa_key_pair(
+            tempo_security::CertificateKeyPair caKeyPair;
+            TU_ASSIGN_OR_RETURN (caKeyPair, tempo_security::CertificateKeyPair::load(
+                signingPrivateKeyFile, signingCertificateFile));
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_key_pair(
                 caKeyPair,
+                *keygen,
                 organization,
                 organizationalUnit,
                 commonName,
                 serialNumber,
                 std::chrono::seconds(validitySeconds),
-                installDirectory,
-                fileName);
+                outputDirectory,
+                fileName));
         }
     }
 
     if (!keyPair.isValid())
-        return tempo_command::CommandStatus::commandFailure("failed to generate key-pair");
-    TU_CONSOLE_OUT << "generated key-pair " << fileName << " in " << installDirectory;
+        return tempo_command::CommandStatus::forCondition(
+            tempo_command::CommandCondition::kCommandError, "failed to generate key-pair");
+
+    TU_CONSOLE_OUT << "generated key-pair " << fileName << " in " << outputDirectory;
 
     return tempo_command::CommandStatus::ok();
 }
 
 int
-main(int argc, char *argv[], char *envp[])
+main(int argc, const char *argv[], char *envp[])
 {
     if (argc == 0 || argv == nullptr)
         return -1;

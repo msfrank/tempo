@@ -60,19 +60,8 @@ target_link_libraries(tempo_security
     PUBLIC
     tempo::tempo_utils
     absl::flat_hash_map
-    PRIVATE
     openssl::openssl
     )
-
-#add_executable(generate-key-pair
-#    src/generate_key_pair.cpp
-#    )
-#
-#target_link_libraries(generate-key-pair
-#    TempoCommand
-#    TempoSecurity
-#    TempoUtils
-#    )
 
 # install targets
 install(TARGETS tempo_security EXPORT tempo-targets

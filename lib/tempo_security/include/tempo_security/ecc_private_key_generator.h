@@ -5,10 +5,15 @@
 
 namespace tempo_security {
 
+    enum class ECCurveId {
+        Prime256v1,
+    };
+
     class ECCPrivateKeyGenerator : public AbstractPrivateKeyGenerator {
 
     public:
-        ECCPrivateKeyGenerator(int ecCurveNid);
+        explicit ECCPrivateKeyGenerator(ECCurveId curveId);
+        explicit ECCPrivateKeyGenerator(int ecCurveNid);
 
         KeyType getKeyType() const override;
         EVP_PKEY *generatePrivateKey() const override;

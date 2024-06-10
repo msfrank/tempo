@@ -1,5 +1,5 @@
-#ifndef EITHER_TEMPLATE_H
-#define EITHER_TEMPLATE_H
+#ifndef TEMPO_UTILS_EITHER_TEMPLATE_H
+#define TEMPO_UTILS_EITHER_TEMPLATE_H
 
 template<class L, class R>
 class Either {
@@ -61,17 +61,6 @@ Either<L,R>::getRight() const
     return m_right;
 }
 
-//template<class L, class R>
-//QDebug operator<<(QDebug debug, const Either<L,R> &either) {
-//    QDebugStateSaver saver(debug);
-//    if (either.isLeft()) {
-//        debug.nospace().noquote() << "Either(left=" << either.getLeft() << ")";
-//    } else {
-//        debug.nospace().noquote() << "Either(right=" << either.getRight() << ")";
-//    }
-//    return debug;
-//}
-
 template<class L, class R>
 inline bool operator==(const Either<L,R> &lhs, const Either<L,R> &rhs)
 {
@@ -88,4 +77,4 @@ inline bool operator!=(const Either<L,R> &lhs, const Either<L,R> &rhs)
     return !(lhs == rhs);
 }
 
-#endif // EITHER_TEMPLATE_H
+#endif // TEMPO_UTILS_EITHER_TEMPLATE_H

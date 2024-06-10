@@ -83,6 +83,12 @@ tempo_test::StatusMatcher::DescribeNegationTo(std::ostream* os) const
 }
 
 ::testing::Matcher<tempo_utils::Status>
+tempo_test::IsOk()
+{
+    return StatusMatcher(tempo_utils::StatusCode::kOk);
+}
+
+::testing::Matcher<tempo_utils::Status>
 tempo_test::MatchesStatusCode(tempo_utils::StatusCode statusCode)
 {
     return StatusMatcher(statusCode);

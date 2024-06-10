@@ -37,6 +37,8 @@ namespace tempo_test {
         int m_errorCode;
     };
 
+    ::testing::Matcher<tempo_utils::Status> IsOk();
+
     template<typename ConditionType,
         typename StatusType = typename tempo_utils::ConditionTraits<ConditionType>::StatusType>
     ::testing::Matcher<tempo_utils::Status> IsCondition(ConditionType condition)

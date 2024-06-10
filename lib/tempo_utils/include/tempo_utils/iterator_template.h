@@ -1,5 +1,5 @@
-#ifndef ITERATOR_TEMPLATE_H
-#define ITERATOR_TEMPLATE_H
+#ifndef TEMPO_UTILS_ITERATOR_TEMPLATE_H
+#define TEMPO_UTILS_ITERATOR_TEMPLATE_H
 
 #include <tempo_utils/option_template.h>
 
@@ -22,4 +22,4 @@ Iterator<ValueType>::maybeNext()
     return Option<ValueType>();
 }
 
-#endif // ITERATOR_TEMPLATE_H
+#endif // TEMPO_UTILS_ITERATOR_TEMPLATE_H

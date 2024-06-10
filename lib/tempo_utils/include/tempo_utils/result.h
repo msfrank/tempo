@@ -10,7 +10,12 @@ namespace tempo_utils {
     class IsStatus {
 
     public:
-        IsStatus(bool isStatus);
+        explicit IsStatus(bool isStatus);
+        IsStatus(const IsStatus &other);
+        IsStatus(IsStatus &&other) noexcept;
+
+        IsStatus& operator=(const IsStatus &other);
+        IsStatus& operator=(IsStatus &&other) noexcept;
 
         bool isStatus() const;
 
@@ -24,9 +29,15 @@ namespace tempo_utils {
     public:
         MaybeStatus();
         MaybeStatus(const S &status);
+        MaybeStatus(const MaybeStatus<S> &other);
+        MaybeStatus(MaybeStatus<S> &&other) noexcept;
+
+        MaybeStatus& operator=(const MaybeStatus<S> &other);
+        MaybeStatus& operator=(MaybeStatus<S> &&other) noexcept;
 
         S getStatus() const;
         Option<S> statusOption() const;
+        const S& peekStatus() const;
 
         using StatusType = S;
 
@@ -75,6 +86,42 @@ namespace tempo_utils {
     }
 
     template <class S>
+    MaybeStatus<S>::MaybeStatus(const MaybeStatus<S> &other)
+        : IsStatus(other),
+          m_status(other.m_status)
+    {
+    }
+
+    template <class S>
+    MaybeStatus<S>::MaybeStatus(MaybeStatus<S> &&other) noexcept
+        : IsStatus(std::move(other))
+    {
+        m_status = std::move(other.m_status);
+    }
+
+    template <class S>
+    MaybeStatus<S>&
+    MaybeStatus<S>::operator=(const MaybeStatus<S> &other)
+    {
+        if (this != &other) {
+            IsStatus::operator=(other);
+            m_status = other.m_status;
+        }
+        return *this;
+    }
+
+    template <class S>
+    MaybeStatus<S>&
+    MaybeStatus<S>::operator=(MaybeStatus<S> &&other) noexcept
+    {
+        if (this != &other) {
+            IsStatus::operator=(std::move(other));
+            m_status = std::move(other.m_status);
+        }
+        return *this;
+    }
+
+    template <class S>
     S
     MaybeStatus<S>::getStatus() const
     {
@@ -88,6 +135,13 @@ namespace tempo_utils {
         return m_isStatus? Option<S>(m_status) : Option<S>();
     }
 
+    template <class S>
+    const S&
+    MaybeStatus<S>::peekStatus() const
+    {
+        return m_status;
+    }
+
     template<class R, class S>
     class TypedResult : public MaybeStatus<S> {
 
@@ -95,10 +149,17 @@ namespace tempo_utils {
         explicit TypedResult(const R &result);
         explicit TypedResult(R &&result);
         explicit TypedResult(const S &status);
+        TypedResult(const TypedResult<R,S> &other);
+        TypedResult(TypedResult<R,S> &&other) noexcept;
+
+        TypedResult<R,S>& operator=(const TypedResult<R,S> &other);
+        TypedResult<R,S>& operator=(TypedResult<R,S> &&other) noexcept;
 
         bool isResult() const;
         R getResult() const;
         Option<R> resultOption() const;
+        const R& peekResult() const;
+        R&& moveResult();
 
         R orElse(const R &value) const;
         R orElseThrow() const;
@@ -131,6 +192,42 @@ namespace tempo_utils {
     }
 
     template <class R, class S>
+    TypedResult<R,S>::TypedResult(const TypedResult<R,S> &other)
+        : MaybeStatus<S>(other),
+          m_result(other.m_result)
+    {
+    }
+
+    template <class R, class S>
+    TypedResult<R,S>::TypedResult(TypedResult<R,S> &&other) noexcept
+        : MaybeStatus<S>(std::move(other))
+    {
+        m_result = std::move(other.m_result);
+    }
+
+    template <class R, class S>
+    TypedResult<R,S>&
+    TypedResult<R,S>::operator=(const TypedResult<R,S> &other)
+    {
+        if (this != &other) {
+            MaybeStatus<S>::operator=(other);
+            m_result = other.m_result;
+        }
+        return *this;
+    }
+
+    template <class R, class S>
+    TypedResult<R,S>&
+    TypedResult<R,S>::operator=(TypedResult<R,S> &&other) noexcept
+    {
+        if (this != &other) {
+            MaybeStatus<S>::operator=(std::move(other));
+            m_result = std::move(other.m_result);
+        }
+        return *this;
+    }
+
+    template <class R, class S>
     bool
     TypedResult<R,S>::isResult() const
     {
@@ -154,6 +251,20 @@ namespace tempo_utils {
     }
 
     template <class R, class S>
+    const R&
+    TypedResult<R,S>::peekResult() const
+    {
+        return m_result;
+    }
+
+    template <class R, class S>
+    R&&
+    TypedResult<R,S>::moveResult()
+    {
+        return std::move(m_result);
+    }
+
+    template <class R, class S>
     R
     TypedResult<R,S>::orElse(const R &value) const
     {
@@ -174,17 +285,77 @@ namespace tempo_utils {
     template<typename T>
     class Result final : public TypedResult<T,Status> {
     public:
-        Result() : TypedResult<T, Status>() {};
-        Result(const T &result) : TypedResult<T, Status>(result) {};
-        Result(const Status &status) : TypedResult<T, Status>(status) {};
+        Result();
+        Result(const T &result);
+        Result(T &&result);
+        Result(const Status &status);
+        Result(const Result<T> &other);
+        Result(Result<T> &&other) noexcept;
+
+        Result<T>& operator=(const Result<T> &other);
+        Result<T>& operator=(Result<T> &&other) noexcept;
     };
 
+    template<typename T>
+    Result<T>::Result()
+        : TypedResult<T, Status>()
+    {
+    }
+
+    template<typename T>
+    Result<T>::Result(const T &result)
+        : TypedResult<T, Status>(result)
+    {
+    }
+
+    template<typename T>
+    Result<T>::Result(T &&result)
+        : TypedResult<T, Status>(std::move(result))
+    {
+    }
+
+    template<typename T>
+    Result<T>::Result(const Status &status)
+        : TypedResult<T, Status>(status)
+    {
+    }
+
+    template<typename T>
+    Result<T>::Result(const Result<T> &other)
+        : TypedResult<T, Status>(other)
+    {
+    }
+
+    template<typename T>
+    Result<T>::Result(Result<T> &&other) noexcept
+        : TypedResult<T, Status>(std::move(other))
+    {
+    }
+
+    template<typename T>
+    Result<T>& Result<T>::operator=(const Result<T> &other)
+    {
+        if (this != &other) {
+            TypedResult<T,Status>::operator=(other);
+        }
+        return *this;
+    }
+
+    template<typename T>
+    Result<T>& Result<T>::operator=(Result<T> &&other) noexcept
+    {
+        if (this != &other) {
+            TypedResult<T,Status>::operator=(std::move(other));
+        }
+        return *this;
+    }
+
     template<class R, class S>
-    tempo_utils::LogMessage&& operator<<(tempo_utils::LogMessage&& message, const TypedResult<R,S> &result) {
+    LogMessage&& operator<<(LogMessage&& message, const TypedResult<R,S> &result) {
         if (result.isResult()) {
-            std::forward<tempo_utils::LogMessage>(message) << result.getResult();
+            std::forward<LogMessage>(message) << result.getResult();
         } else {
-            std::forward<tempo_utils::LogMessage>(message) << result.getStatus();
+            std::forward<LogMessage>(message) << result.getStatus();
         }
         return std::move(message);
     }

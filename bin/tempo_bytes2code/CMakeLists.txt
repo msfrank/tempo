@@ -1,7 +1,10 @@
 
 add_executable(tempo-bytes2code src/bytes_to_code.cpp)
 
-set_target_properties(tempo-bytes2code PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(tempo-bytes2code PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    INSTALL_RPATH ${BIN_RPATH}
+    )
 
 target_link_libraries(tempo-bytes2code
     PUBLIC
@@ -12,7 +15,6 @@ target_link_libraries(tempo-bytes2code
     absl::time
     absl::time_zone
     fmt::fmt
-    flatbuffers::flatbuffers
     )
 
 # install targets

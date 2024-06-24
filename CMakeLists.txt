@@ -195,6 +195,11 @@ string(REGEX REPLACE "[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1"
 set(FULL_VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
 message(STATUS "version is ${FULL_VERSION}")
 
+# build paths
+set(TEMPO_BUILD_OUTPUT_ROOT         "${CMAKE_BINARY_DIR}/output")
+set(TEMPO_BUILD_BIN_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_BINDIR}")
+set(TEMPO_BUILD_LIB_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_LIBDIR}")
+
 #######################################################################
 #
 # add targets from subdirectories

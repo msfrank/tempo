@@ -2,6 +2,7 @@
 add_executable(tempo-bytes2code src/bytes_to_code.cpp)
 
 set_target_properties(tempo-bytes2code PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${TEMPO_BUILD_BIN_DIR}
     INSTALL_RPATH_USE_LINK_PATH TRUE
     INSTALL_RPATH ${BIN_RPATH}
     )

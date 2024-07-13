@@ -95,7 +95,6 @@ target_sources(tempo_utils
     src/memory_mapped_bytes.cpp
     src/posix_result.cpp
     src/process_utils.cpp
-    src/result.cpp
     src/slice.cpp
     src/status.cpp
     src/tempdir_maker.cpp

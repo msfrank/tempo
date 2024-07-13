@@ -350,12 +350,6 @@ tempo_utils::NilAttr::NilAttr(const ComparableResource *resource)
 {
 }
 
-//tempo_utils::Result<tempo_utils::AttrValue>
-//tempo_utils::NilAttr::writeAttr(const std::nullptr_t &value) const
-//{
-//    return Result<AttrValue>(AttrValue(value));
-//}
-
 tempo_utils::Result<tu_uint32>
 tempo_utils::NilAttr::writeAttr(AbstractAttrWriter *writer, const std::nullptr_t &value) const
 {
@@ -363,36 +357,10 @@ tempo_utils::NilAttr::writeAttr(AbstractAttrWriter *writer, const std::nullptr_t
     return writer->putNil();
 }
 
-//tempo_utils::Result<std::nullptr_t>
-//tempo_utils::NilAttr::parseAttr(const tempo_utils::AttrValue &attr) const
-//{
-//    const auto *nil = boost::get<std::nullptr_t>(&attr);
-//    if (nil == nullptr)
-//        return Status::wrongType("expected null type");
-//    return Result<std::nullptr_t>(*nil);
-//}
-
 tempo_utils::Status
 tempo_utils::NilAttr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, std::nullptr_t &value) const
 {
     return parser->getNil(index, value);
-}
-
-tempo_utils::Status
-tempo_utils::NilAttr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    std::nullptr_t value;
-    return parser->getNil(index, value);
-}
-
-std::string
-tempo_utils::NilAttr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    std::nullptr_t value;
-    auto status = parser->getNil(index, value);
-    if (status.isOk())
-        return "nil";
-    return "???";
 }
 
 tempo_utils::BoolAttr::BoolAttr(const ComparableResource *resource)
@@ -413,23 +381,6 @@ tempo_utils::BoolAttr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, bo
     return parser->getBool(index, value);
 }
 
-tempo_utils::Status
-tempo_utils::BoolAttr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    bool value;
-    return parser->getBool(index, value);
-}
-
-std::string
-tempo_utils::BoolAttr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    bool value;
-    auto status = parser->getBool(index, value);
-    if (status.isOk())
-        return value? "true" : "false";
-    return "???";
-}
-
 tempo_utils::Int64Attr::Int64Attr(const ComparableResource *resource)
     : AttrSerde<int64_t>(resource)
 {
@@ -446,23 +397,6 @@ tempo_utils::Status
 tempo_utils::Int64Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, int64_t &value) const
 {
     return parser->getInt64(index, value);
-}
-
-tempo_utils::Status
-tempo_utils::Int64Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int64 value;
-    return parser->getInt64(index, value);
-}
-
-std::string
-tempo_utils::Int64Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int64 value;
-    auto status = parser->getInt64(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
 }
 
 tempo_utils::Int32Attr::Int32Attr(const ComparableResource *resource)
@@ -483,23 +417,6 @@ tempo_utils::Int32Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, t
     return parser->getInt32(index, value);
 }
 
-tempo_utils::Status
-tempo_utils::Int32Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int32 value;
-    return parser->getInt32(index, value);
-}
-
-std::string
-tempo_utils::Int32Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int32 value;
-    auto status = parser->getInt32(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
-}
-
 tempo_utils::Int16Attr::Int16Attr(const ComparableResource *resource)
     : AttrSerde<tu_int16>(resource)
 {
@@ -516,23 +433,6 @@ tempo_utils::Status
 tempo_utils::Int16Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_int16 &value) const
 {
     return parser->getInt16(index, value);
-}
-
-tempo_utils::Status
-tempo_utils::Int16Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int16 value;
-    return parser->getInt16(index, value);
-}
-
-std::string
-tempo_utils::Int16Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int16 value;
-    auto status = parser->getInt16(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
 }
 
 tempo_utils::Int8Attr::Int8Attr(const ComparableResource *resource)
@@ -553,23 +453,6 @@ tempo_utils::Int8Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu
     return parser->getInt8(index, value);
 }
 
-tempo_utils::Status
-tempo_utils::Int8Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int8 value;
-    return parser->getInt8(index, value);
-}
-
-std::string
-tempo_utils::Int8Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_int8 value;
-    auto status = parser->getInt8(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
-}
-
 tempo_utils::UInt64Attr::UInt64Attr(const ComparableResource *resource)
     : AttrSerde<uint64_t>(resource)
 {
@@ -586,23 +469,6 @@ tempo_utils::Status
 tempo_utils::UInt64Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, uint64_t &value) const
 {
     return parser->getUInt64(index, value);
-}
-
-tempo_utils::Status
-tempo_utils::UInt64Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint64 value;
-    return parser->getUInt64(index, value);
-}
-
-std::string
-tempo_utils::UInt64Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint64 value;
-    auto status = parser->getUInt64(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
 }
 
 tempo_utils::UInt32Attr::UInt32Attr(const ComparableResource *resource)
@@ -623,23 +489,6 @@ tempo_utils::UInt32Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, 
     return parser->getUInt32(index, value);
 }
 
-tempo_utils::Status
-tempo_utils::UInt32Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint32 value;
-    return parser->getUInt32(index, value);
-}
-
-std::string
-tempo_utils::UInt32Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint32 value;
-    auto status = parser->getUInt32(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
-}
-
 tempo_utils::UInt16Attr::UInt16Attr(const ComparableResource *resource)
     : AttrSerde<tu_uint16>(resource)
 {
@@ -656,23 +505,6 @@ tempo_utils::Status
 tempo_utils::UInt16Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_uint16 &value) const
 {
     return parser->getUInt16(index, value);
-}
-
-tempo_utils::Status
-tempo_utils::UInt16Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint16 value;
-    return parser->getUInt16(index, value);
-}
-
-std::string
-tempo_utils::UInt16Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint16 value;
-    auto status = parser->getUInt16(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
 }
 
 tempo_utils::UInt8Attr::UInt8Attr(const ComparableResource *resource)
@@ -693,23 +525,6 @@ tempo_utils::UInt8Attr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, t
     return parser->getUInt8(index, value);
 }
 
-tempo_utils::Status
-tempo_utils::UInt8Attr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint8 value;
-    return parser->getUInt8(index, value);
-}
-
-std::string
-tempo_utils::UInt8Attr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    tu_uint8 value;
-    auto status = parser->getUInt8(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
-}
-
 tempo_utils::DoubleAttr::DoubleAttr(const ComparableResource *resource)
     : AttrSerde<double>(resource)
 {
@@ -728,23 +543,6 @@ tempo_utils::DoubleAttr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, 
     return parser->getFloat64(index, value);
 }
 
-tempo_utils::Status
-tempo_utils::DoubleAttr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    double value;
-    return parser->getFloat64(index, value);
-}
-
-std::string
-tempo_utils::DoubleAttr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    double value;
-    auto status = parser->getFloat64(index, value);
-    if (status.isOk())
-        return absl::StrCat(value);
-    return "???";
-}
-
 tempo_utils::StringAttr::StringAttr(const ComparableResource *resource)
     : AttrSerde<std::string>(resource)
 {
@@ -761,21 +559,4 @@ tempo_utils::Status
 tempo_utils::StringAttr::parseAttr(tu_uint32 index, AbstractAttrParser *parser, std::string &value) const
 {
     return parser->getString(index, value);
-}
-
-tempo_utils::Status
-tempo_utils::StringAttr::validateAttr(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    std::string value;
-    return parser->getString(index, value);
-}
-
-std::string
-tempo_utils::StringAttr::toString(tu_uint32 index, AbstractAttrParser *parser) const
-{
-    std::string value;
-    auto status = parser->getString(index, value);
-    if (status.isOk())
-        return value;
-    return "???";
 }

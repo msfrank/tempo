@@ -12,6 +12,7 @@ set(TEMPO_TEST_INCLUDES
 set_target_properties(tempo_test PROPERTIES PUBLIC_HEADER "${TEMPO_TEST_INCLUDES}")
 
 target_sources(tempo_test PRIVATE
+    src/result_matchers.cpp
     src/spanset_matchers.cpp
     src/status_matchers.cpp
     ${TEMPO_TEST_INCLUDES}

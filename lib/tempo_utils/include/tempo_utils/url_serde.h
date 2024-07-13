@@ -17,8 +17,6 @@ namespace tempo_utils {
         explicit UrlAttr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const Url &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, Url &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 }
 

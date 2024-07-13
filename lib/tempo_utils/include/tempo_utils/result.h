@@ -7,24 +7,8 @@
 
 namespace tempo_utils {
 
-    class IsStatus {
-
-    public:
-        explicit IsStatus(bool isStatus);
-        IsStatus(const IsStatus &other);
-        IsStatus(IsStatus &&other) noexcept;
-
-        IsStatus& operator=(const IsStatus &other);
-        IsStatus& operator=(IsStatus &&other) noexcept;
-
-        bool isStatus() const;
-
-    protected:
-        bool m_isStatus;
-    };
-
     template<class S>
-    class MaybeStatus : public IsStatus {
+    class MaybeStatus {
 
     public:
         MaybeStatus();
@@ -35,6 +19,7 @@ namespace tempo_utils {
         MaybeStatus& operator=(const MaybeStatus<S> &other);
         MaybeStatus& operator=(MaybeStatus<S> &&other) noexcept;
 
+        bool isStatus() const;
         S getStatus() const;
         Option<S> statusOption() const;
         const S& peekStatus() const;
@@ -42,6 +27,7 @@ namespace tempo_utils {
         using StatusType = S;
 
     protected:
+        bool m_isStatus;
         S m_status;
 
     public:
@@ -73,29 +59,29 @@ namespace tempo_utils {
 
     template <class S>
     MaybeStatus<S>::MaybeStatus()
-        : IsStatus(false),
+        : m_isStatus(false),
           m_status()
     {
     }
 
     template <class S>
     MaybeStatus<S>::MaybeStatus(const S &status)
-        : IsStatus(true),
+        : m_isStatus(true),
           m_status(status)
     {
     }
 
     template <class S>
     MaybeStatus<S>::MaybeStatus(const MaybeStatus<S> &other)
-        : IsStatus(other),
+        : m_isStatus(other.m_isStatus),
           m_status(other.m_status)
     {
     }
 
     template <class S>
     MaybeStatus<S>::MaybeStatus(MaybeStatus<S> &&other) noexcept
-        : IsStatus(std::move(other))
     {
+        m_isStatus = other.m_isStatus;
         m_status = std::move(other.m_status);
     }
 
@@ -104,7 +90,7 @@ namespace tempo_utils {
     MaybeStatus<S>::operator=(const MaybeStatus<S> &other)
     {
         if (this != &other) {
-            IsStatus::operator=(other);
+            m_isStatus = other.m_isStatus;
             m_status = other.m_status;
         }
         return *this;
@@ -115,10 +101,17 @@ namespace tempo_utils {
     MaybeStatus<S>::operator=(MaybeStatus<S> &&other) noexcept
     {
         if (this != &other) {
-            IsStatus::operator=(std::move(other));
+            m_isStatus = other.m_isStatus;
             m_status = std::move(other.m_status);
         }
         return *this;
+    }
+
+    template <class S>
+    bool
+    MaybeStatus<S>::isStatus() const
+    {
+        return m_isStatus;
     }
 
     template <class S>

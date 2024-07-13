@@ -14,7 +14,7 @@ namespace tempo_test {
     class ResultMatcher {
 
     public:
-        ResultMatcher(const ::testing::Matcher<MatchesType> &matcher)
+        explicit ResultMatcher(const ::testing::Matcher<MatchesType> &matcher)
             : m_matcher(matcher) {};
 
         bool MatchAndExplain(const tempo_utils::Result<MatchesType> &result, std::ostream *os) const {
@@ -45,6 +45,7 @@ namespace tempo_test {
     class MaybeStatusMatcher {
 
     public:
+        MaybeStatusMatcher() : m_isStatus(false) {};
         explicit MaybeStatusMatcher(tempo_utils::StatusCode statusCode)
             : m_matcher(statusCode) {};
         explicit MaybeStatusMatcher(std::string_view errorCategory)
@@ -53,6 +54,9 @@ namespace tempo_test {
             : m_matcher(errorCategory, errorCode) {};
 
         bool MatchAndExplain(const tempo_utils::MaybeStatus<MatchesType> &result, std::ostream *os) const {
+            if (!m_isStatus) {
+                return !result.isStatus();
+            }
             if (!result.isStatus())
                 return false;
             return m_matcher.MatchAndExplain(result.getStatus(), os);
@@ -67,8 +71,11 @@ namespace tempo_test {
         using is_gtest_matcher = void;
 
     private:
+        bool m_isStatus = true;
         StatusMatcher m_matcher;
     };
+
+    ::testing::Matcher<tempo_utils::MaybeStatus<tempo_utils::Status>> IsStatus();
 
     template<typename ConditionType,
         typename StatusType = typename tempo_utils::ConditionTraits<ConditionType>::StatusType>

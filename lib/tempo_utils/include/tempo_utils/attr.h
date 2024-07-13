@@ -134,8 +134,6 @@ namespace tempo_utils {
         virtual ~AttrValidator() = default;
         const ComparableResource *getResource() const;
         AttrKey getKey() const;
-        virtual Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const = 0;
-        virtual std::string toString(tu_uint32 index, AbstractAttrParser *parser) const = 0;
     private:
         const ComparableResource *m_resource;
     };
@@ -150,9 +148,6 @@ namespace tempo_utils {
         explicit AttrSerde(const ComparableResource *resource);
         virtual Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const T &value) const = 0;
         virtual Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, T &value) const = 0;
-        //virtual Result<AttrValue> writeAttr(const T &value) const = 0;
-        //virtual Result<T> parseAttr(const AttrValue &attr) const = 0;
-        //Attr operator()(const T &value) const;
     };
 
     template<class T>
@@ -169,8 +164,6 @@ namespace tempo_utils {
         explicit NilAttr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const std::nullptr_t &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, std::nullptr_t &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class BoolAttr : public AttrSerde<bool> {
@@ -181,8 +174,6 @@ namespace tempo_utils {
         explicit BoolAttr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const bool &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, bool &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class Int64Attr : public AttrSerde<tu_int64> {
@@ -193,8 +184,6 @@ namespace tempo_utils {
         explicit Int64Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_int64 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_int64 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class Int32Attr : public AttrSerde<tu_int32> {
@@ -205,8 +194,6 @@ namespace tempo_utils {
         explicit Int32Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_int32 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_int32 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class Int16Attr : public AttrSerde<tu_int16> {
@@ -217,8 +204,6 @@ namespace tempo_utils {
         explicit Int16Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_int16 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_int16 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class Int8Attr : public AttrSerde<tu_int8> {
@@ -229,8 +214,6 @@ namespace tempo_utils {
         explicit Int8Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_int8 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_int8 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class UInt64Attr : public AttrSerde<uint64_t> {
@@ -241,8 +224,6 @@ namespace tempo_utils {
         explicit UInt64Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const uint64_t &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, uint64_t &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class UInt32Attr : public AttrSerde<tu_uint32> {
@@ -253,8 +234,6 @@ namespace tempo_utils {
         explicit UInt32Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_uint32 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_uint32 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class UInt16Attr : public AttrSerde<tu_uint16> {
@@ -265,8 +244,6 @@ namespace tempo_utils {
         explicit UInt16Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_uint16 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_uint16 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class UInt8Attr : public AttrSerde<tu_uint8> {
@@ -277,8 +254,6 @@ namespace tempo_utils {
         explicit UInt8Attr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const tu_uint8 &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, tu_uint8 &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class DoubleAttr : public AttrSerde<double> {
@@ -289,8 +264,6 @@ namespace tempo_utils {
         explicit DoubleAttr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const double &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, double &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
 
     class StringAttr : public AttrSerde<std::string> {
@@ -301,9 +274,53 @@ namespace tempo_utils {
         explicit StringAttr(const ComparableResource *resource);
         Result<tu_uint32> writeAttr(AbstractAttrWriter *writer, const std::string &value) const override;
         Status parseAttr(tu_uint32 index, AbstractAttrParser *parser, std::string &value) const override;
-        Status validateAttr(tu_uint32 index, AbstractAttrParser *parser) const override;
-        std::string toString(tu_uint32 index, AbstractAttrParser *parser) const override;
     };
+
+    /**
+     * @tparam StateType
+     */
+    template<class PStateType>
+    class AbstractAttrParserWithState : public AbstractAttrParser {
+    public:
+        virtual ~AbstractAttrParserWithState() = default;
+        virtual PStateType *getParserState() = 0;
+    };
+
+    /**
+     * @tparam StateType
+     */
+    template<class WStateType>
+    class AbstractAttrWriterWithState : public AbstractAttrWriter {
+    public:
+        virtual ~AbstractAttrWriterWithState() = default;
+        virtual WStateType *getWriterState() = 0;
+        virtual tempo_utils::Status putId(tu_uint32 id) = 0;
+    };
+
+    /**
+     *
+     * @tparam StateType
+     * @tparam ParseType
+     * @tparam WriteType
+     */
+    template<class ParseType, class PStateType, class WriteType, class WStateType>
+    class TypedSerde : public AttrValidator {
+    public:
+        explicit TypedSerde(const ComparableResource *resource);
+        virtual Result<tu_uint32> writeAttr(
+            AbstractAttrWriterWithState<WStateType> *writer,
+            const WriteType &value) const = 0;
+        virtual Status parseAttr(
+            tu_uint32 index,
+            AbstractAttrParserWithState<PStateType> *parser,
+            ParseType &value) const = 0;
+    };
+
+    template<class ParseType, class PStateType, class WriteType, class WStateType>
+    TypedSerde<ParseType,PStateType,WriteType,WStateType>::TypedSerde(const ComparableResource *resource)
+        : AttrValidator(resource)
+    {
+    }
 };
 
 #endif // TEMPO_UTILS_ATTR_H

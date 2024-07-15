@@ -107,6 +107,13 @@ tempo_utils::AttrValue::AttrValue(const char *str)
 {
 }
 
+tempo_utils::AttrValue::AttrValue(AttrHandle handle)
+    : m_priv(std::make_shared<Priv>())
+{
+    m_priv->type = ValueType::Handle;
+    m_priv->value.handle = handle;
+}
+
 tempo_utils::AttrValue::AttrValue(const AttrValue &other)
     : m_priv(other.m_priv)
 {
@@ -211,6 +218,12 @@ tempo_utils::AttrValue::stringView() const
         return std::string_view (m_priv->value.str, *len);
     }
     return {};
+}
+
+tempo_utils::AttrHandle
+tempo_utils::AttrValue::getHandle() const
+{
+    return getType() == ValueType::Handle? m_priv->value.handle : AttrHandle{0};
 }
 
 tempo_utils::AttrValidator::AttrValidator(const ComparableResource *resource)

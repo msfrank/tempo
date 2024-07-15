@@ -25,6 +25,10 @@ namespace tempo_utils {
         return H::combine(std::move(h), attrKey.ns, attrKey.id);
     }
 
+    struct AttrHandle {
+        tu_uint32 handle;
+    };
+
     enum class ValueType : tu_uint8 {
         Invalid,
         Nil,
@@ -36,6 +40,7 @@ namespace tempo_utils {
         UInt16,
         UInt8,
         String,
+        Handle,
     };
 
     class AttrValue {
@@ -52,6 +57,7 @@ namespace tempo_utils {
         explicit AttrValue(const std::string &str);
         explicit AttrValue(std::string_view str);
         explicit AttrValue(const char *str);
+        explicit AttrValue(const AttrHandle handle);
         AttrValue(const AttrValue &other);
         AttrValue(AttrValue &&other) noexcept;
 
@@ -70,6 +76,7 @@ namespace tempo_utils {
         tu_uint8 getUInt8() const;
         std::string getString() const;
         std::string_view stringView() const;
+        AttrHandle getHandle() const;
 
     private:
         struct Priv {
@@ -83,6 +90,7 @@ namespace tempo_utils {
                 tu_uint16 u16;
                 tu_uint8 u8;
                 const char *str;
+                AttrHandle handle;
             } value;
             Priv();
             ~Priv();
@@ -284,6 +292,7 @@ namespace tempo_utils {
     public:
         virtual ~AbstractAttrParserWithState() = default;
         virtual PStateType *getParserState() = 0;
+        virtual tempo_utils::Status getHandle(tu_uint32 index, AttrHandle &handle) = 0;
     };
 
     /**
@@ -294,7 +303,7 @@ namespace tempo_utils {
     public:
         virtual ~AbstractAttrWriterWithState() = default;
         virtual WStateType *getWriterState() = 0;
-        virtual tempo_utils::Status putId(tu_uint32 id) = 0;
+        virtual tempo_utils::Result<tu_uint32> putHandle(AttrHandle handle) = 0;
     };
 
     /**

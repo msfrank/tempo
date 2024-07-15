@@ -76,6 +76,7 @@ namespace tempo_test {
     };
 
     ::testing::Matcher<tempo_utils::MaybeStatus<tempo_utils::Status>> IsStatus();
+    ::testing::Matcher<tempo_utils::MaybeStatus<tempo_utils::Status>> IsResult();
 
     template<typename ConditionType,
         typename StatusType = typename tempo_utils::ConditionTraits<ConditionType>::StatusType>

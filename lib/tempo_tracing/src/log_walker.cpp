@@ -62,7 +62,7 @@ tempo_tracing::LogWalker::hasField(const tempo_utils::AttrKey &key) const
 }
 
 bool
-tempo_tracing::LogWalker::hasField(const tempo_utils::AttrValidator &validator) const
+tempo_tracing::LogWalker::hasField(const tempo_utils::AbstractAttrValidator &validator) const
 {
     return hasField(validator.getKey());
 }

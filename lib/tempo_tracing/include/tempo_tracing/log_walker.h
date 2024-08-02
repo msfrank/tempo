@@ -18,7 +18,7 @@ namespace tempo_tracing {
         LogSeverity getSeverity() const;
 
         bool hasField(const tempo_utils::AttrKey &key) const;
-        bool hasField(const tempo_utils::AttrValidator &validator) const;
+        bool hasField(const tempo_utils::AbstractAttrValidator &validator) const;
         int numFields() const;
 
     private:

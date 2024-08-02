@@ -22,7 +22,7 @@ namespace tempo_tracing {
         absl::Time getEndTime() const;
 
         bool hasTag(const tempo_utils::AttrKey &key) const;
-        bool hasTag(const tempo_utils::AttrValidator &validator) const;
+        bool hasTag(const tempo_utils::AbstractAttrValidator &validator) const;
         int numTags() const;
 
         LogWalker getLog(tu_uint32 index) const;

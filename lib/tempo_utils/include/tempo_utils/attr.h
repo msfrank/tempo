@@ -136,12 +136,22 @@ namespace tempo_utils {
         virtual Status getString(tu_uint32 index, std::string &str) = 0;
     };
 
-    class AttrValidator {
+    /**
+     * The AttrValidator interface.
+     */
+    class AbstractAttrValidator {
+    public:
+        virtual ~AbstractAttrValidator() = default;
+        virtual const ComparableResource *getResource() const = 0;
+        virtual AttrKey getKey() const = 0;
+    };
+
+    class AttrValidator : public AbstractAttrValidator {
     public:
         explicit AttrValidator(const ComparableResource *resource);
         virtual ~AttrValidator() = default;
-        const ComparableResource *getResource() const;
-        AttrKey getKey() const;
+        const ComparableResource *getResource() const override;
+        AttrKey getKey() const override;
     private:
         const ComparableResource *m_resource;
     };
@@ -308,28 +318,26 @@ namespace tempo_utils {
 
     /**
      *
-     * @tparam StateType
-     * @tparam ParseType
-     * @tparam WriteType
      */
-    template<class ParseType, class PStateType, class WriteType, class WStateType>
-    class TypedSerde : public AttrValidator {
+    template<class ParseType, class StateType>
+    class StatefulParsingSerde {
     public:
-        explicit TypedSerde(const ComparableResource *resource);
-        virtual Result<tu_uint32> writeAttr(
-            AbstractAttrWriterWithState<WStateType> *writer,
-            const WriteType &value) const = 0;
         virtual Status parseAttr(
             tu_uint32 index,
-            AbstractAttrParserWithState<PStateType> *parser,
+            AbstractAttrParserWithState<StateType> *parser,
             ParseType &value) const = 0;
     };
 
-    template<class ParseType, class PStateType, class WriteType, class WStateType>
-    TypedSerde<ParseType,PStateType,WriteType,WStateType>::TypedSerde(const ComparableResource *resource)
-        : AttrValidator(resource)
-    {
-    }
+    /**
+     *
+     */
+    template<class WriteType, class StateType>
+    class StatefulWritingSerde {
+    public:
+        virtual Result<tu_uint32> writeAttr(
+            AbstractAttrWriterWithState<StateType> *writer,
+            const WriteType &value) const = 0;
+    };
 };
 
 #endif // TEMPO_UTILS_ATTR_H

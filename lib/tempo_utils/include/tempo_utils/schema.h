@@ -10,7 +10,7 @@ namespace tempo_utils {
     class SchemaNs {
 
     public:
-        constexpr SchemaNs(const char *ns) : m_ns(ns) {};
+        constexpr explicit SchemaNs(const char *ns) : m_ns(ns) {};
         constexpr char const *getNs() const { return m_ns; };
         constexpr bool operator==(const SchemaNs &other) const
         {
@@ -20,6 +20,11 @@ namespace tempo_utils {
                 && std::string_view(m_ns) == std::string_view(other.m_ns);
         }
 
+        template <typename H>
+        friend H AbslHashValue(H h, const SchemaNs &ns) {
+            return H::combine(std::move(h), std::string_view{ns.m_ns});
+        }
+
     private:
         char const *m_ns;
     };
@@ -27,7 +32,7 @@ namespace tempo_utils {
     class SchemaId {
 
     public:
-        constexpr SchemaId(tu_uint32 id) : m_id(id) {};
+        constexpr explicit SchemaId(tu_uint32 id) : m_id(id) {};
         constexpr tu_uint32 getId() const { return m_id; };
 
     private:
@@ -71,6 +76,11 @@ namespace tempo_utils {
                    && m_id == other.m_id
                    && std::string_view(m_uri) == std::string_view(other.m_uri);
         };
+
+        template <typename H>
+        friend H AbslHashValue(H h, const ComparableResource &resource) {
+            return H::combine(std::move(h), std::string_view{resource.m_uri}, resource.m_id);
+        }
 
     private:
         ResourceType m_type;

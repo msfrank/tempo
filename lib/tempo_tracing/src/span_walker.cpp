@@ -77,7 +77,7 @@ tempo_tracing::SpanWalker::hasTag(const tempo_utils::AttrKey &key) const
 }
 
 bool
-tempo_tracing::SpanWalker::hasTag(const tempo_utils::AttrValidator &validator) const
+tempo_tracing::SpanWalker::hasTag(const tempo_utils::AbstractAttrValidator &validator) const
 {
     return hasTag(validator.getKey());
 }

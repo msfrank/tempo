@@ -106,14 +106,8 @@ tempo_test::MatchesErrorCategory(const tempo_utils::SchemaNs &errorCategory)
     return StatusMatcher(errorCategory.getNs());
 }
 
-std::ostream&
-tempo_test::operator<<(std::ostream& os, const tempo_utils::Status &status)
-{
-    return os << status.toString();
-}
-
 void
-tempo_test::PrintTo(const tempo_utils::Status &status, std::ostream *os)
+tempo_utils::PrintTo(const Status &status, std::ostream *os)
 {
     *os << status.toString();
 }

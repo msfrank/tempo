@@ -86,44 +86,29 @@ namespace tempo_test {
             tempo_utils::ConditionTraits<ConditionType>::condition_namespace(),
             static_cast<int>(condition));
     }
+}
+
+namespace tempo_utils {
 
     template<class T>
-    void PrintTo(const tempo_utils::Result<T> &result, std::ostream *os)
-    {
-        if (result.isResult()) {
-            PrintTo(result.getResult(), os);
-        } else {
-            PrintTo(result.getStatus(), os);
-        }
-    }
-
-    template<class T>
-    void PrintTo(const tempo_utils::MaybeStatus<T> &maybeStatus, std::ostream *os)
+    void PrintTo(const MaybeStatus<T> &maybeStatus, std::ostream *os)
     {
         if (maybeStatus.isStatus()) {
-            PrintTo(maybeStatus.getStatus(), os);
+            ::testing::internal::UniversalPrint(maybeStatus.getStatus(), os);
+            //PrintTo(maybeStatus.getStatus(), os);
         } else {
             *os << "no status";
         }
     }
 
     template<class T>
-    std::ostream& operator<<(std::ostream& os, const tempo_utils::Result<T> &result)
+    void PrintTo(const Result<T> &result, std::ostream *os)
     {
         if (result.isResult()) {
-            return os << result.getResult();
+            ::testing::internal::UniversalPrint(result.getResult(), os);
+            //PrintTo(result.getResult(), os);
         } else {
-            return os << result.getStatus();
-        }
-    }
-
-    template<class T>
-    std::ostream& operator<<(std::ostream& os, const tempo_utils::MaybeStatus<T> &maybeStatus)
-    {
-        if (maybeStatus.isStatus()) {
-            return os << maybeStatus.getStatus();
-        } else {
-            return os << "no status";
+            PrintTo(result.getStatus(), os);
         }
     }
 }

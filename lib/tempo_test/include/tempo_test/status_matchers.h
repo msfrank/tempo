@@ -51,9 +51,11 @@ namespace tempo_test {
     ::testing::Matcher<tempo_utils::Status> MatchesStatusCode(tempo_utils::StatusCode statusCode);
     ::testing::Matcher<tempo_utils::Status> MatchesErrorCategory(const tempo_utils::SchemaNs &errorCategory);
     ::testing::Matcher<tempo_utils::Status> MatchesErrorCategory(std::string_view errorCategory);
+}
 
-    void PrintTo(const tempo_utils::Status &status, std::ostream *os);
-    std::ostream& operator<<(std::ostream& os, const tempo_utils::Status &status);
+namespace tempo_utils {
+
+    void PrintTo(const Status &status, std::ostream *os);
 }
 
 #endif // TEMPO_TEST_STATUS_MATCHERS_H

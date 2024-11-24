@@ -4,11 +4,11 @@
 ::testing::Matcher<tempo_utils::MaybeStatus<tempo_utils::Status>>
 tempo_test::IsStatus()
 {
-    return MaybeStatusMatcher<tempo_utils::Status>();
+    return ::testing::Not(MaybeStatusMatcher<tempo_utils::Status>());
 }
 
 ::testing::Matcher<tempo_utils::MaybeStatus<tempo_utils::Status>>
 tempo_test::IsResult()
 {
-    return ::testing::Not(MaybeStatusMatcher<tempo_utils::Status>());
+    return MaybeStatusMatcher<tempo_utils::Status>();
 }

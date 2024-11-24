@@ -17,6 +17,7 @@ set(TEMPO_SECURITY_INCLUDES
     include/tempo_security/rsa_private_key_generator.h
     include/tempo_security/security_result.h
     include/tempo_security/security_types.h
+    include/tempo_security/sha256_hash.h
     include/tempo_security/tempo_security.h
     include/tempo_security/x509_certificate.h
     include/tempo_security/x509_certificate_signing_request.h
@@ -35,6 +36,7 @@ target_sources(tempo_security
     src/rsa_private_key_generator.cpp
     src/security_result.cpp
     src/security_types.cpp
+    src/sha256_hash.cpp
     src/x509_certificate.cpp
     src/x509_certificate_signing_request.cpp
     src/x509_store.cpp

@@ -4,6 +4,18 @@
 
 using namespace tempo_test;
 
+TEST(ResultMatcher, IsResult)
+{
+    auto result = tempo_utils::Result<int>(42);
+    ASSERT_THAT (result, IsResult());
+}
+
+TEST(ResultMatcher, IsStatus)
+{
+    auto result = tempo_utils::Result<int>(tempo_utils::Status{});
+    ASSERT_THAT (result, IsStatus());
+}
+
 TEST(ResultMatcher, ContainsResult)
 {
     auto result = tempo_utils::Result<int>(42);

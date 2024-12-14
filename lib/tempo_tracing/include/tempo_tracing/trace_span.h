@@ -47,6 +47,8 @@ namespace tempo_tracing {
         std::shared_ptr<SpanLog> logStatus(const tempo_utils::Status &status, absl::Time ts, LogSeverity severity);
         std::shared_ptr<SpanLog> logStatus(const tempo_utils::Status &status, LogSeverity severity);
 
+        tempo_utils::Status checkStatus(const tempo_utils::Status &status, LogSeverity severity = LogSeverity::kError);
+
         bool isActive() const;
         void activate(ActiveScope *scope);
         void deactivate();
@@ -94,6 +96,19 @@ namespace tempo_tracing {
             putTagUnlocked(serde.getKey(), writer.getValue());
             return TracingStatus::ok();
         }
+
+        /**
+         *
+         */
+        template <typename ResultType>
+        tempo_utils::Result<ResultType>
+        checkResult(tempo_utils::Result<ResultType> &&result, LogSeverity severity = LogSeverity::kError)
+        {
+            if (result.isStatus()) {
+                logStatus(result.peekStatus(), absl::Now(), LogSeverity::kError);
+            }
+            return result;
+        };
 
         /**
          *

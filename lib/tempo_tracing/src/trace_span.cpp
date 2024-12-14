@@ -281,6 +281,15 @@ tempo_tracing::TraceSpan::logStatus(const tempo_utils::Status &status, LogSeveri
     return logStatus(status, absl::Now(), severity);
 }
 
+tempo_utils::Status
+tempo_tracing::TraceSpan::checkStatus(const tempo_utils::Status &status, LogSeverity severity)
+{
+    if (status.notOk()) {
+        logStatus(status, absl::Now(), severity);
+    }
+    return status;
+}
+
 bool
 tempo_tracing::TraceSpan::isActive() const
 {

@@ -8,6 +8,7 @@ set(TEST_CASES
     active_scope_tests.cpp
     span_log_tests.cpp
     status_span_tests.cpp
+    trace_span_tests.cpp
     )
 
 # define test suite driver
@@ -18,6 +19,7 @@ target_include_directories(tempo_tracing_testsuite PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/../src
     )
 target_link_libraries(tempo_tracing_testsuite PUBLIC
+    tempo::tempo_test
     tempo::tempo_tracing
     flatbuffers::flatbuffers
     gtest::gtest
@@ -32,6 +34,7 @@ target_include_directories(TempoTracingTestSuite PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/../src
 )
 target_link_libraries(TempoTracingTestSuite PUBLIC
+    tempo::tempo_test
     tempo::tempo_tracing
     flatbuffers::flatbuffers
     gtest::gtest

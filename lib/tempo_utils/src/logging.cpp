@@ -155,7 +155,7 @@ tempo_utils::write_log(
     }
     else {
         auto msg = absl::StrCat(
-            absl::FormatTime(ts, absl::UTCTimeZone()),
+            absl::FormatTime("%Y-%m-%d%ET%H:%M:%E6S%Ez", ts, absl::UTCTimeZone()),
             " ", severityNames[static_cast<int>(severity)],
             " ", filePath, ":", lineNr,
             " ", log, "\n");

@@ -223,6 +223,12 @@ tempo_config::ConfigNode::toMap() const
     return ConfigMap();
 }
 
+void
+tempo_config::ConfigNode::hash(absl::HashState state) const
+{
+    absl::HashState::combine(std::move(state), m_priv->type);
+}
+
 tempo_config::ConfigNil::ConfigNil()
     : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
         new Priv{ConfigNodeType::kNil, {}}))
@@ -305,6 +311,14 @@ bool
 tempo_config::ConfigValue::operator!=(const tempo_config::ConfigValue &other) const
 {
     return !(*this == other);
+}
+
+void
+tempo_config::ConfigValue::hash(absl::HashState state) const
+{
+    auto *priv = (ValuePriv *) getPriv();
+    state = absl::HashState::combine(std::move(state), priv->type);
+    absl::HashState::combine(std::move(state), *priv->value);
 }
 
 tempo_config::ConfigSeq::ConfigSeq()
@@ -431,6 +445,14 @@ tempo_config::ConfigSeq::extend(const ConfigSeq &dst, const ConfigSeq &src)
     return ConfigSeq(seq);
 }
 
+void
+tempo_config::ConfigSeq::hash(absl::HashState state) const
+{
+    auto *priv = (SeqPriv *) getPriv();
+    state = absl::HashState::combine(std::move(state), priv->type);
+    absl::HashState::combine(std::move(state), priv->seq);
+}
+
 tempo_config::ConfigMap::ConfigMap()
     : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
         new MapPriv{
@@ -544,6 +566,18 @@ bool
 tempo_config::ConfigMap::operator!=(const tempo_config::ConfigMap &other) const
 {
     return !(*this == other);
+}
+
+void
+tempo_config::ConfigMap::hash(absl::HashState state) const
+{
+    auto *priv = (MapPriv *) getPriv();
+    state = absl::HashState::combine(std::move(state), priv->type);
+    std::vector<std::pair<std::string, ConfigNode>> entries(priv->map->begin(), priv->map->end());
+    std::sort(entries.begin(), entries.end(), [](auto &a, auto &b) -> bool {
+        return a.first < b.first;
+    });
+    absl::HashState::combine(std::move(state), entries);
 }
 
 /**

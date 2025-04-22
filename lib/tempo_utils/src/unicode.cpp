@@ -98,21 +98,21 @@ tempo_utils::unescape_utf8(std::string_view utf8)
         return {};
 
     // perform unescape on the string
-    UChar dst[dstSize];
-    auto nwritten = u_unescape(utf8.data(), dst, dstSize);
+    std::vector<UChar> dst(dstSize);
+    auto nwritten = u_unescape(utf8.data(), dst.data(), dstSize);
     if (nwritten <= 0)
         return {};
 
     // return utf8 string
-    return convert_to_utf8(dst, dstSize);
+    return convert_to_utf8(dst.data(), dstSize);
 }
 
-static inline bool is_unreserved_char(char ch)
+inline bool is_unreserved_char(char ch)
 {
     return isalnum(ch) || ch == '-' || ch == '.' || ch == '_' || ch == '~';
 }
 
-static inline void put_percent_encoded(char ch, std::string &s)
+inline void put_percent_encoded(char ch, std::string &s)
 {
     char encoded[3] = { '%', '\0', '\0' };
     unsigned char hi = ((unsigned char) ch / 16);
@@ -123,7 +123,7 @@ static inline void put_percent_encoded(char ch, std::string &s)
     s.append(encoded, 3);
 }
 
-static inline void put_percent_decoded(char hex[2], std::string &s)
+inline void put_percent_decoded(char hex[2], std::string &s)
 {
     unsigned char hi = hex[0] < ':'? hex[0] - '0' : 10 + (hex[0] - 'A');
     unsigned char lo = hex[1] < ':'? hex[1] - '0' : 10 + (hex[1] - 'A');

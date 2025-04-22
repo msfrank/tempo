@@ -103,6 +103,14 @@ namespace tempo_config {
 
         std::string toString() const;
 
+        virtual void hash(absl::HashState state) const;
+
+        template <typename H>
+        friend H AbslHashValue(H state, const ConfigNode &node) {
+            node.hash(absl::HashState::Create(&state));
+            return std::move(state);
+        }
+
     protected:
         struct Priv {
             ConfigNodeType type;
@@ -131,12 +139,14 @@ namespace tempo_config {
         explicit ConfigValue(const char *value, const ConfigLocation &location = {});
         explicit ConfigValue(std::string_view value, const ConfigLocation &location = {});
         explicit ConfigValue(std::string &&value, const ConfigLocation &location = {});
-        ConfigValue(ConfigValueType value, const ConfigLocation &location = {});
+        explicit ConfigValue(ConfigValueType value, const ConfigLocation &location = {});
 
         std::string getValue() const;
 
         bool operator==(const ConfigValue &other) const;
         bool operator!=(const ConfigValue &other) const;
+
+        void hash(absl::HashState state) const override;
 
     private:
         struct ValuePriv : ConfigNode::Priv {
@@ -167,6 +177,8 @@ namespace tempo_config {
 
         bool operator==(const ConfigSeq &other) const;
         bool operator!=(const ConfigSeq &other) const;
+
+        void hash(absl::HashState state) const override;
 
         static ConfigSeq append(const ConfigSeq &dst, const ConfigNode &src);
         static ConfigSeq extend(const ConfigSeq &dst, const ConfigSeq &src);
@@ -200,6 +212,8 @@ namespace tempo_config {
 
         bool operator==(const ConfigMap &other) const;
         bool operator!=(const ConfigMap &other) const;
+
+        void hash(absl::HashState state) const override;
 
         static ConfigMap extend(const ConfigMap &dst, const ConfigMap &src);
         static ConfigMap update(const ConfigMap &dst, const ConfigMap &src);

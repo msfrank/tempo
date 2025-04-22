@@ -6,6 +6,7 @@ include(GoogleTest)
 
 set(TEST_CASES
     base_conversions_tests.cpp
+    config_hash_tests.cpp
     config_listener_tests.cpp
     config_serde_tests.cpp
     container_conversions_tests.cpp

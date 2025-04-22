@@ -3,6 +3,7 @@
 
 #include <absl/container/flat_hash_map.h>
 #include <absl/container/flat_hash_set.h>
+#include <absl/strings/str_cat.h>
 
 #include "integer_types.h"
 #include "log_console.h"

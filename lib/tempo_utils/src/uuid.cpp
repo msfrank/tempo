@@ -1,5 +1,6 @@
 
 #include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -62,7 +63,7 @@ void
 tempo_utils::UUID::hashValue(absl::HashState state) const
 {
     if (m_priv != nullptr) {
-        absl::HashState::combine(std::move(state), m_priv->uuid.data);
+        absl::HashState::combine(std::move(state), m_priv->uuid);
     } else {
         absl::HashState::combine(std::move(state), 0);
     }

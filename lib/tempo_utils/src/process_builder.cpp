@@ -1,24 +1,47 @@
 
-#include <tempo_utils/process_utils.h>
+#include <tempo_utils/process_builder.h>
 
+/**
+ * Construct a ProcessBuilder for the given executable.
+ *
+ * @param executable The path to the executable.
+ */
 tempo_utils::ProcessBuilder::ProcessBuilder(const std::filesystem::path &executable)
 {
     m_exe = std::filesystem::absolute(executable);
     appendArg(m_exe.c_str());
 }
 
+/**
+ * Construct a ProcessBuilder for the given executable.
+ *
+ * @param executable The path to the executable.
+ * @param arg0 The first argument given to the executable.
+ */
 tempo_utils::ProcessBuilder::ProcessBuilder(const std::filesystem::path &executable, std::string_view arg0)
 {
     m_exe = std::filesystem::absolute(executable);
     appendArg(arg0);
 }
 
+/**
+ * Append a single argument. This form is typically used for flag arguments, but can also be used when
+ * specifying an option argument when there is no space between the option and its value.
+ *
+ * @param arg The argument.
+ */
 void
 tempo_utils::ProcessBuilder::appendArg(std::string_view arg)
 {
     m_args.push_back(std::string(arg));
 }
 
+/**
+ * Append an argument composed of an option and a value, which are represented as two separate argument strings.
+ *
+ * @param option The argument option name.
+ * @param value  The argument option value.
+ */
 void
 tempo_utils::ProcessBuilder::appendArg(std::string_view option, std::string_view value)
 {
@@ -26,6 +49,11 @@ tempo_utils::ProcessBuilder::appendArg(std::string_view option, std::string_view
     appendArg(value);
 }
 
+/**
+ * Construct a `ProcessInvoker` from the executable path and arguments.
+ *
+ * @return The ProcessInvoker.
+ */
 tempo_utils::ProcessInvoker
 tempo_utils::ProcessBuilder::toInvoker() const
 {

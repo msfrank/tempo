@@ -2,6 +2,9 @@ enable_testing()
 
 include(GoogleTest)
 
+add_executable(process-runner-child process_runner_child.cpp)
+target_link_libraries(process-runner-child tempo::tempo_utils)
+
 # define unit tests
 
 set(TEMPO_UTILS_TEST_CASES
@@ -14,11 +17,13 @@ set(TEMPO_UTILS_TEST_CASES
     memory_bytes_tests.cpp
     memory_mapped_bytes_tests.cpp
     prehashed_value_tests.cpp
+    process_runner_tests.cpp
     slice_tests.cpp
     status_tests.cpp
     tempdir_maker_tests.cpp
     unicode_tests.cpp
     url_path_tests.cpp
+    url_resolve_tests.cpp
     url_tests.cpp
     uuid_tests.cpp
     )
@@ -30,11 +35,19 @@ target_link_libraries(tempo_utils_testsuite PUBLIC
     tempo::tempo_utils
     gtest::gtest
     )
+add_dependencies(tempo_utils_testsuite process-runner-child)
+target_compile_definitions(tempo_utils_testsuite PRIVATE
+    "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""
+    )
 gtest_discover_tests(tempo_utils_testsuite)
 
 # define test suite static library
 
 add_library(TempoUtilsTestSuite OBJECT ${TEMPO_UTILS_TEST_CASES})
+add_dependencies(TempoUtilsTestSuite process-runner-child)
+target_compile_definitions(TempoUtilsTestSuite PRIVATE
+    "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""
+    )
 target_link_libraries(TempoUtilsTestSuite PUBLIC
     tempo::tempo_utils
     gtest::gtest

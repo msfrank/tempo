@@ -64,7 +64,9 @@ namespace tempo_utils {
 
         std::string_view uriView() const;
 
-        Url traverse(const UrlPathPart &part);
+        Url traverse(const UrlPathPart &part) const;
+
+        Url resolve(const Url &other) const;
 
         UrlOrigin toOrigin() const;
         UrlAuthority toAuthority() const;

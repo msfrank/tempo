@@ -40,7 +40,7 @@ namespace tempo_utils {
     private:
         std::filesystem::path m_absolutePath;
         FileWriterMode m_mode;
-        tempo_utils::Status m_status;
+        Status m_status;
     };
 }
 

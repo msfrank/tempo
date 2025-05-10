@@ -1,5 +1,5 @@
-#ifndef TEMPO_UTILS_PROCESS_UTILS_H
-#define TEMPO_UTILS_PROCESS_UTILS_H
+#ifndef TEMPO_UTILS_PROCESS_BUILDER_H
+#define TEMPO_UTILS_PROCESS_BUILDER_H
 
 #include <filesystem>
 #include <string>
@@ -9,6 +9,9 @@
 
 namespace tempo_utils {
 
+    /**
+     * ProcessInvoker encapsulates a path to an executable and its arguments.
+     */
     class ProcessInvoker {
     public:
         ProcessInvoker();
@@ -31,6 +34,9 @@ namespace tempo_utils {
 
     tempo_utils::LogMessage&& operator<<(tempo_utils::LogMessage &&message, const ProcessInvoker &invoker);
 
+    /**
+     * ProcessBuilder helps build a ProcessInvoker by adding arguments incrementally.
+     */
     class ProcessBuilder {
     public:
         ProcessBuilder(const std::filesystem::path &executable);
@@ -46,4 +52,4 @@ namespace tempo_utils {
     };
 }
 
-#endif // TEMPO_UTILS_PROCESS_UTILS_H
+#endif // TEMPO_UTILS_PROCESS_BUILDER_H

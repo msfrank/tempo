@@ -312,7 +312,7 @@ tempo_utils::Url::uriView() const
 }
 
 tempo_utils::Url
-tempo_utils::Url::traverse(const UrlPathPart &part)
+tempo_utils::Url::traverse(const UrlPathPart &part) const
 {
     auto updatedPath = toPath().traverse(part);
     if (hasScheme() && hasAuthority()) {
@@ -323,6 +323,20 @@ tempo_utils::Url::traverse(const UrlPathPart &part)
     } else {
         return fromRelative(updatedPath.pathView(), queryView(), fragmentView());
     }
+}
+
+tempo_utils::Url
+tempo_utils::Url::resolve(const Url &other) const
+{
+    if (!isAbsolute())
+        return {};
+    if (!other.isValid())
+        return *this;
+    boost::url dest;
+    auto result = boost::urls::resolve(m_priv->url, other.m_priv->url, dest);
+    if (result.has_error())
+        return {};
+    return fromString(dest.c_str());
 }
 
 tempo_utils::UrlOrigin

@@ -62,10 +62,18 @@ namespace tempo_test {
             return m_matcher.MatchAndExplain(result.getStatus(), os);
         }
         void DescribeTo(std::ostream *os) const {
-            m_matcher.DescribeTo(os);
+            if (m_isStatus) {
+                m_matcher.DescribeTo(os);
+            } else {
+                *os << "no status is present";
+            }
         }
         void DescribeNegationTo(std::ostream *os) const {
-            m_matcher.DescribeNegationTo(os);
+            if (m_isStatus) {
+                m_matcher.DescribeNegationTo(os);
+            } else {
+                *os << "status is present";
+            }
         }
 
         using is_gtest_matcher = void;

@@ -39,6 +39,7 @@ namespace tempo_utils {
         bool isValid() const;
         bool isEmpty() const;
         bool isAbsolute() const;
+        bool isRelative() const;
 
         int numParts() const;
         UrlPathPart getPart(int index) const;
@@ -58,7 +59,8 @@ namespace tempo_utils {
 
         std::string_view pathView() const;
 
-        UrlPath traverse(const UrlPathPart &part);
+        UrlPath traversePart(const UrlPathPart &part) const;
+        UrlPath traversePath(const UrlPath &path) const;
 
         std::string toString() const;
         std::filesystem::path toFilesystemPath(const std::filesystem::path &relativeBase) const;
@@ -76,23 +78,31 @@ namespace tempo_utils {
 
     private:
         std::shared_ptr<internal::UrlData> m_priv;
-//        std::vector<std::pair<tu_int16,tu_int16>> m_parts;
 
         explicit UrlPath(std::shared_ptr<internal::UrlData> priv);
-//        UrlPath(
-//            std::shared_ptr<internal::UrlData> priv,
-//            std::vector<std::pair<tu_int16,tu_int16>> &&parts);
 
         friend class Url;
 
     public:
         template<class... Args>
-        UrlPath traverse(const UrlPathPart &part, Args... args)
+        UrlPath traverse(const UrlPathPart &part, Args... args) const
         {
-            auto path = traverse(part);
-            return path.traverse(args...);
+            auto traversed = traversePart(part);
+            return traversed.traverse(args...);
+        }
+        template<class... Args>
+        UrlPath traverse(const UrlPath &path, Args... args) const
+        {
+            auto traversed = traversePath(path);
+            return traversed.traverse(args...);
+        }
+        UrlPath traverse() const
+        {
+            return *this;
         }
     };
+
+    LogMessage&& operator<<(LogMessage &&message, const UrlPath &path);
 }
 
 #endif // TEMPO_UTILS_URL_PATH_H

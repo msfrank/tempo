@@ -60,9 +60,9 @@ tempo_config::IntegerParser::parseValue(const ConfigNode &node, int &i) const
 
     auto value = node.toValue().getValue();
 
-    int i__;
-    if (absl::SimpleAtoi(value, &i__))
-        SET_VALUE_AND_RETURN_OK(i, i__);
+    int convertedInt;
+    if (absl::SimpleAtoi(value, &convertedInt))
+        SET_VALUE_AND_RETURN_OK(i, convertedInt);
 
     return ConfigStatus::forCondition(ConfigCondition::kParseError,
         "value '{}' cannot be converted to int", value);
@@ -89,9 +89,9 @@ tempo_config::LongParser::parseValue(const ConfigNode &node, tu_int64 &i64) cons
 
     auto value = node.toValue().getValue();
 
-    int64_t i64__;
-    if (absl::SimpleAtoi(value, &i64__))
-        SET_VALUE_AND_RETURN_OK(i64, i64__);
+    int64_t convertedLong;
+    if (absl::SimpleAtoi(value, &convertedLong))
+        SET_VALUE_AND_RETURN_OK(i64, convertedLong);
 
     return ConfigStatus::forCondition(ConfigCondition::kParseError,
         "value '{}' cannot be converted to int64", value);
@@ -118,9 +118,9 @@ tempo_config::FloatParser::parseValue(const ConfigNode &node, double &dbl) const
 
     auto value = node.toValue().getValue();
 
-    double dbl__;
-    if (absl::SimpleAtod(value, &dbl__))
-        SET_VALUE_AND_RETURN_OK(dbl, dbl__);
+    double convertedDouble;
+    if (absl::SimpleAtod(value, &convertedDouble))
+        SET_VALUE_AND_RETURN_OK(dbl, convertedDouble);
 
     return ConfigStatus::forCondition(ConfigCondition::kParseError,
         "value '{}' cannot be converted to double", value);
@@ -168,9 +168,9 @@ tempo_config::PathParser::parseValue(const ConfigNode &node, std::filesystem::pa
             "expected Value node but found {}", config_node_type_to_string(node.getNodeType()));
 
     auto value = node.toValue().getValue();
-    std::filesystem::path path__(value, std::filesystem::path::format::native_format);
-    if (!path__.empty())
-        SET_VALUE_AND_RETURN_OK(path, path__);
+    std::filesystem::path convertedPath(value, std::filesystem::path::format::native_format);
+    if (!convertedPath.empty())
+        SET_VALUE_AND_RETURN_OK(path, convertedPath);
 
     return ConfigStatus::forCondition(ConfigCondition::kParseError,
         "value '{}' cannot be converted to path", value);
@@ -180,28 +180,56 @@ tempo_config::UrlParser::UrlParser()
 {
 }
 
-tempo_config::UrlParser::UrlParser(const tempo_utils::Url &uriDefault)
-    : m_default(uriDefault)
+tempo_config::UrlParser::UrlParser(const tempo_utils::Url &urlDefault)
+    : m_default(urlDefault)
 {
 }
 
 tempo_utils::Status
-tempo_config::UrlParser::parseValue(const ConfigNode &node, tempo_utils::Url &uri) const
+tempo_config::UrlParser::parseValue(const ConfigNode &node, tempo_utils::Url &url) const
 {
     if (node.isNil() && !m_default.isEmpty())
-        SET_VALUE_AND_RETURN_OK(uri, m_default.getValue());
+        SET_VALUE_AND_RETURN_OK(url, m_default.getValue());
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
             "expected Value node but found {}", config_node_type_to_string(node.getNodeType()));
 
     auto value = node.toValue().getValue();
-    auto uri__ = tempo_utils::Url::fromString(value);
-    if (uri__.isValid())
-        SET_VALUE_AND_RETURN_OK(uri, uri__);
+    auto convertedUrl = tempo_utils::Url::fromString(value);
+    if (convertedUrl.isValid())
+        SET_VALUE_AND_RETURN_OK(url, convertedUrl);
 
     return ConfigStatus::forCondition(ConfigCondition::kParseError,
         "value '{}' cannot be converted to Url", value);
+}
+
+tempo_config::UrlPathParser::UrlPathParser()
+{
+}
+
+tempo_config::UrlPathParser::UrlPathParser(const tempo_utils::UrlPath &pathDefault)
+    : m_default(pathDefault)
+{
+}
+
+tempo_utils::Status
+tempo_config::UrlPathParser::parseValue(const ConfigNode &node, tempo_utils::UrlPath &path) const
+{
+    if (node.isNil() && !m_default.isEmpty())
+        SET_VALUE_AND_RETURN_OK(path, m_default.getValue());
+
+    if (node.getNodeType() != ConfigNodeType::kValue)
+        return ConfigStatus::forCondition(ConfigCondition::kWrongType,
+            "expected Value node but found {}", config_node_type_to_string(node.getNodeType()));
+
+    auto value = node.toValue().getValue();
+    auto convertedPath = tempo_utils::UrlPath::fromString(value);
+    if (convertedPath.isValid())
+        SET_VALUE_AND_RETURN_OK(path, convertedPath);
+
+    return ConfigStatus::forCondition(ConfigCondition::kParseError,
+        "value '{}' cannot be converted to UrlPath", value);
 }
 
 tempo_config::ConfigStringParser::ConfigStringParser()

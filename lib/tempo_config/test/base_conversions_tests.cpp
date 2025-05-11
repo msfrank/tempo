@@ -47,3 +47,30 @@ TEST(BaseConversions, TestConvertString)
     ASSERT_TRUE (status.isOk());
     ASSERT_EQ ("hello world!", str);
 }
+
+TEST(BaseConversions, TestConvertPath)
+{
+    tempo_config::PathParser parser;
+    std::filesystem::path path;
+    auto status = parser.parseValue(tempo_config::ConfigValue("/foo/bar"), path);
+    ASSERT_TRUE (status.isOk());
+    ASSERT_EQ (std::filesystem::path("/foo/bar"), path);
+}
+
+TEST(BaseConversions, TestConvertUrl)
+{
+    tempo_config::UrlParser parser;
+    tempo_utils::Url url;
+    auto status = parser.parseValue(tempo_config::ConfigValue("http://foo.com/bar"), url);
+    ASSERT_TRUE (status.isOk());
+    ASSERT_EQ (tempo_utils::Url::fromString("http://foo.com/bar"), url);
+}
+
+TEST(BaseConversions, TestConvertUrlPath)
+{
+    tempo_config::UrlPathParser parser;
+    tempo_utils::UrlPath path;
+    auto status = parser.parseValue(tempo_config::ConfigValue("/foo/bar"), path);
+    ASSERT_TRUE (status.isOk());
+    ASSERT_EQ (tempo_utils::UrlPath::fromString("/foo/bar"), path);
+}

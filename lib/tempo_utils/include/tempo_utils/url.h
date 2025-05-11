@@ -64,7 +64,8 @@ namespace tempo_utils {
 
         std::string_view uriView() const;
 
-        Url traverse(const UrlPathPart &part) const;
+        Url traversePart(const UrlPathPart &part) const;
+        Url traversePath(const UrlPath &path) const;
 
         Url resolve(const Url &other) const;
 
@@ -144,6 +145,24 @@ namespace tempo_utils {
         std::shared_ptr<internal::UrlData> m_priv;
 
         explicit Url(std::shared_ptr<internal::UrlData> priv);
+
+    public:
+        template<class... Args>
+        Url traverse(const UrlPathPart &part, Args... args) const
+        {
+            auto traversed = traversePart(part);
+            return traversed.traverse(args...);
+        }
+        template<class... Args>
+        Url traverse(const UrlPath &path, Args... args) const
+        {
+            auto traversed = traversePath(path);
+            return traversed.traverse(args...);
+        }
+        Url traverse() const
+        {
+            return *this;
+        }
     };
 
     LogMessage&& operator<<(LogMessage &&message, const Url &uri);

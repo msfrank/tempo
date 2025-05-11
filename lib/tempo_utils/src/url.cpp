@@ -312,17 +312,31 @@ tempo_utils::Url::uriView() const
 }
 
 tempo_utils::Url
-tempo_utils::Url::traverse(const UrlPathPart &part) const
+tempo_utils::Url::traversePart(const UrlPathPart &part) const
 {
     auto updatedPath = toPath().traverse(part);
-    if (hasScheme() && hasAuthority()) {
+    if (hasScheme() && hasAuthority())
         return fromAbsolute(schemeView(), toAuthority().toString(), updatedPath.pathView(),
             queryView(), fragmentView());
-    } else if (hasAuthority()) {
+
+    if (hasAuthority())
         return fromAuthority(toAuthority(), updatedPath.pathView(), queryView(), fragmentView());
-    } else {
-        return fromRelative(updatedPath.pathView(), queryView(), fragmentView());
-    }
+
+    return fromRelative(updatedPath.pathView(), queryView(), fragmentView());
+}
+
+tempo_utils::Url
+tempo_utils::Url::traversePath(const UrlPath &path) const
+{
+    auto updatedPath = toPath().traversePath(path);
+    if (hasScheme() && hasAuthority())
+        return fromAbsolute(schemeView(), toAuthority().toString(), updatedPath.pathView(),
+            queryView(), fragmentView());
+
+    if (hasAuthority())
+        return fromAuthority(toAuthority(), updatedPath.pathView(), queryView(), fragmentView());
+
+    return fromRelative(updatedPath.pathView(), queryView(), fragmentView());
 }
 
 tempo_utils::Url

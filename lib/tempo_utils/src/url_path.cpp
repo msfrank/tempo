@@ -95,6 +95,14 @@ tempo_utils::UrlPath::isAbsolute() const
     return m_priv->url.encoded_segments().is_absolute();
 }
 
+bool
+tempo_utils::UrlPath::isRelative() const
+{
+    if (!isValid())
+        return false;
+    return !m_priv->url.encoded_segments().is_absolute();
+}
+
 int
 tempo_utils::UrlPath::numParts() const
 {
@@ -260,7 +268,7 @@ tempo_utils::UrlPath::pathView() const
 }
 
 tempo_utils::UrlPath
-tempo_utils::UrlPath::traverse(const UrlPathPart &part)
+tempo_utils::UrlPath::traversePart(const UrlPathPart &part) const
 {
     std::string appended(pathView());
     if (appended.back() != '/') {
@@ -277,6 +285,18 @@ tempo_utils::UrlPath::traverse(const UrlPathPart &part)
     url.normalize();
 
     return fromString(url.buffer());
+}
+
+tempo_utils::UrlPath
+tempo_utils::UrlPath::traversePath(const UrlPath &path) const
+{
+    if (path.isAbsolute())
+        return path;
+    auto traversed = *this;
+    for (int i = 0; i < path.numParts(); i++) {
+        traversed = traversed.traverse(path.getPart(i));
+    }
+    return traversed;
 }
 
 std::string
@@ -326,4 +346,10 @@ tempo_utils::UrlPath::fromString(std::string_view s)
         return {};
     priv->url = *parseUrlResult;
     return UrlPath(priv);
+}
+
+tempo_utils::LogMessage&& tempo_utils::operator<<(tempo_utils::LogMessage &&message, const tempo_utils::UrlPath &path)
+{
+    message.m_buffer << path.toString();
+    return std::move(message);
 }

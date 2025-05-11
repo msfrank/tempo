@@ -77,11 +77,21 @@ namespace tempo_config {
     class UrlParser : public AbstractConfigParser<tempo_utils::Url> {
     public:
         UrlParser();
-        UrlParser(const tempo_utils::Url &uriDefault);
-        tempo_utils::Status parseValue(const ConfigNode &node, tempo_utils::Url &uri) const override;
+        UrlParser(const tempo_utils::Url &urlDefault);
+        tempo_utils::Status parseValue(const ConfigNode &node, tempo_utils::Url &url) const override;
 
     private:
         Option<tempo_utils::Url> m_default;
+    };
+
+    class UrlPathParser : public AbstractConfigParser<tempo_utils::UrlPath> {
+    public:
+        UrlPathParser();
+        UrlPathParser(const tempo_utils::UrlPath &pathDefault);
+        tempo_utils::Status parseValue(const ConfigNode &node, tempo_utils::UrlPath &path) const override;
+
+    private:
+        Option<tempo_utils::UrlPath> m_default;
     };
 
     class ConfigStringParser : public AbstractConfigParser<ConfigNode> {

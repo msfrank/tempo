@@ -319,6 +319,55 @@ TEST(UrlPath, TestTraverseMultipleSegments)
     ASSERT_EQ ("qux", urlPath.partView(2));
 }
 
+TEST(UrlPath, TestTraversePath)
+{
+    auto basePath = tempo_utils::UrlPath::fromString("/foo/bar");
+    auto urlPath = basePath.traverse(tempo_utils::UrlPath::fromString("baz"));
+
+    ASSERT_FALSE(urlPath.isEmpty());
+    ASSERT_EQ (3, urlPath.numParts());
+    ASSERT_EQ ("foo", urlPath.partView(0));
+    ASSERT_EQ ("bar", urlPath.partView(1));
+    ASSERT_EQ ("baz", urlPath.partView(2));
+}
+
+TEST(UrlPath, TestTraversePathMultipleSegments)
+{
+    auto basePath = tempo_utils::UrlPath::fromString("/foo/bar");
+    auto urlPath = basePath.traverse(tempo_utils::UrlPath::fromString("../baz/qux"));
+
+    ASSERT_FALSE(urlPath.isEmpty());
+    ASSERT_EQ (3, urlPath.numParts());
+    ASSERT_EQ ("foo", urlPath.partView(0));
+    ASSERT_EQ ("baz", urlPath.partView(1));
+    ASSERT_EQ ("qux", urlPath.partView(2));
+}
+
+TEST(UrlPath, TestTraversePathsAndParts)
+{
+    auto basePath = tempo_utils::UrlPath::fromString("/");
+    auto urlPath = basePath.traverse(
+        tempo_utils::UrlPathPart("foo"),
+        tempo_utils::UrlPathPart("bar"),
+        tempo_utils::UrlPath::fromString("../baz/qux"));
+
+    ASSERT_FALSE(urlPath.isEmpty());
+    ASSERT_EQ (3, urlPath.numParts());
+    ASSERT_EQ ("foo", urlPath.partView(0));
+    ASSERT_EQ ("baz", urlPath.partView(1));
+    ASSERT_EQ ("qux", urlPath.partView(2));
+}
+
+TEST(UrlPath, TestTraverseAbsolutePath)
+{
+    auto basePath = tempo_utils::UrlPath::fromString("/foo/bar");
+    auto urlPath = basePath.traverse(tempo_utils::UrlPath::fromString("/baz"));
+
+    ASSERT_FALSE(urlPath.isEmpty());
+    ASSERT_EQ (1, urlPath.numParts());
+    ASSERT_EQ ("baz", urlPath.partView(0));
+}
+
 TEST(UrlPath, TestConvertToFilesystemPathWithRootBaseDirectory)
 {
     auto urlPath = tempo_utils::UrlPath::fromString("/foo/bar");

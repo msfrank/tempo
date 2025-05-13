@@ -14,7 +14,7 @@ namespace tempo_utils {
         LibraryLoader(const LibraryLoader &other) = delete;
 
         bool isValid() const;
-        tempo_utils::Status getStatus() const;
+        Status getStatus() const;
 
         std::filesystem::path getAbsolutePath() const;
         void *symbolPointer() const;
@@ -22,7 +22,7 @@ namespace tempo_utils {
     private:
         std::filesystem::path m_absolutePath;
         void *m_symbol;
-        tempo_utils::Status m_status;
+        Status m_status;
     };
 }
 

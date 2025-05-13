@@ -40,6 +40,7 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/memory_mapped_bytes.h
     include/tempo_utils/option_template.h
     include/tempo_utils/path_template.h
+    include/tempo_utils/platform.h
     include/tempo_utils/posix_result.h
     include/tempo_utils/prehashed_value.h
     include/tempo_utils/process_builder.h
@@ -93,6 +94,7 @@ target_sources(tempo_utils
     src/log_stream.cpp
     src/memory_bytes.cpp
     src/memory_mapped_bytes.cpp
+    src/platform.cpp
     src/posix_result.cpp
     src/process_builder.cpp
     src/slice.cpp
@@ -132,6 +134,16 @@ set_target_properties(tempo_utils PROPERTIES
 target_include_directories(tempo_utils PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+
+# remove leading '.' from suffix
+string(REGEX REPLACE "\.(.+)" "\\1" PLATFORM_SHARED_LIBRARY_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+target_compile_definitions(tempo_utils PRIVATE
+    "PLATFORM_SYSTEM_NAME=\"${CMAKE_SYSTEM_NAME}\""
+    "PLATFORM_SYSTEM_VERSION=\"${CMAKE_SYSTEM_VERSION}\""
+    "PLATFORM_ARCHITECTURE=\"${CMAKE_SYSTEM_PROCESSOR}\""
+    "PLATFORM_SHARED_LIBRARY_SUFFIX=\"${PLATFORM_SHARED_LIBRARY_SUFFIX}\""
     )
 
 target_link_libraries(tempo_utils

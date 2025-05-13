@@ -11,8 +11,13 @@ namespace tempo_utils {
     class TempfileMaker {
 
     public:
-        TempfileMaker(std::string_view tempname, std::span<const tu_uint8> bytes = {});
-        TempfileMaker(std::string_view tempname, std::string_view str = {});
+        explicit TempfileMaker(std::string_view tempname, std::shared_ptr<ImmutableBytes> bytes = {});
+        explicit TempfileMaker(std::string_view tempname, std::span<const tu_uint8> bytes = {});
+        explicit TempfileMaker(std::string_view tempname, std::string_view str = {});
+        TempfileMaker(
+            const std::filesystem::path &base,
+            std::string_view tempname,
+            std::shared_ptr<ImmutableBytes> bytes = {});
         TempfileMaker(
             const std::filesystem::path &base,
             std::string_view tempname,
@@ -24,11 +29,11 @@ namespace tempo_utils {
         TempfileMaker(const TempfileMaker &other) = delete;
 
         bool isValid() const;
-        tempo_utils::Status getStatus() const;
+        Status getStatus() const;
         std::filesystem::path getTempfile() const;
 
     private:
-        tempo_utils::Status m_status;
+        Status m_status;
         std::filesystem::path m_tempfile;
     };
 }

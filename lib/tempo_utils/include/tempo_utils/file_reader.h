@@ -1,5 +1,5 @@
-#ifndef FILE_READER_H
-#define FILE_READER_H
+#ifndef TEMPO_UTILS_FILE_READER_H
+#define TEMPO_UTILS_FILE_READER_H
 
 #include <filesystem>
 
@@ -11,11 +11,11 @@ namespace tempo_utils {
     class FileReader {
 
     public:
-        FileReader(const std::filesystem::path &path);
+        explicit FileReader(const std::filesystem::path &path);
         FileReader(const FileReader &other) = delete;
 
         bool isValid() const;
-        tempo_utils::Status getStatus() const;
+        Status getStatus() const;
 
         std::filesystem::path getAbsolutePath() const;
         std::shared_ptr<const ImmutableBytes> getBytes() const;
@@ -23,8 +23,8 @@ namespace tempo_utils {
     private:
         std::filesystem::path m_absolutePath;
         std::shared_ptr<const ImmutableBytes> m_bytes;
-        tempo_utils::Status m_status;
+        Status m_status;
     };
 }
 
-#endif // FILE_READER_H
+#endif // TEMPO_UTILS_FILE_READER_H

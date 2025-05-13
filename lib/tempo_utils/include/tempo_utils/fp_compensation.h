@@ -1,5 +1,5 @@
-#ifndef FP_COMPENSATION_H
-#define FP_COMPENSATION_H
+#ifndef TEMPO_UTILS_FP_COMPENSATION_H
+#define TEMPO_UTILS_FP_COMPENSATION_H
 
 #include <cstdint>
 
@@ -11,4 +11,4 @@ double neumaier_sum(double const values[], int count);
 double neumaier_add(double dbl1, double dbl2);
 double neumaier_sub(double dbl1, double dbl2);
 
-#endif // FP_COMPENSATION_H
+#endif // TEMPO_UTILS_FP_COMPENSATION_H

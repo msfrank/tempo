@@ -101,13 +101,6 @@ tempo_utils::FileAppender::FileAppender(
     m_status = posix_open_file(path.c_str(), m_mode, perms, &m_fd);
 }
 
-tempo_utils::FileAppender::FileAppender(
-    const std::filesystem::path &path,
-    FileAppenderMode mode)
-    : FileAppender(path, mode, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write)
-{
-}
-
 tempo_utils::FileAppender::FileAppender(const std::filesystem::path &path)
     : FileAppender(path, FileAppenderMode::CREATE_OR_APPEND)
 {
@@ -169,6 +162,14 @@ tempo_utils::FileAppender::appendU32(tu_uint32 u32)
         m_status = posix_write(m_fd, (const char *) &_u32, sizeof(_u32));
     }
     return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendBytes(std::shared_ptr<ImmutableBytes> bytes)
+{
+    if (bytes == nullptr)
+        return {};
+    return appendBytes(bytes->getSpan());
 }
 
 tempo_utils::Status

@@ -5,6 +5,7 @@
 #include <span>
 #include <vector>
 
+#include "immutable_bytes.h"
 #include "integer_types.h"
 #include "status.h"
 
@@ -17,32 +18,40 @@ namespace tempo_utils {
         CREATE_ONLY,
     };
 
+    constexpr std::filesystem::perms kDefaultFileAppenderPerms =
+        std::filesystem::perms::owner_read
+        | std::filesystem::perms::owner_write
+        ;
+
     class FileAppender {
 
     public:
-        FileAppender(const std::filesystem::path &path);
-        FileAppender(const std::filesystem::path &path, FileAppenderMode mode);
-        FileAppender(const std::filesystem::path &path, FileAppenderMode mode, std::filesystem::perms perms);
+        explicit FileAppender(const std::filesystem::path &path);
+        FileAppender(
+            const std::filesystem::path &path,
+            FileAppenderMode mode,
+            std::filesystem::perms perms = kDefaultFileAppenderPerms);
         FileAppender(const FileAppender &other) = delete;
         ~FileAppender();
 
         bool isValid() const;
-        tempo_utils::Status getStatus() const;
+        Status getStatus() const;
         std::filesystem::path getAbsolutePath() const;
         FileAppenderMode getMode();
 
-        tempo_utils::Status appendU8(tu_uint8 u8);
-        tempo_utils::Status appendU16(tu_uint16 u16);
-        tempo_utils::Status appendU32(tu_uint32 u32);
-        tempo_utils::Status appendBytes(std::span<const tu_uint8> bytes);
-        tempo_utils::Status appendBytes(std::string_view str);
+        Status appendU8(tu_uint8 u8);
+        Status appendU16(tu_uint16 u16);
+        Status appendU32(tu_uint32 u32);
+        Status appendBytes(std::shared_ptr<ImmutableBytes> bytes);
+        Status appendBytes(std::span<const tu_uint8> bytes);
+        Status appendBytes(std::string_view str);
 
-        tempo_utils::Status finish();
+        Status finish();
 
     private:
         std::filesystem::path m_absolutePath;
         FileAppenderMode m_mode;
-        tempo_utils::Status m_status;
+        Status m_status;
         int m_fd;
     };
 }

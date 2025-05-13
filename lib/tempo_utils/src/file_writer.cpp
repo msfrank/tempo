@@ -82,26 +82,25 @@ posix_write_file_completely(
 
 tempo_utils::FileWriter::FileWriter(
     const std::filesystem::path &path,
-    std::span<const tu_uint8> bytes,
-    tempo_utils::FileWriterMode mode)
-    : tempo_utils::FileWriter(
-        path, bytes, mode, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write)
+    std::shared_ptr<ImmutableBytes> bytes,
+    FileWriterMode mode,
+    std::filesystem::perms perms)
+    : m_mode(mode)
 {
+    m_absolutePath = absolute(path);
+    const char *data = nullptr;
+    tu_uint32 size = 0;
+    if (bytes != nullptr) {
+        data = (const char *) bytes->getData();
+        size = bytes->getSize();
+    }
+    m_status = posix_write_file_completely(path.c_str(), data, size, mode, perms);
 }
 
 tempo_utils::FileWriter::FileWriter(
     const std::filesystem::path &path,
-    std::string_view str,
-    tempo_utils::FileWriterMode mode)
-    : tempo_utils::FileWriter(
-    path, str, mode, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write)
-{
-}
-
-tempo_utils::FileWriter::FileWriter(
-    const std::filesystem::path &path,
     std::span<const tu_uint8> bytes,
-    tempo_utils::FileWriterMode mode,
+    FileWriterMode mode,
     std::filesystem::perms perms)
     : m_mode(mode)
 {
@@ -112,7 +111,7 @@ tempo_utils::FileWriter::FileWriter(
 tempo_utils::FileWriter::FileWriter(
     const std::filesystem::path &path,
     std::string_view str,
-    tempo_utils::FileWriterMode mode,
+    FileWriterMode mode,
     std::filesystem::perms perms)
     : m_mode(mode)
 {

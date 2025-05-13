@@ -4,14 +4,6 @@
 #include <tempo_utils/file_result.h>
 #include <tempo_utils/posix_result.h>
 
-static const std::filesystem::perms default_permissions =
-    std::filesystem::perms::owner_all
-    | std::filesystem::perms::group_read
-    | std::filesystem::perms::group_exec
-    | std::filesystem::perms::others_read
-    | std::filesystem::perms::others_exec
-    ;
-
 static tempo_utils::Status
 posix_create_directories(const std::filesystem::path &absolutePath, const std::filesystem::perms &perms)
 {
@@ -58,19 +50,22 @@ posix_create_directories(const std::filesystem::path &absolutePath, const std::f
     return tempo_utils::FileStatus::ok();
 }
 
-tempo_utils::DirectoryMaker::DirectoryMaker(const std::filesystem::path &absolutePath)
+tempo_utils::DirectoryMaker::DirectoryMaker(
+    const std::filesystem::path &absolutePath,
+    std::filesystem::perms perms)
 {
     if (absolutePath.empty()) {
         m_status = FileStatus::forCondition(FileCondition::kInvalidName, "missing path");
     } else {
         m_absolutePath = absolutePath;
-        m_status = posix_create_directories(m_absolutePath, default_permissions);
+        m_status = posix_create_directories(m_absolutePath, perms);
     }
 }
 
 tempo_utils::DirectoryMaker::DirectoryMaker(
     const std::filesystem::path &baseDir,
-    const std::filesystem::path &relativePath)
+    const std::filesystem::path &relativePath,
+    std::filesystem::perms perms)
 {
     if (!exists(baseDir)) {
         m_status = FileStatus::forCondition(FileCondition::kMissingBaseDirectory,
@@ -82,7 +77,7 @@ tempo_utils::DirectoryMaker::DirectoryMaker(
         m_status = FileStatus::forCondition(FileCondition::kInvalidName, "missing relative path");
     } else {
         m_absolutePath = baseDir / relativePath;
-        m_status = posix_create_directories(m_absolutePath, default_permissions);
+        m_status = posix_create_directories(m_absolutePath, perms);
     }
 }
 

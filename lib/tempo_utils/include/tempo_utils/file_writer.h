@@ -1,9 +1,10 @@
-#ifndef FILE_WRITER_H
-#define FILE_WRITER_H
+#ifndef TEMPO_UTILS_FILE_WRITER_H
+#define TEMPO_UTILS_FILE_WRITER_H
 
 #include <filesystem>
 #include <span>
 
+#include "immutable_bytes.h"
 #include "status.h"
 
 namespace tempo_utils {
@@ -15,25 +16,32 @@ namespace tempo_utils {
         OVERWRITE_ONLY,
     };
 
-    class FileWriter {
+    constexpr std::filesystem::perms kDefaultFileWriterPerms =
+        std::filesystem::perms::owner_read
+        | std::filesystem::perms::owner_write
+        ;
 
+    class FileWriter {
     public:
-        FileWriter(const std::filesystem::path &path, std::span<const tu_uint8> bytes, FileWriterMode mode);
-        FileWriter(const std::filesystem::path &path, std::string_view str, FileWriterMode mode);
+        FileWriter(
+            const std::filesystem::path &path,
+            std::shared_ptr<ImmutableBytes> bytes,
+            FileWriterMode mode,
+            std::filesystem::perms perms = kDefaultFileWriterPerms);
         FileWriter(
             const std::filesystem::path &path,
             std::span<const tu_uint8> bytes,
             FileWriterMode mode,
-            std::filesystem::perms perms);
+            std::filesystem::perms perms = kDefaultFileWriterPerms);
         FileWriter(
             const std::filesystem::path &path,
             std::string_view str,
             FileWriterMode mode,
-            std::filesystem::perms perms);
+            std::filesystem::perms perms = kDefaultFileWriterPerms);
         FileWriter(const FileWriter &other) = delete;
 
         bool isValid() const;
-        tempo_utils::Status getStatus() const;
+        Status getStatus() const;
         std::filesystem::path getAbsolutePath() const;
         FileWriterMode getMode();
 
@@ -44,4 +52,4 @@ namespace tempo_utils {
     };
 }
 
-#endif // FILE_WRITER_H
+#endif // TEMPO_UTILS_FILE_WRITER_H

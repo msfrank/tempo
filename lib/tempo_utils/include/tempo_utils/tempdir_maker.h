@@ -1,5 +1,5 @@
-#ifndef TEMPO_UTILS_TMPDIR_MAKER_H
-#define TEMPO_UTILS_TMPDIR_MAKER_H
+#ifndef TEMPO_UTILS_TEMPDIR_MAKER_H
+#define TEMPO_UTILS_TEMPDIR_MAKER_H
 
 #include <filesystem>
 
@@ -10,18 +10,19 @@ namespace tempo_utils {
     class TempdirMaker {
 
     public:
-        TempdirMaker(std::string_view tempname);
+        explicit TempdirMaker(std::string_view tempname);
         TempdirMaker(const std::filesystem::path &base, std::string_view tempname);
         TempdirMaker(const TempdirMaker &other) = delete;
 
         bool isValid() const;
-        tempo_utils::Status getStatus() const;
+        Status getStatus() const;
+
         std::filesystem::path getTempdir() const;
 
     private:
-        tempo_utils::Status m_status;
+        Status m_status;
         std::filesystem::path m_tempdir;
     };
 }
 
-#endif // TEMPO_UTILS_TMPDIR_MAKER_H
+#endif // TEMPO_UTILS_TEMPDIR_MAKER_H

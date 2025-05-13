@@ -314,7 +314,7 @@ tempo_utils::UrlPath::toFilesystemPath(const std::filesystem::path &relativeBase
     for (int i = 0; i < numParts(); i++) {
         path.append(partView(i));
     }
-    return path;
+    return path.lexically_normal();
 }
 
 bool

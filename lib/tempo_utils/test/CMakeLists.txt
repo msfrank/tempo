@@ -22,6 +22,8 @@ set(TEMPO_UTILS_TEST_CASES
     status_tests.cpp
     tempdir_maker_tests.cpp
     unicode_tests.cpp
+    url_authority_tests.cpp
+    url_origin_tests.cpp
     url_path_tests.cpp
     url_resolve_tests.cpp
     url_tests.cpp

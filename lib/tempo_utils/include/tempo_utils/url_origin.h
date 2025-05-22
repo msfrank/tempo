@@ -33,6 +33,8 @@ namespace tempo_utils {
         bool operator==(const UrlOrigin &other) const;
         bool operator!=(const UrlOrigin &other) const;
 
+        static UrlOrigin fromString(std::string_view s);
+
     private:
         std::shared_ptr<internal::UrlData> m_priv;
 

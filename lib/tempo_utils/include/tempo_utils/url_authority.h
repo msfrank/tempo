@@ -39,6 +39,8 @@ namespace tempo_utils {
         bool operator==(const UrlAuthority &other) const;
         bool operator!=(const UrlAuthority &other) const;
 
+        static UrlAuthority fromString(std::string_view s);
+
     private:
         std::shared_ptr<internal::UrlData> m_priv;
 

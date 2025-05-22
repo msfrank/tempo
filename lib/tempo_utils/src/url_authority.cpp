@@ -1,4 +1,6 @@
 
+#include <absl/strings/str_cat.h>
+
 #include <tempo_utils/internal/url_data.h>
 #include <tempo_utils/log_message.h>
 #include <tempo_utils/url_authority.h>
@@ -184,4 +186,20 @@ bool
 tempo_utils::UrlAuthority::operator!=(const UrlAuthority &other) const
 {
     return !(*this == other);
+}
+
+tempo_utils::UrlAuthority
+tempo_utils::UrlAuthority::fromString(std::string_view s)
+{
+    if (s.empty())
+        return {};
+    if (s.find('/') != std::string_view::npos)
+        return {};
+    auto priv = std::make_shared<internal::UrlData>();
+    priv->data = absl::StrCat("//", s);
+    auto parseRelativeRefResult = boost::urls::parse_relative_ref(priv->data);
+    if (parseRelativeRefResult.has_error())
+        return {};
+    priv->url = *parseRelativeRefResult;
+    return UrlAuthority(priv);
 }

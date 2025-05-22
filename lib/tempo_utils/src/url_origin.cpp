@@ -123,10 +123,13 @@ tempo_utils::UrlOrigin::hostAndPortView() const
 std::string
 tempo_utils::UrlOrigin::toString() const
 {
-    if (hasScheme() && hasHost()) {
+    if (hasHost()) {
         std::string origin;
-        origin.append(schemeView());
-        origin.append("://");
+        if (hasScheme()) {
+            origin.append(schemeView());
+            origin.append(":");
+        }
+        origin.append("//");
         origin.append(hostView());
         if (hasPort()) {
             origin.push_back(':');
@@ -153,4 +156,18 @@ bool
 tempo_utils::UrlOrigin::operator!=(const UrlOrigin &other) const
 {
     return !(*this == other);
+}
+
+tempo_utils::UrlOrigin
+tempo_utils::UrlOrigin::fromString(std::string_view s)
+{
+    if (s.empty())
+        return {};
+    auto priv = std::make_shared<internal::UrlData>();
+    priv->data = s;
+    auto parseUrlResult = boost::urls::parse_uri_reference(priv->data);
+    if (parseUrlResult.has_error())
+        return {};
+    priv->url = *parseUrlResult;
+    return UrlOrigin(priv);
 }

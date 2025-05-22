@@ -223,6 +223,7 @@ tempo_config::ConfigNode::toMap() const
     return ConfigMap();
 }
 
+// FIXME: move this method to Priv to get rid of object slicing lint warnings
 void
 tempo_config::ConfigNode::hash(absl::HashState state) const
 {

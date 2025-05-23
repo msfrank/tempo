@@ -25,7 +25,7 @@ namespace tempo_utils {
     public:
         FileWriter(
             const std::filesystem::path &path,
-            std::shared_ptr<ImmutableBytes> bytes,
+            std::shared_ptr<const ImmutableBytes> bytes,
             FileWriterMode mode,
             std::filesystem::perms perms = kDefaultFileWriterPerms);
         FileWriter(

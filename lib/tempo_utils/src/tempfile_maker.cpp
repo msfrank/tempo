@@ -45,7 +45,7 @@ posix_create_tempfile(
 
 tempo_utils::TempfileMaker::TempfileMaker(
     std::string_view tempname,
-    std::shared_ptr<ImmutableBytes> bytes)
+    std::shared_ptr<const ImmutableBytes> bytes)
     : TempfileMaker(std::filesystem::temp_directory_path(), tempname, bytes)
 {
 }
@@ -67,7 +67,7 @@ tempo_utils::TempfileMaker::TempfileMaker(
 tempo_utils::TempfileMaker::TempfileMaker(
     const std::filesystem::path &base,
     std::string_view tempname,
-    std::shared_ptr<ImmutableBytes> bytes)
+    std::shared_ptr<const ImmutableBytes> bytes)
 {
     const char *data = nullptr;
     tu_uint32 size = 0;

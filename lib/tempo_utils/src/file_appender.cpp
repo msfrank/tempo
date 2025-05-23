@@ -165,7 +165,7 @@ tempo_utils::FileAppender::appendU32(tu_uint32 u32)
 }
 
 tempo_utils::Status
-tempo_utils::FileAppender::appendBytes(std::shared_ptr<ImmutableBytes> bytes)
+tempo_utils::FileAppender::appendBytes(std::shared_ptr<const ImmutableBytes> bytes)
 {
     if (bytes == nullptr)
         return {};

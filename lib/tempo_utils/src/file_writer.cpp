@@ -82,7 +82,7 @@ posix_write_file_completely(
 
 tempo_utils::FileWriter::FileWriter(
     const std::filesystem::path &path,
-    std::shared_ptr<ImmutableBytes> bytes,
+    std::shared_ptr<const ImmutableBytes> bytes,
     FileWriterMode mode,
     std::filesystem::perms perms)
     : m_mode(mode)

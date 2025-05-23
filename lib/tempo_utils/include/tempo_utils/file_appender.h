@@ -42,7 +42,7 @@ namespace tempo_utils {
         Status appendU8(tu_uint8 u8);
         Status appendU16(tu_uint16 u16);
         Status appendU32(tu_uint32 u32);
-        Status appendBytes(std::shared_ptr<ImmutableBytes> bytes);
+        Status appendBytes(std::shared_ptr<const ImmutableBytes> bytes);
         Status appendBytes(std::span<const tu_uint8> bytes);
         Status appendBytes(std::string_view str);
 

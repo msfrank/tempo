@@ -11,13 +11,13 @@ namespace tempo_utils {
     class TempfileMaker {
 
     public:
-        explicit TempfileMaker(std::string_view tempname, std::shared_ptr<ImmutableBytes> bytes = {});
+        explicit TempfileMaker(std::string_view tempname, std::shared_ptr<const ImmutableBytes> bytes = {});
         explicit TempfileMaker(std::string_view tempname, std::span<const tu_uint8> bytes = {});
         explicit TempfileMaker(std::string_view tempname, std::string_view str = {});
         TempfileMaker(
             const std::filesystem::path &base,
             std::string_view tempname,
-            std::shared_ptr<ImmutableBytes> bytes = {});
+            std::shared_ptr<const ImmutableBytes> bytes = {});
         TempfileMaker(
             const std::filesystem::path &base,
             std::string_view tempname,

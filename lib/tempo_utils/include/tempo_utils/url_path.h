@@ -62,6 +62,9 @@ namespace tempo_utils {
         UrlPath traversePart(const UrlPathPart &part) const;
         UrlPath traversePath(const UrlPath &path) const;
 
+        UrlPath toAbsolute() const;
+        UrlPath toRelative() const;
+
         std::string toString() const;
         std::filesystem::path toFilesystemPath(const std::filesystem::path &relativeBase) const;
 

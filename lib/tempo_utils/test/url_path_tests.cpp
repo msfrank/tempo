@@ -98,6 +98,12 @@ TEST(UrlPath, TestParseRelativeInputWithMultipleSegments)
     ASSERT_EQ ("qux", urlPath.partView(3));
 }
 
+TEST(UrlPath, TestParseInvalidInputMultipleLeadingSlashes)
+{
+    auto urlPath = tempo_utils::UrlPath::fromString("//foo/bar/baz/qux");
+    ASSERT_FALSE (urlPath.isValid());
+}
+
 TEST(UrlPath, TestExtractHead)
 {
     auto urlPath = tempo_utils::UrlPath::fromString("/foo/bar/baz/qux");
@@ -397,4 +403,40 @@ TEST(UrlPath, TestConvertToFilesystemPathWithBaseDirectory)
     ASSERT_EQ (cwd.string() + "/foo/bar", fsPath.string());
     ASSERT_TRUE (fsPath.has_root_directory());
     ASSERT_TRUE (fsPath.is_absolute());
+}
+
+TEST(UrlPath, TestConvertToAbsolute)
+{
+    auto relativePath = tempo_utils::UrlPath::fromString("foo/bar");
+    ASSERT_TRUE (relativePath.isRelative());
+    auto absolutePath = relativePath.toAbsolute();
+    ASSERT_TRUE (absolutePath.isAbsolute());
+    ASSERT_EQ ("/foo/bar", absolutePath.toString());
+    ASSERT_EQ ("/foo/bar", absolutePath.toAbsolute().toString());
+}
+
+TEST(UrlPath, TestConvertToAbsoluteInvalidInput)
+{
+    tempo_utils::UrlPath invalidPath;
+    ASSERT_FALSE (invalidPath.isValid());
+    auto absolutePath = invalidPath.toAbsolute();
+    ASSERT_FALSE (absolutePath.isValid());
+}
+
+TEST(UrlPath, TestConvertToRelative)
+{
+    auto absolutePath = tempo_utils::UrlPath::fromString("/foo/bar");
+    ASSERT_TRUE (absolutePath.isAbsolute());
+    auto relativePath = absolutePath.toRelative();
+    ASSERT_TRUE (relativePath.isRelative());
+    ASSERT_EQ ("foo/bar", relativePath.toString());
+    ASSERT_EQ ("foo/bar", relativePath.toRelative().toString());
+}
+
+TEST(UrlPath, TestConvertToRelativeInvalidInput)
+{
+    tempo_utils::UrlPath invalidPath;
+    ASSERT_FALSE (invalidPath.isValid());
+    auto relativePath = invalidPath.toRelative();
+    ASSERT_FALSE (relativePath.isValid());
 }

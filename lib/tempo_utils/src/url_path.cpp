@@ -1,4 +1,6 @@
 
+#include <absl/strings/str_cat.h>
+
 #include <tempo_utils/internal/url_data.h>
 #include <tempo_utils/log_message.h>
 #include <tempo_utils/unicode.h>
@@ -299,6 +301,24 @@ tempo_utils::UrlPath::traversePath(const UrlPath &path) const
     return traversed;
 }
 
+tempo_utils::UrlPath
+tempo_utils::UrlPath::toAbsolute() const
+{
+    if (!isValid() || isAbsolute())
+        return *this;
+    return fromString(absl::StrCat("/", toString()));
+}
+
+tempo_utils::UrlPath
+tempo_utils::UrlPath::toRelative() const
+{
+    if (!isValid() || isRelative())
+        return *this;
+    auto s = toString();
+    auto it = s.cbegin();
+    return fromString(std::string(++it, s.cend()));
+}
+
 std::string
 tempo_utils::UrlPath::toString() const
 {
@@ -339,6 +359,8 @@ tempo_utils::UrlPath::operator!=(const UrlPath &other) const
 tempo_utils::UrlPath
 tempo_utils::UrlPath::fromString(std::string_view s)
 {
+    if (s.starts_with("//"))
+        return {};
     auto priv = std::make_shared<internal::UrlData>();
     priv->data = s;
     auto parseUrlResult = boost::urls::parse_uri_reference(priv->data);

@@ -1,6 +1,10 @@
 #ifndef TEMPO_SCHEMA_STATEFUL_SERDE_H
 #define TEMPO_SCHEMA_STATEFUL_SERDE_H
 
+#include "abstract_attr_parser.h"
+#include "abstract_attr_writer.h"
+#include "attr.h"
+
 namespace tempo_schema {
 
     /**
@@ -31,7 +35,8 @@ namespace tempo_schema {
     template<class ParseType, class StateType>
     class StatefulParsingSerde {
     public:
-        virtual Status parseAttr(
+        virtual ~StatefulParsingSerde() = default;
+        virtual tempo_utils::Status parseAttr(
             tu_uint32 index,
             AbstractAttrParserWithState<StateType> *parser,
             ParseType &value) const = 0;
@@ -43,7 +48,8 @@ namespace tempo_schema {
     template<class WriteType, class StateType>
     class StatefulWritingSerde {
     public:
-        virtual Result<tu_uint32> writeAttr(
+        virtual ~StatefulWritingSerde() = default;
+        virtual tempo_utils::Result<tu_uint32> writeAttr(
             AbstractAttrWriterWithState<StateType> *writer,
             const WriteType &value) const = 0;
     };

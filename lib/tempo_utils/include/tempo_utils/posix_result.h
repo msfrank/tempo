@@ -5,7 +5,7 @@
 
 namespace tempo_utils {
 
-    constexpr tempo_utils::SchemaNs kTempoUtilsPosixStatusNs("dev.zuri.ns:tempo-utils-posix-status-1");
+    constexpr const char *kTempoUtilsPosixStatusNs = "dev.zuri.ns:tempo-utils-posix-status-1";
 
     enum class PosixCondition {
         kE2BIG,
@@ -119,7 +119,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<PosixCondition> {
         using StatusType = PosixStatus;
-        static constexpr const char *condition_namespace() { return kTempoUtilsPosixStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return kTempoUtilsPosixStatusNs; }
         static constexpr StatusCode make_status_code(PosixCondition condition)
         {
             return tempo_utils::StatusCode::kInternal;

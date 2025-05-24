@@ -11,6 +11,7 @@
 #include "tracing_result.h"
 #include "tracing_types.h"
 #include "spanset_attr_writer.h"
+#include "tempo_schema/attr_serde.h"
 
 namespace tempo_tracing {
 
@@ -38,8 +39,8 @@ namespace tempo_tracing {
         absl::Duration getActiveTime() const;
         void addActiveTime(absl::Duration duration);
 
-        bool hasTag(const tempo_utils::AttrKey &key) const;
-        tempo_utils::AttrValue getTag(const tempo_utils::AttrKey &key) const;
+        bool hasTag(const tempo_schema::AttrKey &key) const;
+        tempo_schema::AttrValue getTag(const tempo_schema::AttrKey &key) const;
 
         std::shared_ptr<SpanLog> appendLog(absl::Time ts, LogSeverity severity);
         std::shared_ptr<SpanLog> logMessage(std::string_view message, absl::Time ts, LogSeverity severity);
@@ -65,12 +66,12 @@ namespace tempo_tracing {
         ActiveScope *m_scope ABSL_GUARDED_BY(m_lock);
 
         TraceSpan(std::shared_ptr<TraceRecorder> recorder, SpanData &data);
-        void putTagUnlocked(const tempo_utils::AttrKey &key, const tempo_utils::AttrValue &value);
+        void putTagUnlocked(const tempo_schema::AttrKey &key, const tempo_schema::AttrValue &value);
         LogEntry& appendLogUnlocked(absl::Time ts, LogSeverity severity);
         void putFieldUnlocked(
             tempo_tracing::LogEntry &logEntry,
-            const tempo_utils::AttrKey &key,
-            const tempo_utils::AttrValue &value);
+            const tempo_schema::AttrKey &key,
+            const tempo_schema::AttrValue &value);
         void logStatusAndClose(std::string_view category, int code, LogSeverity severity, std::string_view message);
 
         friend class SpanLog;
@@ -86,7 +87,7 @@ namespace tempo_tracing {
          */
         template <typename T>
         tempo_utils::Status
-        putTag(const tempo_utils::AttrSerde<T> &serde, const T &value)
+        putTag(const tempo_schema::AttrSerde<T> &serde, const T &value)
         {
             SpansetAttrWriter writer;
             auto result = serde.writeAttr(&writer, value);

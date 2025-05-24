@@ -20,14 +20,14 @@ tempo_tracing::SpanLog::getSeverity() const
 }
 
 bool
-tempo_tracing::SpanLog::hasField(const tempo_utils::AttrKey &key) const
+tempo_tracing::SpanLog::hasField(const tempo_schema::AttrKey &key) const
 {
     absl::MutexLock locker(m_span->m_lock);
     return m_logEntry.fields.contains(key);
 }
 
-tempo_utils::AttrValue
-tempo_tracing::SpanLog::getField(const tempo_utils::AttrKey &key) const
+tempo_schema::AttrValue
+tempo_tracing::SpanLog::getField(const tempo_schema::AttrKey &key) const
 {
     absl::MutexLock locker(m_span->m_lock);
     if (!m_logEntry.fields.contains(key))
@@ -36,7 +36,7 @@ tempo_tracing::SpanLog::getField(const tempo_utils::AttrKey &key) const
 }
 
 void
-tempo_tracing::SpanLog::putFieldLocked(const tempo_utils::AttrKey &key, const tempo_utils::AttrValue &value)
+tempo_tracing::SpanLog::putFieldLocked(const tempo_schema::AttrKey &key, const tempo_schema::AttrValue &value)
 {
     absl::MutexLock locker(m_span->m_lock);
     TU_LOG_FATAL_IF(m_span->m_data.complete) << "failed to put field on closed span";

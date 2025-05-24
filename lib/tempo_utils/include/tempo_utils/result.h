@@ -139,6 +139,7 @@ namespace tempo_utils {
     class TypedResult : public MaybeStatus<S> {
 
     public:
+        TypedResult();
         explicit TypedResult(const R &result);
         explicit TypedResult(R &&result);
         explicit TypedResult(const S &status);
@@ -162,6 +163,13 @@ namespace tempo_utils {
     private:
         R m_result;
     };
+
+    template <class R, class S>
+    TypedResult<R,S>::TypedResult()
+        : MaybeStatus<S>(),
+          m_result{}
+    {
+    }
 
     template <class R, class S>
     TypedResult<R,S>::TypedResult(const R &result)

@@ -5,7 +5,7 @@
 
 namespace tempo_utils {
 
-    constexpr tempo_utils::SchemaNs kTempoUtilsFileStatusNs("dev.zuri.ns:tempo-utils-file-status-1");
+    constexpr const char *kTempoUtilsFileStatusNs = "dev.zuri.ns:tempo-utils-file-status-1";
 
     enum class FileCondition {
         kInvalidName,
@@ -79,7 +79,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<FileCondition> {
         using StatusType = FileStatus;
-        static constexpr const char *condition_namespace() { return kTempoUtilsFileStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return kTempoUtilsFileStatusNs; }
         static constexpr StatusCode make_status_code(FileCondition condition)
         {
             switch (condition) {

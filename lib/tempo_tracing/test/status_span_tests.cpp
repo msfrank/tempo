@@ -68,7 +68,7 @@ TEST(StatusSpan, TestCreateStatusSpanWithMessage)
 
     std::string errorCategory;
     ASSERT_TRUE (logWalker.parseField(tempo_tracing::kTempoTracingErrorCategoryName, errorCategory).isOk());
-    ASSERT_EQ (tempo_utils::kTempoUtilsGenericStatusNs.getNs(), errorCategory);
+    ASSERT_EQ (tempo_utils::kTempoUtilsGenericStatusNs, errorCategory);
 
     tu_int64 errorCode;
     ASSERT_TRUE (logWalker.parseField(tempo_tracing::kTempoTracingErrorCode, errorCode).isOk());
@@ -112,7 +112,7 @@ TEST(StatusSpan, TestCreateStatusSpanWithFormattedMessage)
 
     std::string errorCategory;
     ASSERT_TRUE (logWalker.parseField(tempo_tracing::kTempoTracingErrorCategoryName, errorCategory).isOk());
-    ASSERT_EQ (tempo_utils::kTempoUtilsGenericStatusNs.getNs(), errorCategory);
+    ASSERT_EQ (tempo_utils::kTempoUtilsGenericStatusNs, errorCategory);
 
     tu_int64 errorCode;
     ASSERT_TRUE (logWalker.parseField(tempo_tracing::kTempoTracingErrorCode, errorCode).isOk());

@@ -7,7 +7,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/time/time.h>
 
-#include <tempo_utils/attr.h>
+#include <tempo_schema/attr.h>
 #include <tempo_utils/tracing.h>
 
 namespace tempo_tracing {
@@ -31,9 +31,9 @@ namespace tempo_tracing {
     struct LogEntry {
         absl::Time ts;
         LogSeverity severity;
-        tempo_utils::AttrMap fields;
+        tempo_schema::AttrMap fields;
 
-        LogEntry(absl::Time ts, LogSeverity severity, const tempo_utils::AttrMap &fields);
+        LogEntry(absl::Time ts, LogSeverity severity, const tempo_schema::AttrMap &fields);
     };
 
     struct SpanData {
@@ -46,7 +46,7 @@ namespace tempo_tracing {
         absl::Time endTime;
         absl::Duration activeTime;
         std::vector<uint32_t> children;
-        tempo_utils::AttrMap tags;
+        tempo_schema::AttrMap tags;
         std::vector<LogEntry> logs;
         bool error;
         bool complete;

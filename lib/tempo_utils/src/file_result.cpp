@@ -18,7 +18,7 @@ bool
 tempo_utils::FileStatus::convert(FileStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoUtilsFileStatusNs.getNs();
+    std::string_view dstNs = kTempoUtilsFileStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = FileStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

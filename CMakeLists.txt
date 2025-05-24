@@ -227,7 +227,9 @@ target_link_libraries(tempo_testsuite
     PRIVATE
     TempoAllocatorTestSuite
     TempoConfigTestSuite
+    TempoSchemaTestSuite
     TempoSecurityTestSuite
+    TempoTestTestSuite
     TempoTracingTestSuite
     TempoUtilsTestSuite
 )

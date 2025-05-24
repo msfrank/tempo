@@ -1,30 +1,30 @@
 
-#include <tempo_utils/vocabulary_cache.h>
+#include <tempo_schema/vocabulary_cache.h>
 
-tempo_utils::VocabularyCache::VocabularyCache()
+tempo_schema::VocabularyCache::VocabularyCache()
 {
 }
 
 bool
-tempo_utils::VocabularyCache::containsVocabulary(std::string_view nsString) const
+tempo_schema::VocabularyCache::containsVocabulary(std::string_view nsString) const
 {
     return m_nsIndex.contains(nsString);
 }
 
 bool
-tempo_utils::VocabularyCache::containsVocabulary(tempo_utils::Url nsUrl) const
+tempo_schema::VocabularyCache::containsVocabulary(tempo_utils::Url nsUrl) const
 {
     return containsVocabulary(nsUrl.uriView());
 }
 
 bool
-tempo_utils::VocabularyCache::containsVocabulary(const SchemaNs &ns) const
+tempo_schema::VocabularyCache::containsVocabulary(const SchemaNs &ns) const
 {
     return containsVocabulary(std::string_view(ns.getNs()));
 }
 
 int
-tempo_utils::VocabularyCache::getVocabularyIndex(std::string_view nsString) const
+tempo_schema::VocabularyCache::getVocabularyIndex(std::string_view nsString) const
 {
     if (!m_nsIndex.contains(nsString))
         return -1;
@@ -32,19 +32,19 @@ tempo_utils::VocabularyCache::getVocabularyIndex(std::string_view nsString) cons
 }
 
 int
-tempo_utils::VocabularyCache::getVocabularyIndex(tempo_utils::Url nsUrl) const
+tempo_schema::VocabularyCache::getVocabularyIndex(tempo_utils::Url nsUrl) const
 {
     return getVocabularyIndex(nsUrl.uriView());
 }
 
 int
-tempo_utils::VocabularyCache::getVocabularyIndex(const SchemaNs &ns) const
+tempo_schema::VocabularyCache::getVocabularyIndex(const SchemaNs &ns) const
 {
     return getVocabularyIndex(std::string_view(ns.getNs()));
 }
 
-const tempo_utils::ComparableResource *
-tempo_utils::VocabularyCache::getResource(std::string_view nsString, tu_uint32 idValue) const
+const tempo_schema::ComparableResource *
+tempo_schema::VocabularyCache::getResource(std::string_view nsString, tu_uint32 idValue) const
 {
     auto index = getVocabularyIndex(nsString);
     if (index < 0)
@@ -55,14 +55,14 @@ tempo_utils::VocabularyCache::getResource(std::string_view nsString, tu_uint32 i
     return priv.resources[idValue];
 }
 
-const tempo_utils::ComparableResource *
-tempo_utils::VocabularyCache::getResource(tempo_utils::Url nsUrl, tu_uint32 idValue) const
+const tempo_schema::ComparableResource *
+tempo_schema::VocabularyCache::getResource(tempo_utils::Url nsUrl, tu_uint32 idValue) const
 {
     return getResource(nsUrl.uriView(), idValue);
 }
 
 bool
-tempo_utils::VocabularyCache::addVocabulary(
+tempo_schema::VocabularyCache::addVocabulary(
     std::string_view nsString,
     const ComparableResource * const *resources,
     int numResources)

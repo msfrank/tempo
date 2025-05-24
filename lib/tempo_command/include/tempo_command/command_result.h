@@ -6,7 +6,7 @@
 
 namespace tempo_command {
 
-    constexpr tempo_utils::SchemaNs kTempoCommandStatusNs("dev.zuri.ns:tempo-command-status-1");
+    constexpr const char *kTempoCommandStatusNs = "dev.zuri.ns:tempo-command-status-1";
 
     enum class CommandCondition {
         kUnknownSubcommand,
@@ -91,7 +91,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<tempo_command::CommandCondition> {
         using StatusType = tempo_command::CommandStatus;
-        static constexpr const char *condition_namespace() { return tempo_command::kTempoCommandStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return tempo_command::kTempoCommandStatusNs; }
         static constexpr StatusCode make_status_code(tempo_command::CommandCondition condition)
         {
             switch (condition) {

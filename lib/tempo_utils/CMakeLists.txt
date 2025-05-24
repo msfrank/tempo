@@ -7,8 +7,6 @@ add_library(tempo_utils SHARED)
 add_library(tempo::tempo_utils ALIAS tempo_utils)
 
 set(TEMPO_UTILS_INCLUDES
-    include/tempo_utils/attr.h
-    include/tempo_utils/attr_result.h
     include/tempo_utils/bytes_appender.h
     include/tempo_utils/bytes_iterator.h
     include/tempo_utils/compressed_bitmap.h
@@ -45,7 +43,6 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/prehashed_value.h
     include/tempo_utils/process_builder.h
     include/tempo_utils/result.h
-    include/tempo_utils/schema.h
     include/tempo_utils/slice.h
     include/tempo_utils/status.h
     include/tempo_utils/tempdir_maker.h
@@ -57,18 +54,14 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/url_authority.h
     include/tempo_utils/url_origin.h
     include/tempo_utils/url_path.h
-    include/tempo_utils/url_serde.h
     include/tempo_utils/url_types.h
     include/tempo_utils/user_home.h
     include/tempo_utils/uuid.h
-    include/tempo_utils/vocabulary_cache.h
     )
 set_target_properties(tempo_utils PROPERTIES PUBLIC_HEADER "${TEMPO_UTILS_INCLUDES}")
 
 target_sources(tempo_utils
     PRIVATE
-    src/attr.cpp
-    src/attr_result.cpp
     src/bytes_appender.cpp
     src/bytes_iterator.cpp
     src/compressed_bitmap.cpp
@@ -107,10 +100,8 @@ target_sources(tempo_utils
     src/url_authority.cpp
     src/url_origin.cpp
     src/url_path.cpp
-    src/url_serde.cpp
     src/user_home.cpp
     src/uuid.cpp
-    src/vocabulary_cache.cpp
 
     include/tempo_utils/internal/url_data.h
     src/internal/url_data.cpp

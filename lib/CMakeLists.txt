@@ -2,6 +2,7 @@
 add_subdirectory(tempo_allocator)
 add_subdirectory(tempo_command)
 add_subdirectory(tempo_config)
+add_subdirectory(tempo_schema)
 add_subdirectory(tempo_security)
 add_subdirectory(tempo_test)
 add_subdirectory(tempo_tracing)

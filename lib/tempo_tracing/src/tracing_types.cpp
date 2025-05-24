@@ -4,7 +4,7 @@
 tempo_tracing::LogEntry::LogEntry(
     absl::Time ts,
     LogSeverity severity,
-    const tempo_utils::AttrMap &fields)
+    const tempo_schema::AttrMap &fields)
     : ts(ts),
       severity(severity),
       fields(fields)

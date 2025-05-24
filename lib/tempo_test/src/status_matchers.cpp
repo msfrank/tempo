@@ -3,6 +3,7 @@
 #include <gmock/gmock.h>
 #include <absl/strings/str_split.h>
 
+#include <tempo_schema/schema_namespace.h>
 #include <tempo_test/status_matchers.h>
 #include <tempo_utils/unicode.h>
 
@@ -101,7 +102,7 @@ tempo_test::MatchesErrorCategory(std::string_view errorCategory)
 }
 
 ::testing::Matcher<tempo_utils::Status>
-tempo_test::MatchesErrorCategory(const tempo_utils::SchemaNs &errorCategory)
+tempo_test::MatchesErrorCategory(const tempo_schema::SchemaNs &errorCategory)
 {
     return StatusMatcher(errorCategory.getNs());
 }

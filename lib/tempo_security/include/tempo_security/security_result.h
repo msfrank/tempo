@@ -11,7 +11,7 @@
 
 namespace tempo_security {
 
-    constexpr tempo_utils::SchemaNs kTempoSecurityStatusNs("dev.zuri.ns:tempo-security-status-1");
+    constexpr const char *kTempoSecurityStatusNs = "dev.zuri.ns:tempo-security-status-1";
 
     enum class SecurityCondition {
         kParseError,
@@ -98,7 +98,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<tempo_security::SecurityCondition> {
         using StatusType = tempo_security::SecurityStatus;
-        static constexpr const char *condition_namespace() { return tempo_security::kTempoSecurityStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return tempo_security::kTempoSecurityStatusNs; }
         static constexpr StatusCode make_status_code(tempo_security::SecurityCondition condition)
         {
             switch (condition) {

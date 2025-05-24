@@ -296,7 +296,7 @@ bool
 tempo_utils::GenericStatus::convert(GenericStatus &dstStatus, const Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoUtilsGenericStatusNs.getNs();
+    std::string_view dstNs = kTempoUtilsGenericStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = GenericStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

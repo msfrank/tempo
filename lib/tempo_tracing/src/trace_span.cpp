@@ -107,14 +107,14 @@ tempo_tracing::TraceSpan::addActiveTime(absl::Duration duration)
 }
 
 bool
-tempo_tracing::TraceSpan::hasTag(const tempo_utils::AttrKey &key) const
+tempo_tracing::TraceSpan::hasTag(const tempo_schema::AttrKey &key) const
 {
     absl::MutexLock locker(m_lock);
     return m_data.tags.contains(key);
 }
 
-tempo_utils::AttrValue
-tempo_tracing::TraceSpan::getTag(const tempo_utils::AttrKey &key) const
+tempo_schema::AttrValue
+tempo_tracing::TraceSpan::getTag(const tempo_schema::AttrKey &key) const
 {
     absl::MutexLock locker(m_lock);
     if (!m_data.tags.contains(key))
@@ -123,13 +123,13 @@ tempo_tracing::TraceSpan::getTag(const tempo_utils::AttrKey &key) const
 }
 
 void
-tempo_tracing::TraceSpan::putTagUnlocked(const tempo_utils::AttrKey &key, const tempo_utils::AttrValue &value)
+tempo_tracing::TraceSpan::putTagUnlocked(const tempo_schema::AttrKey &key, const tempo_schema::AttrValue &value)
 {
     m_data.tags[key] = value;
 }
 
 //void
-//tempo_tracing::TraceSpan::putTag(const tempo_utils::Attr &tag)
+//tempo_tracing::TraceSpan::putTag(const tempo_schema::Attr &tag)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
@@ -137,7 +137,7 @@ tempo_tracing::TraceSpan::putTagUnlocked(const tempo_utils::AttrKey &key, const 
 //}
 //
 //void
-//tempo_tracing::TraceSpan::putTags(std::initializer_list<tempo_utils::Attr> tags)
+//tempo_tracing::TraceSpan::putTags(std::initializer_list<tempo_schema::Attr> tags)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
@@ -147,7 +147,7 @@ tempo_tracing::TraceSpan::putTagUnlocked(const tempo_utils::AttrKey &key, const 
 //}
 //
 //std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withTag(const tempo_utils::Attr &tag)
+//tempo_tracing::TraceSpan::withTag(const tempo_schema::Attr &tag)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
@@ -156,7 +156,7 @@ tempo_tracing::TraceSpan::putTagUnlocked(const tempo_utils::AttrKey &key, const 
 //}
 //
 //std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withTags(std::initializer_list<tempo_utils::Attr> tags)
+//tempo_tracing::TraceSpan::withTags(std::initializer_list<tempo_schema::Attr> tags)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
@@ -169,7 +169,7 @@ tempo_tracing::TraceSpan::putTagUnlocked(const tempo_utils::AttrKey &key, const 
 tempo_tracing::LogEntry&
 tempo_tracing::TraceSpan::appendLogUnlocked(absl::Time ts, LogSeverity severity)
 {
-    return m_data.logs.emplace_back(ts, severity, tempo_utils::AttrMap());
+    return m_data.logs.emplace_back(ts, severity, tempo_schema::AttrMap());
 }
 
 std::shared_ptr<tempo_tracing::SpanLog>
@@ -192,14 +192,14 @@ tempo_tracing::TraceSpan::appendLog(absl::Time ts, LogSeverity severity)
 void
 tempo_tracing::TraceSpan::putFieldUnlocked(
     tempo_tracing::LogEntry &logEntry,
-    const tempo_utils::AttrKey &key,
-    const tempo_utils::AttrValue &value)
+    const tempo_schema::AttrKey &key,
+    const tempo_schema::AttrValue &value)
 {
     logEntry.fields[key] = value;
 }
 
 //void
-//tempo_tracing::TraceSpan::putLog(LogSeverity severity, const tempo_utils::Attr &field)
+//tempo_tracing::TraceSpan::putLog(LogSeverity severity, const tempo_schema::Attr &field)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
@@ -208,7 +208,7 @@ tempo_tracing::TraceSpan::putFieldUnlocked(
 //}
 //
 //void
-//tempo_tracing::TraceSpan::putLogs(LogSeverity severity, std::initializer_list<tempo_utils::Attr> fields)
+//tempo_tracing::TraceSpan::putLogs(LogSeverity severity, std::initializer_list<tempo_schema::Attr> fields)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
@@ -219,7 +219,7 @@ tempo_tracing::TraceSpan::putFieldUnlocked(
 //}
 //
 //std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withLog(LogSeverity severity, const tempo_utils::Attr &field)
+//tempo_tracing::TraceSpan::withLog(LogSeverity severity, const tempo_schema::Attr &field)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
@@ -229,7 +229,7 @@ tempo_tracing::TraceSpan::putFieldUnlocked(
 //}
 //
 //std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withLogs(LogSeverity severity, std::initializer_list<tempo_utils::Attr> fields)
+//tempo_tracing::TraceSpan::withLogs(LogSeverity severity, std::initializer_list<tempo_schema::Attr> fields)
 //{
 //    absl::MutexLock locker(m_lock);
 //    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";

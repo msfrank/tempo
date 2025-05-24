@@ -55,20 +55,20 @@ tempo_tracing::LogWalker::getSeverity() const
 }
 
 bool
-tempo_tracing::LogWalker::hasField(const tempo_utils::AttrKey &key) const
+tempo_tracing::LogWalker::hasField(const tempo_schema::AttrKey &key) const
 {
     auto index = findIndexForField(key);
     return index != kInvalidAddressU32;
 }
 
 bool
-tempo_tracing::LogWalker::hasField(const tempo_utils::AbstractAttrValidator &validator) const
+tempo_tracing::LogWalker::hasField(const tempo_schema::AbstractAttrValidator &validator) const
 {
     return hasField(validator.getKey());
 }
 
 tu_uint32
-tempo_tracing::LogWalker::findIndexForField(const tempo_utils::AttrKey &key) const
+tempo_tracing::LogWalker::findIndexForField(const tempo_schema::AttrKey &key) const
 {
     if (!isValid())
         return kInvalidAddressU32;

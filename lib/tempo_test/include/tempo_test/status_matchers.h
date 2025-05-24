@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <tempo_schema/schema_namespace.h>
 #include <tempo_utils/status.h>
 
 namespace tempo_test {
@@ -49,7 +50,7 @@ namespace tempo_test {
     }
 
     ::testing::Matcher<tempo_utils::Status> MatchesStatusCode(tempo_utils::StatusCode statusCode);
-    ::testing::Matcher<tempo_utils::Status> MatchesErrorCategory(const tempo_utils::SchemaNs &errorCategory);
+    ::testing::Matcher<tempo_utils::Status> MatchesErrorCategory(const tempo_schema::SchemaNs &errorCategory);
     ::testing::Matcher<tempo_utils::Status> MatchesErrorCategory(std::string_view errorCategory);
 }
 

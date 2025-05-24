@@ -5,10 +5,13 @@
 
 #include <absl/container/flat_hash_map.h>
 
-#include "schema.h"
-#include "url.h"
+#include <tempo_utils/url.h>
 
-namespace tempo_utils {
+#include "schema.h"
+#include "schema_namespace.h"
+#include "schema_resource.h"
+
+namespace tempo_schema {
 
     class VocabularyCache {
 
@@ -16,13 +19,13 @@ namespace tempo_utils {
         VocabularyCache();
 
         bool containsVocabulary(std::string_view nsString) const;
-        bool containsVocabulary(Url nsUrl) const;
+        bool containsVocabulary(tempo_utils::Url nsUrl) const;
         bool containsVocabulary(const SchemaNs &ns) const;
         int getVocabularyIndex(std::string_view nsString) const;
-        int getVocabularyIndex(Url nsUrl) const;
+        int getVocabularyIndex(tempo_utils::Url nsUrl) const;
         int getVocabularyIndex(const SchemaNs &ns) const;
         const ComparableResource *getResource(std::string_view nsString, tu_uint32 idValue) const;
-        const ComparableResource *getResource(Url nsUrl, tu_uint32 idValue) const;
+        const ComparableResource *getResource(tempo_utils::Url nsUrl, tu_uint32 idValue) const;
 
         bool addVocabulary(
             std::string_view nsString,

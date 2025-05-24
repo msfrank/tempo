@@ -8,8 +8,6 @@
  */
 namespace tempo_utils {}
 
-#include "attr.h"
-#include "attr_result.h"
 #include "compressed_bitmap.h"
 #include "process_runner.h"
 #include "date_time.h"
@@ -37,13 +35,11 @@ namespace tempo_utils {}
 #include "posix_result.h"
 #include "process_builder.h"
 #include "result.h"
-#include "schema.h"
 #include "status.h"
 #include "tempdir_maker.h"
 #include "tempfile_maker.h"
 #include "tracing.h"
 #include "unicode.h"
 #include "url.h"
-#include "vocabulary_cache.h"
 
 #endif // TEMPO_UTILS_TEMPO_UTILS_H

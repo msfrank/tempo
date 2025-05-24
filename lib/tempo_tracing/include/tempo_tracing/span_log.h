@@ -15,14 +15,14 @@ namespace tempo_tracing {
         absl::Time getStartTime() const;
         LogSeverity getSeverity() const;
 
-        bool hasField(const tempo_utils::AttrKey &key) const;
-        tempo_utils::AttrValue getField(const tempo_utils::AttrKey &key) const;
+        bool hasField(const tempo_schema::AttrKey &key) const;
+        tempo_schema::AttrValue getField(const tempo_schema::AttrKey &key) const;
 
     private:
         std::shared_ptr<TraceSpan> m_span;
         LogEntry& m_logEntry;
 
-        void putFieldLocked(const tempo_utils::AttrKey &key, const tempo_utils::AttrValue &value);
+        void putFieldLocked(const tempo_schema::AttrKey &key, const tempo_schema::AttrValue &value);
 
     public:
         /**
@@ -34,7 +34,7 @@ namespace tempo_tracing {
          */
         template <typename T>
         tempo_utils::Status
-        putField(const tempo_utils::AttrSerde<T> &serde, const T &value)
+        putField(const tempo_schema::AttrSerde<T> &serde, const T &value)
         {
             SpansetAttrWriter writer;
             auto result = serde.writeAttr(&writer, value);

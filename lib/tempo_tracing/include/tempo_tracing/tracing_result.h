@@ -11,7 +11,7 @@
 
 namespace tempo_tracing {
 
-    constexpr tempo_utils::SchemaNs kTempoTracingStatusNs("dev.zuri.ns:tempo-tracing-status-1");
+    constexpr const char *kTempoTracingStatusNs = "dev.zuri.ns:tempo-tracing-status-1";
 
     enum class TracingCondition {
         kMissingTag,
@@ -83,7 +83,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<tempo_tracing::TracingCondition> {
         using StatusType = tempo_tracing::TracingStatus;
-        static constexpr const char *condition_namespace() { return tempo_tracing::kTempoTracingStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return tempo_tracing::kTempoTracingStatusNs; }
         static constexpr StatusCode make_status_code(tempo_tracing::TracingCondition condition)
         {
             switch (condition) {

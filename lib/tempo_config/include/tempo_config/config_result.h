@@ -11,7 +11,7 @@
 
 namespace tempo_config {
 
-    constexpr tempo_utils::SchemaNs kTempoUtilsConfigStatusNs("dev.zuri.ns:tempo-config-status-1");
+    constexpr const char *kTempoUtilsConfigStatusNs = "dev.zuri.ns:tempo-config-status-1";
 
     enum class ConfigCondition {
         kParseError,
@@ -90,7 +90,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<tempo_config::ConfigCondition> {
         using StatusType = tempo_config::ConfigStatus;
-        static constexpr const char *condition_namespace() { return tempo_config::kTempoUtilsConfigStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return tempo_config::kTempoUtilsConfigStatusNs; }
         static constexpr StatusCode make_status_code(tempo_config::ConfigCondition condition)
         {
             switch (condition) {

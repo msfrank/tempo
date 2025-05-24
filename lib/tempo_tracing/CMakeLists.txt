@@ -110,6 +110,7 @@ target_include_directories(tempo_tracing PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src
 
 target_link_libraries(tempo_tracing
     PUBLIC
+    tempo::tempo_schema
     tempo::tempo_utils
     absl::time
     fmt::fmt

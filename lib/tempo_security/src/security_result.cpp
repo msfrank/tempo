@@ -18,7 +18,7 @@ bool
 tempo_security::SecurityStatus::convert(SecurityStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoSecurityStatusNs.getNs();
+    std::string_view dstNs = kTempoSecurityStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = SecurityStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

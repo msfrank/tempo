@@ -70,20 +70,20 @@ tempo_tracing::SpanWalker::getEndTime() const
 }
 
 bool
-tempo_tracing::SpanWalker::hasTag(const tempo_utils::AttrKey &key) const
+tempo_tracing::SpanWalker::hasTag(const tempo_schema::AttrKey &key) const
 {
     auto index = findIndexForTag(key);
     return index != kInvalidAddressU32;
 }
 
 bool
-tempo_tracing::SpanWalker::hasTag(const tempo_utils::AbstractAttrValidator &validator) const
+tempo_tracing::SpanWalker::hasTag(const tempo_schema::AbstractAttrValidator &validator) const
 {
     return hasTag(validator.getKey());
 }
 
 tu_uint32
-tempo_tracing::SpanWalker::findIndexForTag(const tempo_utils::AttrKey &key) const
+tempo_tracing::SpanWalker::findIndexForTag(const tempo_schema::AttrKey &key) const
 {
     if (!isValid())
         return kInvalidAddressU32;

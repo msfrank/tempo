@@ -2,11 +2,11 @@
 #define TEMPO_TRACING_SPANSET_ATTR_PARSER_H
 
 #include <tempo_tracing/tracing_types.h>
-#include <tempo_utils/attr.h>
+#include <tempo_schema/abstract_attr_parser.h>
 
 namespace tempo_tracing {
 
-    class SpansetAttrParser : public tempo_utils::AbstractAttrParser {
+    class SpansetAttrParser : public tempo_schema::AbstractAttrParser {
 
     public:
         explicit SpansetAttrParser(std::shared_ptr<const internal::SpansetReader> reader);

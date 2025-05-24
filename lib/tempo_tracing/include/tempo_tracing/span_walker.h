@@ -21,8 +21,8 @@ namespace tempo_tracing {
         absl::Time getStartTime() const;
         absl::Time getEndTime() const;
 
-        bool hasTag(const tempo_utils::AttrKey &key) const;
-        bool hasTag(const tempo_utils::AbstractAttrValidator &validator) const;
+        bool hasTag(const tempo_schema::AttrKey &key) const;
+        bool hasTag(const tempo_schema::AbstractAttrValidator &validator) const;
         int numTags() const;
 
         LogWalker getLog(tu_uint32 index) const;
@@ -44,7 +44,7 @@ namespace tempo_tracing {
         friend class RootWalker;
         friend class TempoSpanset;
 
-        tu_uint32 findIndexForTag(const tempo_utils::AttrKey &key) const;
+        tu_uint32 findIndexForTag(const tempo_schema::AttrKey &key) const;
 
     public:
         /**

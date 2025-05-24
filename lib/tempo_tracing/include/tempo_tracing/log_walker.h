@@ -1,6 +1,8 @@
 #ifndef TEMPO_TRACING_LOG_WALKER_H
 #define TEMPO_TRACING_LOG_WALKER_H
 
+#include <tempo_schema/abstract_attr_validator.h>
+
 #include "spanset_attr_parser.h"
 #include "tracing_result.h"
 
@@ -17,8 +19,8 @@ namespace tempo_tracing {
         absl::Time getTimestamp() const;
         LogSeverity getSeverity() const;
 
-        bool hasField(const tempo_utils::AttrKey &key) const;
-        bool hasField(const tempo_utils::AbstractAttrValidator &validator) const;
+        bool hasField(const tempo_schema::AttrKey &key) const;
+        bool hasField(const tempo_schema::AbstractAttrValidator &validator) const;
         int numFields() const;
 
     private:
@@ -28,7 +30,7 @@ namespace tempo_tracing {
         LogWalker(std::shared_ptr<const internal::SpansetReader> reader, tu_uint32 index);
         friend class SpanWalker;
 
-        tu_uint32 findIndexForField(const tempo_utils::AttrKey &key) const;
+        tu_uint32 findIndexForField(const tempo_schema::AttrKey &key) const;
 
     public:
         /**

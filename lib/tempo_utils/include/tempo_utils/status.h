@@ -8,7 +8,6 @@
 
 #include "integer_types.h"
 #include "log_message.h"
-#include "schema.h"
 #include "tracing.h"
 
 namespace tempo_utils {
@@ -200,7 +199,7 @@ namespace tempo_utils {
         Status m_status;
     };
 
-    constexpr tempo_utils::SchemaNs kTempoUtilsGenericStatusNs("dev.zuri.ns:tempo-utils-generic-status-1");
+    constexpr const char *kTempoUtilsGenericStatusNs = "dev.zuri.ns:tempo-utils-generic-status-1";
 
     enum class GenericCondition {
         kInternalViolation,
@@ -267,7 +266,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<GenericCondition> {
         using StatusType = GenericStatus;
-        static constexpr const char *condition_namespace() { return kTempoUtilsGenericStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return kTempoUtilsGenericStatusNs; }
         static constexpr StatusCode make_status_code(GenericCondition condition)
         {
             switch (condition) {

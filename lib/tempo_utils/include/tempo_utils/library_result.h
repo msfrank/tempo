@@ -5,7 +5,7 @@
 
 namespace tempo_utils {
 
-    constexpr tempo_utils::SchemaNs kTempoUtilsLibraryStatusNs("dev.zuri.ns:tempo-utils-library-status-1");
+    constexpr const char *kTempoUtilsLibraryStatusNs = "dev.zuri.ns:tempo-utils-library-status-1";
 
     enum class LibraryCondition {
         kLibraryInvariant,
@@ -71,7 +71,7 @@ namespace tempo_utils {
     template<>
     struct ConditionTraits<LibraryCondition> {
         using StatusType = LibraryStatus;
-        static constexpr const char *condition_namespace() { return kTempoUtilsLibraryStatusNs.getNs(); }
+        static constexpr const char *condition_namespace() { return kTempoUtilsLibraryStatusNs; }
         static constexpr StatusCode make_status_code(LibraryCondition condition)
         {
             switch (condition) {

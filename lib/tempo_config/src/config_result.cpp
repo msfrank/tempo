@@ -18,7 +18,7 @@ bool
 tempo_config::ConfigStatus::convert(ConfigStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoUtilsConfigStatusNs.getNs();
+    std::string_view dstNs = kTempoUtilsConfigStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = ConfigStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

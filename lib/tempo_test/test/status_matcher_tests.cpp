@@ -23,7 +23,7 @@ TEST(StatusMatcher, MatchesErrorCategory)
     auto status = tempo_utils::GenericStatus::forCondition(tempo_utils::GenericCondition::kInternalViolation);
 
     ASSERT_THAT (status, MatchesErrorCategory(tempo_utils::kTempoUtilsGenericStatusNs));
-    ASSERT_THAT (status, MatchesErrorCategory(std::string_view(tempo_utils::kTempoUtilsGenericStatusNs.getNs())));
+    ASSERT_THAT (status, MatchesErrorCategory(std::string_view(tempo_utils::kTempoUtilsGenericStatusNs)));
 }
 
 TEST(StatusMatcher, IsCondition)

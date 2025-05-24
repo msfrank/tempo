@@ -19,7 +19,7 @@ bool
 tempo_tracing::TracingStatus::convert(TracingStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoTracingStatusNs.getNs();
+    std::string_view dstNs = kTempoTracingStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = TracingStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

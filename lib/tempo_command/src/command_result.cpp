@@ -20,7 +20,7 @@ bool
 tempo_command::CommandStatus::convert(CommandStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoCommandStatusNs.getNs();
+    std::string_view dstNs = kTempoCommandStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = CommandStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

@@ -18,7 +18,7 @@ bool
 tempo_utils::LibraryStatus::convert(LibraryStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoUtilsLibraryStatusNs.getNs();
+    std::string_view dstNs = kTempoUtilsLibraryStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = LibraryStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

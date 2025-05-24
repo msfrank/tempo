@@ -204,7 +204,7 @@ bool
 tempo_utils::PosixStatus::convert(PosixStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {
     std::string_view srcNs = srcStatus.getErrorCategory();
-    std::string_view dstNs = kTempoUtilsPosixStatusNs.getNs();
+    std::string_view dstNs = kTempoUtilsPosixStatusNs;
     if (srcNs != dstNs)
         return false;
     dstStatus = PosixStatus(srcStatus.getStatusCode(), srcStatus.getDetail());

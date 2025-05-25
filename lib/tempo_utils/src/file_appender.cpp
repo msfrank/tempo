@@ -78,7 +78,8 @@ posix_write(int fd, const char *data, tu_uint32 len)
 static tempo_utils::Status
 posix_close(int fd)
 {
-    TU_ASSERT (fd >= 0);
+    if (fd < 0)
+        return {};
 
     for (int attempt = 0; attempt < POSIX_NUM_CLOSE_TRIES; attempt++) {
         if (close(fd) == 0)

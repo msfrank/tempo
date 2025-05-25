@@ -9,6 +9,7 @@ add_library(tempo::tempo_config ALIAS tempo_config)
 set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/abstract_config_parser.h
     include/tempo_config/base_conversions.h
+    include/tempo_config/config_builder.h
     include/tempo_config/config_result.h
     include/tempo_config/config_serde.h
     include/tempo_config/config_types.h
@@ -53,6 +54,7 @@ add_custom_command (
 target_sources(tempo_config
     PRIVATE
     src/base_conversions.cpp
+    src/config_builder.cpp
     src/config_result.cpp
     src/config_serde.cpp
     src/config_types.cpp

@@ -100,6 +100,7 @@ namespace tempo_config {
         ConfigValue toValue() const;
         ConfigSeq toSeq() const;
         ConfigMap toMap() const;
+        ConfigNode toNode() const;
 
         std::string toString() const;
 

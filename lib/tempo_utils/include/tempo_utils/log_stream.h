@@ -56,6 +56,22 @@ namespace tempo_utils {
     LogMessage&& operator<<(LogMessage &&message, const absl::Hex &hex);
 
     template<class T>
+    LogMessage&& operator<<(LogMessage &&message, const std::vector<T> &vec)
+    {
+        std::forward<LogMessage>(message) << "{";
+        auto iterator = vec.cbegin();
+        if (iterator != vec.cend()) {
+            std::forward<LogMessage>(message) << *iterator;
+            for (++iterator; iterator != vec.cend(); iterator++) {
+                std::forward<LogMessage>(message) << ", ";
+                std::forward<LogMessage>(message) << *iterator;
+            }
+        }
+        std::forward<LogMessage>(message) << "}";
+        return std::move(message);
+    }
+
+    template<class T>
     LogMessage&& operator<<(LogMessage &&message, const absl::flat_hash_set<T> &set)
     {
         std::forward<LogMessage>(message) << "{";

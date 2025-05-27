@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <absl/container/btree_map.h>
 #include <absl/container/flat_hash_map.h>
 
 #include <tempo_utils/integer_types.h>
@@ -75,20 +76,21 @@ namespace tempo_config {
 
     const char *config_node_type_to_string(ConfigNodeType type);
 
+    struct ConfigNodeData;
+
     class ConfigNode;
+    class ConfigNil;
     class ConfigValue;
     class ConfigSeq;
     class ConfigMap;
-
-    typedef std::shared_ptr<const std::string> ConfigValueType;
-    typedef std::shared_ptr<const std::vector<ConfigNode>> ConfigSeqType;
-    typedef std::shared_ptr<const absl::flat_hash_map<std::string,ConfigNode>> ConfigMapType;
 
     class ConfigNode {
     public:
         ConfigNode();
         ConfigNode(const ConfigNode &other);
-        virtual ~ConfigNode() = default;
+        ConfigNode(ConfigNode &&other) noexcept;
+        ConfigNode& operator=(const ConfigNode &other);
+        ConfigNode& operator=(ConfigNode &&other) noexcept;
 
         bool isNil() const;
         ConfigNodeType getNodeType() const;
@@ -96,6 +98,7 @@ namespace tempo_config {
 
         bool operator==(const ConfigNode &other) const;
         bool operator!=(const ConfigNode &other) const;
+        bool operator<(const ConfigNode &other) const;
 
         ConfigValue toValue() const;
         ConfigSeq toSeq() const;
@@ -104,7 +107,9 @@ namespace tempo_config {
 
         std::string toString() const;
 
-        virtual void hash(absl::HashState state) const;
+        int compare(const tempo_config::ConfigNode &other) const;
+
+        void hash(absl::HashState state) const;
 
         template <typename H>
         friend H AbslHashValue(H state, const ConfigNode &node) {
@@ -113,16 +118,17 @@ namespace tempo_config {
         }
 
     protected:
-        struct Priv {
-            ConfigNodeType type;
-            ConfigLocation location;
-        };
+        std::shared_ptr<ConfigNodeData> m_data;
 
-        ConfigNode(std::shared_ptr<Priv> priv);
-        const Priv *getPriv() const;
+        explicit ConfigNode(std::shared_ptr<ConfigNodeData> data);
+    };
 
-    private:
-        std::shared_ptr<Priv> m_priv;
+    struct ConfigNodeData {
+        ConfigNodeType type;
+        ConfigLocation location;
+        std::string value;
+        std::vector<ConfigNode> seq;
+        absl::btree_map<std::string,ConfigNode> map;
     };
 
     class ConfigNil : public ConfigNode {
@@ -132,6 +138,11 @@ namespace tempo_config {
 
         bool operator==(const ConfigNil &other) const;
         bool operator!=(const ConfigNil &other) const;
+        bool operator<(const ConfigNil &other) const;
+
+    private:
+        explicit ConfigNil(std::shared_ptr<ConfigNodeData> data);
+        friend class ConfigNode;
     };
 
     class ConfigValue : public ConfigNode {
@@ -140,19 +151,16 @@ namespace tempo_config {
         explicit ConfigValue(const char *value, const ConfigLocation &location = {});
         explicit ConfigValue(std::string_view value, const ConfigLocation &location = {});
         explicit ConfigValue(std::string &&value, const ConfigLocation &location = {});
-        explicit ConfigValue(ConfigValueType value, const ConfigLocation &location = {});
 
         std::string getValue() const;
 
         bool operator==(const ConfigValue &other) const;
         bool operator!=(const ConfigValue &other) const;
-
-        void hash(absl::HashState state) const override;
+        bool operator<(const ConfigValue &other) const;
 
     private:
-        struct ValuePriv : ConfigNode::Priv {
-            ConfigValueType value;
-        };
+        explicit ConfigValue(std::shared_ptr<ConfigNodeData> data);
+        friend class ConfigNode;
     };
 
     class ConfigSeq : public ConfigNode {
@@ -167,7 +175,6 @@ namespace tempo_config {
         explicit ConfigSeq(
             std::initializer_list<ConfigNode> elements,
             const ConfigLocation &location = {});
-        ConfigSeq(ConfigSeqType seq, const ConfigLocation &location = {});
 
         bool seqContains(int index) const;
         bool seqGet(int index, ConfigNode &node) const;
@@ -178,51 +185,49 @@ namespace tempo_config {
 
         bool operator==(const ConfigSeq &other) const;
         bool operator!=(const ConfigSeq &other) const;
-
-        void hash(absl::HashState state) const override;
+        bool operator<(const ConfigSeq &other) const;
 
         static ConfigSeq append(const ConfigSeq &dst, const ConfigNode &src);
         static ConfigSeq extend(const ConfigSeq &dst, const ConfigSeq &src);
 
     private:
-        struct SeqPriv : ConfigNode::Priv {
-            ConfigSeqType seq;
-        };
+        explicit ConfigSeq(std::shared_ptr<ConfigNodeData> data);
+        friend class ConfigNode;
     };
 
     class ConfigMap : public ConfigNode {
     public:
         ConfigMap();
         explicit ConfigMap(
-            const absl::flat_hash_map<std::string,ConfigNode> &map,
+            const absl::btree_map<std::string,ConfigNode> &map,
             const ConfigLocation &location = {});
         explicit ConfigMap(
-            absl::flat_hash_map<std::string,ConfigNode> &&map,
+            absl::btree_map<std::string,ConfigNode> &&map,
+            const ConfigLocation &location = {});
+        explicit ConfigMap(
+            const absl::flat_hash_map<std::string,ConfigNode> &map,
             const ConfigLocation &location = {});
         explicit ConfigMap(
             std::initializer_list<std::pair<std::string,ConfigNode>> entries,
             const ConfigLocation &location = {});
-        ConfigMap(ConfigMapType map, const ConfigLocation &location = {});
 
         bool mapContains(std::string_view key) const;
         bool mapGet(std::string_view key, ConfigNode &node) const;
         ConfigNode mapAt(std::string_view key) const;
         int mapSize() const;
-        absl::flat_hash_map<std::string,ConfigNode>::const_iterator mapBegin() const;
-        absl::flat_hash_map<std::string,ConfigNode>::const_iterator mapEnd() const;
+        absl::btree_map<std::string,ConfigNode>::const_iterator mapBegin() const;
+        absl::btree_map<std::string,ConfigNode>::const_iterator mapEnd() const;
 
         bool operator==(const ConfigMap &other) const;
         bool operator!=(const ConfigMap &other) const;
-
-        void hash(absl::HashState state) const override;
+        bool operator<(const ConfigMap &other) const;
 
         static ConfigMap extend(const ConfigMap &dst, const ConfigMap &src);
         static ConfigMap update(const ConfigMap &dst, const ConfigMap &src);
 
     private:
-        struct MapPriv : ConfigNode::Priv {
-            ConfigMapType map;
-        };
+        explicit ConfigMap(std::shared_ptr<ConfigNodeData> data);
+        friend class ConfigNode;
     };
 
     class ConfigFile {

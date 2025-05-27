@@ -46,7 +46,7 @@ namespace tempo_config {
 
     private:
         struct Priv {
-            absl::flat_hash_map<std::string,ConfigNode> map;
+            absl::btree_map<std::string,ConfigNode> map;
         };
         std::shared_ptr<Priv> m_priv;
     };

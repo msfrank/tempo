@@ -4,6 +4,8 @@
 #include <tempo_config/config_types.h>
 #include <tempo_utils/log_message.h>
 
+#include "../../tempo_schema/include/tempo_schema/schema_resource.h"
+
 tempo_config::ConfigSource::ConfigSource()
     : m_type(ConfigSourceType::Invalid)
 {
@@ -133,94 +135,214 @@ tempo_config::config_node_type_to_string(ConfigNodeType type)
 }
 
 tempo_config::ConfigNode::ConfigNode()
-    : m_priv(std::shared_ptr<Priv>(
-        new Priv{ConfigNodeType::kNil, {}}))
+    : m_data(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kNil,
+        ConfigLocation{},
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
-tempo_config::ConfigNode::ConfigNode(std::shared_ptr<Priv> priv)
-    : m_priv(priv)
+tempo_config::ConfigNode::ConfigNode(std::shared_ptr<ConfigNodeData> data)
+    : m_data(std::move(data))
 {
-    TU_ASSERT (m_priv != nullptr);
-}
-
-const tempo_config::ConfigNode::Priv *
-tempo_config::ConfigNode::getPriv() const
-{
-    return m_priv.get();
+    TU_ASSERT (m_data != nullptr);
 }
 
 tempo_config::ConfigNode::ConfigNode(const ConfigNode &other)
-    : m_priv(other.m_priv)
+    : m_data(other.m_data)
 {
+}
+
+tempo_config::ConfigNode::ConfigNode(ConfigNode &&other) noexcept
+{
+    m_data.swap(other.m_data);
+}
+
+tempo_config::ConfigNode&
+tempo_config::ConfigNode::operator=(const ConfigNode &other)
+{
+    if (this != &other) {
+        m_data = other.m_data;
+    }
+    return *this;
+}
+
+tempo_config::ConfigNode&
+tempo_config::ConfigNode::operator=(ConfigNode &&other) noexcept
+{
+    if (this != &other) {
+        m_data.swap(other.m_data);
+    }
+    return *this;
 }
 
 bool
 tempo_config::ConfigNode::isNil() const
 {
-    return m_priv->type == ConfigNodeType::kNil;
+    return m_data->type == ConfigNodeType::kNil;
 }
 
 tempo_config::ConfigNodeType
 tempo_config::ConfigNode::getNodeType() const
 {
-    return m_priv->type;
+    return m_data->type;
 }
 
 tempo_config::ConfigLocation
 tempo_config::ConfigNode::getNodeLocation() const
 {
-    return m_priv->location;
+    return m_data->location;
+}
+//
+// template<typename IterType>
+// inline int cmp(IterType it1, IterType it2, IterType end1, IterType end2)
+// {
+//
+// }
+
+typedef std::vector<tempo_config::ConfigNode> ConfigNodeVector;
+typedef absl::btree_map<std::string,tempo_config::ConfigNode> ConfigNodeBtree;
+
+int compare_seq(const ConfigNodeVector &seq1, const ConfigNodeVector &seq2)
+{
+    if (seq1.empty() && seq2.empty())
+        return 0;
+    auto it1 = seq1.cbegin();
+    auto it2 = seq2.cbegin();
+    auto end1 = seq1.cend();
+    auto end2 = seq2.cend();
+    while (it1 != end1 && it2 != end2) {
+        auto cmp = it1->compare(*it2);
+        if (cmp != 0)
+            return cmp;
+        ++it1, ++it2;
+    }
+    // at this point either one iterator or both iterators are exhausted
+    if (it1 == end1) {
+        // if it1 and it2 are exhausted return 0 (equal), otherwise return -1 (it1 is less than it2)
+        return it2 == end2? 0 : -1;
+    }
+    // it1 is not exhausted, so it1 must be greater than it2
+    return 1;
 }
 
-bool
-tempo_config::ConfigNode::operator==(const tempo_config::ConfigNode &other) const
+int compare_map(const ConfigNodeBtree &map1, const ConfigNodeBtree &map2)
 {
-    auto type = getNodeType();
-    if (type != other.getNodeType())
-        return false;
-    switch (type) {
+    if (map1.empty() && map2.empty())
+        return 0;
+    auto it1 = map1.cbegin();
+    auto it2 = map2.cbegin();
+    auto end1 = map1.cend();
+    auto end2 = map2.cend();
+    while (it1 != end1 && it2 != end2) {
+        const auto &key1 = it1->first;
+        const auto &key2 = it2->first;
+        auto keycmp = key1.compare(key2);
+        if (keycmp != 0)
+            return keycmp;
+        const auto &val1 = it1->second;
+        const auto &val2 = it2->second;
+        auto valcmp = val1.compare(val2);
+        if (valcmp != 0)
+            return valcmp;
+        ++it1, ++it2;
+    }
+    // at this point either one iterator or both iterators are exhausted
+    if (it1 == end1) {
+        // if it1 and it2 are exhausted return 0 (equal), otherwise return -1 (it1 is less than it2)
+        return it2 == end2? 0 : -1;
+    }
+    // it1 is not exhausted, so it1 must be greater than it2
+    return 1;
+}
+
+int
+tempo_config::ConfigNode::compare(const ConfigNode &other) const
+{
+    auto ltype = getNodeType();
+    auto rtype = other.getNodeType();
+
+    if (ltype != rtype)
+        return ltype < rtype? -1 : 1;
+
+    switch (ltype) {
         case ConfigNodeType::kNil:
-            return true;
+            return 0;
         case ConfigNodeType::kValue:
-            return toValue() == other.toValue();
+            return m_data->value.compare(other.m_data->value);
         case ConfigNodeType::kSeq:
-            return toSeq() == other.toSeq();
+            return compare_seq(m_data->seq, other.m_data->seq);
         case ConfigNodeType::kMap:
-            return toMap() == other.toMap();
+            return compare_map(m_data->map, other.m_data->map);
         default:
-            return false;
+            TU_UNREACHABLE();
     }
 }
 
-bool
-tempo_config::ConfigNode::operator!=(const tempo_config::ConfigNode &other) const
+void
+tempo_config::ConfigNode::hash(absl::HashState state) const
 {
-    return !(*this == other);
+    switch (m_data->type) {
+        case ConfigNodeType::kNil:
+            break;;
+        case ConfigNodeType::kValue: {
+            state = absl::HashState::combine(std::move(state), m_data->value);
+            break;;
+        }
+        case ConfigNodeType::kSeq: {
+            state = absl::HashState::combine(std::move(state), m_data->seq);
+            break;
+        }
+        case ConfigNodeType::kMap: {
+            state = absl::HashState::combine(std::move(state), m_data->map);
+            break;
+        }
+    }
+    absl::HashState::combine(std::move(state), m_data->type);
+}
+
+bool
+tempo_config::ConfigNode::operator==(const ConfigNode &other) const
+{
+    return compare(other) == 0;
+}
+
+bool
+tempo_config::ConfigNode::operator!=(const ConfigNode &other) const
+{
+    return compare(other) != 0;
+}
+
+bool
+tempo_config::ConfigNode::operator<(const ConfigNode &other) const
+{
+    return compare(other) < 0;
 }
 
 tempo_config::ConfigValue
 tempo_config::ConfigNode::toValue() const
 {
     if (getNodeType() == ConfigNodeType::kValue)
-        return *((ConfigValue *) this);
-    return ConfigValue();
+        return ConfigValue(m_data);
+    return {};
 }
 
 tempo_config::ConfigSeq
 tempo_config::ConfigNode::toSeq() const
 {
     if (getNodeType() == ConfigNodeType::kSeq)
-        return *((ConfigSeq *) this);
-    return ConfigSeq();
+        return ConfigSeq(m_data);
+    return {};
 }
 
 tempo_config::ConfigMap
 tempo_config::ConfigNode::toMap() const
 {
     if (getNodeType() == ConfigNodeType::kMap)
-        return *((ConfigMap *) this);
-    return ConfigMap();
+        return ConfigMap(m_data);
+    return {};
 }
 
 tempo_config::ConfigNode
@@ -229,166 +351,180 @@ tempo_config::ConfigNode::toNode() const
     return *this;
 }
 
-// FIXME: move this method to Priv to get rid of object slicing lint warnings
-void
-tempo_config::ConfigNode::hash(absl::HashState state) const
-{
-    absl::HashState::combine(std::move(state), m_priv->type);
-}
-
 tempo_config::ConfigNil::ConfigNil()
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new Priv{ConfigNodeType::kNil, {}}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kNil,
+        ConfigLocation{},
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigNil::ConfigNil(const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new Priv{ConfigNodeType::kNil, location}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kNil,
+        location,
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
+{
+}
+
+tempo_config::ConfigNil::ConfigNil(std::shared_ptr<ConfigNodeData> data)
+    : ConfigNode(std::move(data))
 {
 }
 
 bool
-tempo_config::ConfigNil::operator==(const tempo_config::ConfigNil &other) const
+tempo_config::ConfigNil::operator==(const ConfigNil &other) const
 {
-    return getPriv()->type == ConfigNodeType::kNil
-        && other.getPriv()->type == ConfigNodeType::kNil;
+    return compare(other) == 0;
 }
 
 bool
 tempo_config::ConfigNil::operator!=(const tempo_config::ConfigNil &other) const
 {
-    return !(*this == other);
+    return compare(other) != 0;
+}
+
+bool
+tempo_config::ConfigNil::operator<(const tempo_config::ConfigNil &other) const
+{
+    return compare(other) < 0;
 }
 
 tempo_config::ConfigValue::ConfigValue()
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new ValuePriv{
-            {ConfigNodeType::kValue, {}},
-            std::make_shared<const std::string>()}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kValue,
+        ConfigLocation{},
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigValue::ConfigValue(const char *value, const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new ValuePriv{
-            {ConfigNodeType::kValue, location},
-            std::make_shared<const std::string>(value)}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kValue,
+        location,
+        std::string(value),
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigValue::ConfigValue(std::string_view value, const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new ValuePriv{
-            {ConfigNodeType::kValue, location},
-            std::make_shared<const std::string>(value)}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kValue,
+        location,
+        std::string(value),
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigValue::ConfigValue(std::string &&value, const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new ValuePriv{
-            {ConfigNodeType::kValue, location},
-            std::make_shared<const std::string>(std::move(value))}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kValue,
+        location,
+        std::move(value),
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
-tempo_config::ConfigValue::ConfigValue(ConfigValueType value, const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new ValuePriv{
-            {ConfigNodeType::kValue, location},
-            value? value : std::make_shared<const std::string>()}))
+tempo_config::ConfigValue::ConfigValue(std::shared_ptr<ConfigNodeData> data)
+    : ConfigNode(std::move(data))
 {
 }
 
 std::string
 tempo_config::ConfigValue::getValue() const
 {
-    auto *priv = (ValuePriv *) getPriv();
-    return *priv->value;
+    return m_data->value;
 }
 
 bool
-tempo_config::ConfigValue::operator==(const tempo_config::ConfigValue &other) const
+tempo_config::ConfigValue::operator==(const ConfigValue &other) const
 {
-    return getValue() == other.getValue();
+    return compare(other) == 0;
 }
 
 bool
-tempo_config::ConfigValue::operator!=(const tempo_config::ConfigValue &other) const
+tempo_config::ConfigValue::operator!=(const ConfigValue &other) const
 {
-    return !(*this == other);
+    return compare(other) != 0;
 }
 
-void
-tempo_config::ConfigValue::hash(absl::HashState state) const
+bool
+tempo_config::ConfigValue::operator<(const ConfigValue &other) const
 {
-    auto *priv = (ValuePriv *) getPriv();
-    state = absl::HashState::combine(std::move(state), priv->type);
-    absl::HashState::combine(std::move(state), *priv->value);
+    return compare(other) < 0;
 }
 
 tempo_config::ConfigSeq::ConfigSeq()
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new SeqPriv{
-            {ConfigNodeType::kSeq, {}},
-            std::make_shared<const std::vector<ConfigNode>>()}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kSeq,
+        ConfigLocation{},
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigSeq::ConfigSeq(
     const std::vector<ConfigNode> &seq,
     const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new SeqPriv{
-            {ConfigNodeType::kSeq, location},
-            std::make_shared<const std::vector<ConfigNode>>(seq.cbegin(), seq.cend())}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kSeq,
+        location,
+        std::string{},
+        std::vector(seq.cbegin(), seq.cend()),
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigSeq::ConfigSeq(
     std::vector<ConfigNode> &&seq,
     const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-    new SeqPriv{
-        {ConfigNodeType::kSeq, location},
-        std::make_shared<const std::vector<ConfigNode>>(std::move(seq))}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kSeq,
+        location,
+        std::string{},
+        std::vector(std::move(seq)),
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
 tempo_config::ConfigSeq::ConfigSeq(
     std::initializer_list<ConfigNode> elements,
     const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new SeqPriv{
-            {ConfigNodeType::kSeq, location},
-            std::make_shared<const std::vector<ConfigNode>>(elements)}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kSeq,
+        location,
+        std::string{},
+        std::vector(elements),
+        absl::btree_map<std::string,ConfigNode>{}))
 {
 }
 
-tempo_config::ConfigSeq::ConfigSeq(
-    ConfigSeqType seq,
-    const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new SeqPriv{
-            {ConfigNodeType::kSeq, location},
-            seq? seq : std::make_shared<const std::vector<ConfigNode>>()}))
+tempo_config::ConfigSeq::ConfigSeq(std::shared_ptr<ConfigNodeData> data)
+    : ConfigNode(std::move(data))
 {
 }
 
 bool
 tempo_config::ConfigSeq::seqContains(int index) const
 {
-    auto *priv = (SeqPriv *) getPriv();
-    return (0 <= index && index < static_cast<int>(priv->seq->size()));
+    return 0 <= index && index < static_cast<int>(m_data->seq.size());
 }
 
 bool
 tempo_config::ConfigSeq::seqGet(int index, ConfigNode &node) const
 {
-    auto *priv = (SeqPriv *) getPriv();
-    if (0 <= index && index < static_cast<int>(priv->seq->size())) {
-        node = priv->seq->at(index);
+    if (0 <= index && index < static_cast<int>(m_data->seq.size())) {
+        node = m_data->seq.at(index);
         return true;
     }
     return false;
@@ -406,121 +542,130 @@ tempo_config::ConfigSeq::seqAt(int index) const
 int
 tempo_config::ConfigSeq::seqSize() const
 {
-    auto *priv = (SeqPriv *) getPriv();
-    return priv->seq->size();
+    return m_data->seq.size();
 }
 
 std::vector<tempo_config::ConfigNode>::const_iterator
 tempo_config::ConfigSeq::seqBegin() const
 {
-    auto *priv = (SeqPriv *) getPriv();
-    return priv->seq->cbegin();
+    return m_data->seq.cbegin();
 }
 
 std::vector<tempo_config::ConfigNode>::const_iterator
 tempo_config::ConfigSeq::seqEnd() const
 {
-    auto *priv = (SeqPriv *) getPriv();
-    return priv->seq->cend();
+    return m_data->seq.cend();
 }
 
 bool
-tempo_config::ConfigSeq::operator==(const tempo_config::ConfigSeq &other) const
+tempo_config::ConfigSeq::operator==(const ConfigSeq &other) const
 {
-    return std::equal(seqBegin(), seqEnd(), other.seqBegin(), other.seqEnd());
+    return compare(other) == 0;
 }
 
 bool
-tempo_config::ConfigSeq::operator!=(const tempo_config::ConfigSeq &other) const
+tempo_config::ConfigSeq::operator!=(const ConfigSeq &other) const
 {
-    return !(*this == other);
+    return compare(other) != 0;
+}
+
+bool
+tempo_config::ConfigSeq::operator<(const ConfigSeq &other) const
+{
+    return compare(other) < 0;
 }
 
 tempo_config::ConfigSeq
 tempo_config::ConfigSeq::append(const ConfigSeq &dst, const ConfigNode &src)
 {
-    auto seq = std::make_shared<std::vector<ConfigNode>>(dst.seqBegin(), dst.seqEnd());
-    seq->push_back(src);
-    return ConfigSeq(seq);
+    std::vector seq(dst.seqBegin(), dst.seqEnd());
+    seq.push_back(src);
+    return ConfigSeq(std::move(seq));
 }
 
 tempo_config::ConfigSeq
 tempo_config::ConfigSeq::extend(const ConfigSeq &dst, const ConfigSeq &src)
 {
-    auto seq = std::make_shared<std::vector<ConfigNode>>(dst.seqBegin(), dst.seqEnd());
-    seq->insert(seq->cend(), src.seqBegin(), src.seqEnd());
-    return ConfigSeq(seq);
-}
-
-void
-tempo_config::ConfigSeq::hash(absl::HashState state) const
-{
-    auto *priv = (SeqPriv *) getPriv();
-    state = absl::HashState::combine(std::move(state), priv->type);
-    absl::HashState::combine(std::move(state), priv->seq);
+    std::vector seq(dst.seqBegin(), dst.seqEnd());
+    seq.insert(seq.cend(), src.seqBegin(), src.seqEnd());
+    return ConfigSeq(std::move(seq));
 }
 
 tempo_config::ConfigMap::ConfigMap()
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new MapPriv{
-            {ConfigNodeType::kMap, {}},
-            std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>()}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kMap,
+        ConfigLocation{},
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>{}))
+{
+}
+
+tempo_config::ConfigMap::ConfigMap(
+    const absl::btree_map<std::string,ConfigNode> &map,
+    const ConfigLocation &location)
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kMap,
+        location,
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>(map.cbegin(), map.cend())))
+{
+}
+
+tempo_config::ConfigMap::ConfigMap(
+    absl::btree_map<std::string,ConfigNode> &&map,
+    const ConfigLocation &location)
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kMap,
+        location,
+        std::string{},
+        std::vector<ConfigNode>{},
+        std::move(map)))
 {
 }
 
 tempo_config::ConfigMap::ConfigMap(
     const absl::flat_hash_map<std::string,ConfigNode> &map,
     const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new MapPriv{
-            {ConfigNodeType::kMap, location},
-            std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>(map.cbegin(), map.cend())}))
-{
-}
-
-tempo_config::ConfigMap::ConfigMap(
-    absl::flat_hash_map<std::string,ConfigNode> &&map,
-    const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new MapPriv{
-            {ConfigNodeType::kMap, location},
-            std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>(std::move(map))}))
+    : ConfigNode(std::make_shared<ConfigNodeData>(
+        ConfigNodeType::kMap,
+        location,
+        std::string{},
+        std::vector<ConfigNode>{},
+        absl::btree_map<std::string,ConfigNode>(map.cbegin(), map.cend())))
 {
 }
 
 tempo_config::ConfigMap::ConfigMap(
     std::initializer_list<std::pair<std::string,ConfigNode>> entries,
     const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new MapPriv{
-            {ConfigNodeType::kMap, location},
-            std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>(entries)}))
+: ConfigNode(std::make_shared<ConfigNodeData>(
+    ConfigNodeType::kMap,
+    location,
+    std::string{},
+    std::vector<ConfigNode>{},
+    absl::btree_map<std::string,ConfigNode>{entries}))
 {
 }
 
-tempo_config::ConfigMap::ConfigMap(
-    ConfigMapType map,
-    const ConfigLocation &location)
-    : ConfigNode(std::shared_ptr<ConfigNode::Priv>(
-        new MapPriv{
-            {ConfigNodeType::kMap, location},
-            map? map : std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>()}))
+tempo_config::ConfigMap::ConfigMap(std::shared_ptr<ConfigNodeData> data)
+    : ConfigNode(std::move(data))
 {
 }
 
 bool
 tempo_config::ConfigMap::mapContains(std::string_view key) const
 {
-    auto *priv = (MapPriv *) getPriv();
-    return priv->map->contains(key);
+    return m_data->map.contains(key);
 }
 
 bool
 tempo_config::ConfigMap::mapGet(std::string_view key, ConfigNode &node) const
 {
-    auto *priv = (MapPriv *) getPriv();
-    if (priv->map->contains(key)) {
-        node = priv->map->at(key);
+    auto entry = m_data->map.find(key);
+    if (entry != m_data->map.cend()) {
+        node = entry->second;
         return true;
     }
     return false;
@@ -538,54 +683,50 @@ tempo_config::ConfigMap::mapAt(std::string_view key) const
 int
 tempo_config::ConfigMap::mapSize() const
 {
-    auto *priv = (MapPriv *) getPriv();
-    return priv->map->size();
+    return m_data->map.size();
 }
 
-absl::flat_hash_map<std::string,tempo_config::ConfigNode>::const_iterator
+absl::btree_map<std::string,tempo_config::ConfigNode>::const_iterator
 tempo_config::ConfigMap::mapBegin() const
 {
-    auto *priv = (MapPriv *) getPriv();
-    return priv->map->cbegin();
+    return m_data->map.cbegin();
 }
 
-absl::flat_hash_map<std::string,tempo_config::ConfigNode>::const_iterator
+absl::btree_map<std::string,tempo_config::ConfigNode>::const_iterator
 tempo_config::ConfigMap::mapEnd() const
 {
-    auto *priv = (MapPriv *) getPriv();
-    return priv->map->cend();
+    return m_data->map.cend();
 }
 
 bool
-tempo_config::ConfigMap::operator==(const tempo_config::ConfigMap &other) const
+tempo_config::ConfigMap::operator==(const ConfigMap &other) const
 {
-    for (auto iterator = mapBegin(); iterator != mapEnd(); iterator++) {
-        tempo_config::ConfigNode value;
-        if (!other.mapGet(iterator->first, value))
-            return false;
-        if (value != iterator->second)
-            return false;
-    }
-    return true;
+    return compare(other) == 0;
 }
 
 bool
-tempo_config::ConfigMap::operator!=(const tempo_config::ConfigMap &other) const
+tempo_config::ConfigMap::operator!=(const ConfigMap &other) const
 {
-    return !(*this == other);
+    return compare(other) != 0;
 }
 
-void
-tempo_config::ConfigMap::hash(absl::HashState state) const
+bool
+tempo_config::ConfigMap::operator<(const ConfigMap &other) const
 {
-    auto *priv = (MapPriv *) getPriv();
-    state = absl::HashState::combine(std::move(state), priv->type);
-    std::vector<std::pair<std::string, ConfigNode>> entries(priv->map->begin(), priv->map->end());
-    std::sort(entries.begin(), entries.end(), [](auto &a, auto &b) -> bool {
-        return a.first < b.first;
-    });
-    absl::HashState::combine(std::move(state), entries);
+    return compare(other) < 0;
 }
+
+// void
+// tempo_config::ConfigMap::hash(absl::HashState state) const
+// {
+//     auto *priv = (MapPriv *) getPriv();
+//     state = absl::HashState::combine(std::move(state), priv->type);
+//     std::vector<std::pair<std::string, ConfigNode>> entries(priv->map->begin(), priv->map->end());
+//     std::sort(entries.begin(), entries.end(), [](auto &a, auto &b) -> bool {
+//         return a.first < b.first;
+//     });
+//     absl::HashState::combine(std::move(state), entries);
+// }
 
 /**
  * Constructs a new ConfigMap containing all entries from dst and any entries in src which are not present
@@ -598,13 +739,13 @@ tempo_config::ConfigMap::hash(absl::HashState state) const
 tempo_config::ConfigMap
 tempo_config::ConfigMap::extend(const ConfigMap &dst, const ConfigMap &src)
 {
-    auto map = std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>(dst.mapBegin(), dst.mapEnd());
+    absl::btree_map<std::string,ConfigNode> map(dst.mapBegin(), dst.mapEnd());
     for (auto iterator = src.mapBegin(); iterator != src.mapEnd(); iterator++) {
-        if (!map->contains(iterator->first)) {
-            map->insert_or_assign(iterator->first, iterator->second);
+        if (!map.contains(iterator->first)) {
+            map.insert_or_assign(iterator->first, iterator->second);
         }
     }
-    return ConfigMap(map);
+    return ConfigMap(std::move(map));
 }
 
 /**
@@ -618,9 +759,9 @@ tempo_config::ConfigMap::extend(const ConfigMap &dst, const ConfigMap &src)
 tempo_config::ConfigMap
 tempo_config::ConfigMap::update(const ConfigMap &dst, const ConfigMap &src)
 {
-    auto map = std::make_shared<absl::flat_hash_map<std::string,ConfigNode>>(dst.mapBegin(), dst.mapEnd());
-    map->insert(src.mapBegin(), src.mapEnd());
-    return ConfigMap(map);
+    absl::btree_map<std::string,ConfigNode> map(dst.mapBegin(), dst.mapEnd());
+    map.insert(src.mapBegin(), src.mapEnd());
+    return ConfigMap(std::move(map));
 }
 
 static std::string

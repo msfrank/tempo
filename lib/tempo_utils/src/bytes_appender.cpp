@@ -61,6 +61,12 @@ tempo_utils::BytesAppender::appendBytes(std::string_view str)
     m_bytes->insert(m_bytes->end(), str.begin(), str.end());
 }
 
+const tu_uint8 *
+tempo_utils::BytesAppender::getData() const
+{
+    return m_bytes->data();
+}
+
 tu_uint32
 tempo_utils::BytesAppender::getSize() const
 {

@@ -22,6 +22,7 @@ namespace tempo_utils {
         void appendBytes(std::span<const tu_uint8> bytes);
         void appendBytes(std::string_view str);
 
+        const tu_uint8 *getData() const;
         tu_uint32 getSize() const;
         std::vector<tu_uint8>::const_iterator bytesBegin() const;
         std::vector<tu_uint8>::const_iterator bytesEnd() const;

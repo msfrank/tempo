@@ -30,7 +30,6 @@ namespace tempo_config {
         ConfigStatus(tempo_utils::StatusCode statusCode, std::shared_ptr<const tempo_utils::Detail> detail);
 
     public:
-
         /**
          *
          * @param condition

@@ -29,6 +29,18 @@ namespace tempo_schema {
 
     public:
         /**
+          *
+          * @param condition
+          * @param message
+          * @return
+          */
+        static SchemaStatus forCondition(
+            SchemaCondition condition,
+            std::string_view message)
+        {
+            return SchemaStatus(condition, message);
+        }
+        /**
          *
          * @tparam Args
          * @param condition

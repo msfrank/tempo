@@ -39,6 +39,18 @@ namespace tempo_security {
 
     public:
         /**
+          *
+          * @param condition
+          * @param message
+          * @return
+          */
+        static SecurityStatus forCondition(
+            SecurityCondition condition,
+            std::string_view message)
+        {
+            return SecurityStatus(condition, message);
+        }
+        /**
          *
          * @tparam Args
          * @param condition

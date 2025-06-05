@@ -31,6 +31,18 @@ namespace tempo_utils {
     public:
         /**
          *
+         * @param condition
+         * @param message
+         * @return
+         */
+        static FileStatus forCondition(
+            FileCondition condition,
+            std::string_view message)
+        {
+            return FileStatus(condition, message);
+        }
+        /**
+         *
          * @tparam Args
          * @param condition
          * @param messageFmt

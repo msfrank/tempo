@@ -32,6 +32,18 @@ namespace tempo_command {
 
     public:
         /**
+          *
+          * @param condition
+          * @param message
+          * @return
+          */
+        static CommandStatus forCondition(
+            CommandCondition condition,
+            std::string_view message)
+        {
+            return CommandStatus(condition, message);
+        }
+        /**
          *
          * @tparam Args
          * @param condition

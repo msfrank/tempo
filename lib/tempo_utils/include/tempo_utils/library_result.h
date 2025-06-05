@@ -23,6 +23,18 @@ namespace tempo_utils {
     public:
         /**
          *
+         * @param condition
+         * @param message
+         * @return
+         */
+        static LibraryStatus forCondition(
+            LibraryCondition condition,
+            std::string_view message)
+        {
+            return LibraryStatus(condition, message);
+        }
+        /**
+         *
          * @tparam Args
          * @param condition
          * @param messageFmt

@@ -31,6 +31,18 @@ namespace tempo_tracing {
 
     public:
         /**
+          *
+          * @param condition
+          * @param message
+          * @return
+          */
+        static TracingStatus forCondition(
+            TracingCondition condition,
+            std::string_view message)
+        {
+            return TracingStatus(condition, message);
+        }
+        /**
          *
          * @tparam Args
          * @param condition

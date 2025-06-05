@@ -19,54 +19,42 @@ tempo_config::internal::ParserErrorListener::syntaxError(
     // if match failed due to end-of-file, then throw IncompleteModuleException
     if (offendingSymbol->getType() == antlr4::Token::EOF)
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kParseError, message));
+            ConfigStatus::forCondition(
+                ConfigCondition::kParseError, message));
 
-    // FIXME: when does antlr4 raise a syntax error with an empty exception?
-    if (!e)
+    // we know exception is empty due to the following conditions:
+    //  - reporting an unwanted token which was resolved using single token deletion
+    //  - reporting a missing token which was resolved using single token insertion
+    //  - reporting ambiguity warnings
+    if (!e) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kConfigInvariant, message));
+            ConfigStatus::forCondition(ConfigCondition::kParseError, message));
+    }
 
     // convert antlr4 exceptions into our own exceptions
     try {
         std::rethrow_exception(e);
     } catch(antlr4::FailedPredicateException &ex) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kParseError, message));
+            ConfigStatus::forCondition(ConfigCondition::kParseError, message));
     } catch(antlr4::InputMismatchException &ex) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kParseError, message));
+            ConfigStatus::forCondition(ConfigCondition::kParseError, message));
     } catch(antlr4::NoViableAltException &ex) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kParseError, message));
+            ConfigStatus::forCondition(ConfigCondition::kParseError, message));
     } catch(antlr4::RuntimeException &ex) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kConfigInvariant, message));
+            ConfigStatus::forCondition(ConfigCondition::kConfigInvariant, message));
     }
 }
 
 void
-tempo_config::internal::ParserErrorStrategy::recover(antlr4::Parser *recognizer, std::exception_ptr e)
+tempo_config::internal::ParserErrorStrategy::reportUnwantedToken(antlr4::Parser *recognizer)
 {
-    throw tempo_utils::StatusException(
-        tempo_config::ConfigStatus::forCondition(
-            tempo_config::ConfigCondition::kParseError, "parse failure on recover"));
-}
-
-antlr4::Token *
-tempo_config::internal::ParserErrorStrategy::recoverInline(antlr4::Parser *recognizer)
-{
-    throw tempo_utils::StatusException(
-        tempo_config::ConfigStatus::forCondition(
-            tempo_config::ConfigCondition::kParseError, "parse failure on recoverInline"));
 }
 
 void
-tempo_config::internal::ParserErrorStrategy::sync(antlr4::Parser *recognizer)
+tempo_config::internal::ParserErrorStrategy::reportMissingToken(antlr4::Parser *recognizer)
 {
 }

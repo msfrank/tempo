@@ -20,9 +20,8 @@ namespace tempo_config::internal {
 
     class ParserErrorStrategy : public antlr4::DefaultErrorStrategy {
     public:
-        void recover(antlr4::Parser *recognizer, std::exception_ptr e) override;
-        antlr4::Token *recoverInline(antlr4::Parser *recognizer) override;
-        void sync(antlr4::Parser *recognizer) override;
+        void reportUnwantedToken(antlr4::Parser *recognizer) override;
+        void reportMissingToken(antlr4::Parser *recognizer) override;
     };
 }
 

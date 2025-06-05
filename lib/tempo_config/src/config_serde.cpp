@@ -7,6 +7,8 @@
 #include <tempo_config/config_serde.h>
 #include <tempo_config/extend_map.h>
 #include <tempo_config/internal/config_listener.h>
+#include <tempo_config/internal/lexer_error_listener.h>
+#include <tempo_config/internal/parser_error_listener.h>
 #include <tempo_utils/file_reader.h>
 #include <tempo_utils/file_writer.h>
 #include <tempo_utils/file_result.h>
@@ -16,8 +18,6 @@
 
 #include "ConfigLexer.h"
 #include "ConfigParser.h"
-#include "tempo_config/internal/lexer_error_listener.h"
-#include "tempo_config/internal/parser_error_listener.h"
 
 /**
  * Parse the given string as UTF-8 encoded JSON and deserialize it into a ConfigNode.
@@ -43,15 +43,18 @@ tempo_config::read_config_string(std::string_view utf8, std::shared_ptr<ConfigSo
 
     internal::ConfigListener listener(source);
 
-    internal::LexerErrorListener lexerErrorListener;
     lexer.removeErrorListeners();
+    internal::LexerErrorListener lexerErrorListener;
     lexer.addErrorListener(&lexerErrorListener);
 
-    internal::ParserErrorListener parserErrorListener;
     parser.removeErrorListeners();
+    internal::ParserErrorListener parserErrorListener;
     parser.addErrorListener(&parserErrorListener);
-    auto handler = std::make_shared<internal::ParserErrorStrategy>();
-    parser.setErrorHandler(handler);
+    //antlr4::DiagnosticErrorListener diagnosticErrorListener(false);
+    //parser.addErrorListener(&diagnosticErrorListener);
+
+    //auto handler = std::make_shared<internal::ParserErrorStrategy>();
+    //parser.setErrorHandler(handler);
 
     try {
         antlr4::tree::ParseTree *tree = parser.root();
@@ -89,15 +92,18 @@ tempo_config::read_config_file(const std::filesystem::path &path)
     auto source = std::make_shared<ConfigSource>(ConfigSourceType::File, path.string());
     internal::ConfigListener listener(source);
 
-    internal::LexerErrorListener lexerErrorListener;
     lexer.removeErrorListeners();
+    internal::LexerErrorListener lexerErrorListener;
     lexer.addErrorListener(&lexerErrorListener);
 
-    internal::ParserErrorListener parserErrorListener;
     parser.removeErrorListeners();
+    internal::ParserErrorListener parserErrorListener;
     parser.addErrorListener(&parserErrorListener);
-    auto handler = std::make_shared<internal::ParserErrorStrategy>();
-    parser.setErrorHandler(handler);
+    //antlr4::DiagnosticErrorListener diagnosticErrorListener(false);
+    //parser.addErrorListener(&diagnosticErrorListener);
+
+    //auto handler = std::make_shared<internal::ParserErrorStrategy>();
+    //parser.setErrorHandler(handler);
 
     try {
         antlr4::tree::ParseTree *tree = parser.root();

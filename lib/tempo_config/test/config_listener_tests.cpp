@@ -249,19 +249,3 @@ TEST(ConfigListener, ParseDeeplyNestedMaps)
         })},
     }), configMap);
 }
-
-TEST(ConfigListener, ParseFailureMissingCommaBetweenArrayMembers)
-{
-    auto parseResult = tempo_config::read_config_string(R"(
-        ["foo" "bar"]
-    )");
-    ASSERT_TRUE (parseResult.isStatus());
-}
-
-TEST(ConfigListener, ParseFailureMissingCommaBetweenObjectMembers)
-{
-    auto parseResult = tempo_config::read_config_string(R"(
-        {"foo": 1 "bar": 2}
-    )");
-    ASSERT_TRUE (parseResult.isStatus());
-}

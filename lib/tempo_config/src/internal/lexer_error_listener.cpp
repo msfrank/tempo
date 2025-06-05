@@ -13,19 +13,16 @@ tempo_config::internal::LexerErrorListener::syntaxError(
 {
     if (!e) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kConfigInvariant, message));
+            tempo_utils::Status(tempo_utils::StatusCode::kInternal, message));
     }
 
     try {
         std::rethrow_exception(e);
     } catch(antlr4::LexerNoViableAltException &ex) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kParseError, message));
+            ConfigStatus::forCondition(ConfigCondition::kParseError, message));
     } catch(antlr4::RuntimeException &ex) {
         throw tempo_utils::StatusException(
-            tempo_config::ConfigStatus::forCondition(
-                tempo_config::ConfigCondition::kConfigInvariant, message));
+            ConfigStatus::forCondition(ConfigCondition::kConfigInvariant, message));
     }
 }

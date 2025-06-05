@@ -5,7 +5,7 @@
 
 #include <absl/container/flat_hash_map.h>
 
-#include <tempo_config/abstract_config_parser.h>
+#include <tempo_config/abstract_converter.h>
 #include <tempo_config/config_types.h>
 
 #include "command_result.h"
@@ -46,14 +46,14 @@ namespace tempo_command {
     template<class T>
     tempo_utils::Status parse_command_config(
         T &dst,
-        const tempo_config::AbstractConfigParser<T> &parser,
+        const tempo_config::AbstractConverter<T> &parser,
         const CommandConfig &config,
         std::string_view key)
     {
         if (!config.contains(key)) {
-            return parser.parseValue(tempo_config::ConfigNode(), dst);
+            return parser.convertValue(tempo_config::ConfigNode(), dst);
         } else {
-            return parser.parseValue(config.at(key), dst);
+            return parser.convertValue(config.at(key), dst);
         }
     }
 

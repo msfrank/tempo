@@ -11,7 +11,7 @@ TEST(ContainerConversions, TestConvertSeqOfInts)
     tempo_config::SeqTParser<int> seqIntParser(&intParser);
     std::vector<int> seq;
 
-    auto status = seqIntParser.parseValue(
+    auto status = seqIntParser.convertValue(
         tempo_config::ConfigSeq({
             tempo_config::ConfigValue("1"),
             tempo_config::ConfigValue("2"),
@@ -27,7 +27,7 @@ TEST(ContainerConversions, TestConvertMapOfStringToInt)
     tempo_config::MapKVParser<std::string,int> mapOfStringToIntParser(&stringParser, &intParser);
     absl::flat_hash_map<std::string,int> map;
 
-    auto status = mapOfStringToIntParser.parseValue(
+    auto status = mapOfStringToIntParser.convertValue(
         tempo_config::ConfigMap({
             { "one", tempo_config::ConfigValue("1") },
             { "two", tempo_config::ConfigValue("2") },
@@ -48,7 +48,7 @@ TEST(ContainerConversions, TestConvertMapOfStringToSeqOfInt)
     tempo_config::MapKVParser<std::string,std::vector<int>> mapOfStringToSeqOfIntParser(&stringParser, &seqOfIntParser);
     absl::flat_hash_map<std::string,std::vector<int>> map;
 
-    auto status = mapOfStringToSeqOfIntParser.parseValue(
+    auto status = mapOfStringToSeqOfIntParser.convertValue(
         tempo_config::ConfigMap({
             { "one", tempo_config::ConfigSeq({ tempo_config::ConfigValue("1") })
             },

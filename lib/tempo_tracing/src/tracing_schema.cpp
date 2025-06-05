@@ -33,3 +33,18 @@ const tempo_schema::Int64Attr tempo_tracing::kTempoTracingErrorCode(
 
 const tempo_schema::StringAttr tempo_tracing::kTempoTracingErrorCategoryName(
     &tempo_tracing::kTempoTracingErrorCategoryNameProperty);
+
+const tempo_schema::UInt64Attr tempo_tracing::kTempoTracingLineNumber(
+    &tempo_tracing::kTempoTracingLineNumberProperty);
+
+const tempo_schema::UInt64Attr tempo_tracing::kTempoTracingColumnNumber(
+    &tempo_tracing::kTempoTracingColumnNumberProperty);
+
+const tempo_schema::UInt64Attr tempo_tracing::kTempoTracingFileOffset(
+    &tempo_tracing::kTempoTracingFileOffsetProperty);
+
+const tempo_schema::UInt64Attr tempo_tracing::kTempoTracingTextSpan(
+    &tempo_tracing::kTempoTracingTextSpanProperty);
+
+const tempo_schema::StringAttr tempo_tracing::kTempoTracingFilePath(
+    &tempo_tracing::kTempoTracingFilePathProperty);

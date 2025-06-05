@@ -1,5 +1,5 @@
 
-#include <tempo_config/config_serde.h>
+#include <tempo_config/config_utils.h>
 #include <tempo_config/merge_map.h>
 #include <tempo_config/parse_directories.h>
 #include <tempo_config/workspace_config.h>

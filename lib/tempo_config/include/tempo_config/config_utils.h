@@ -1,5 +1,5 @@
-#ifndef TEMPO_CONFIG_CONFIG_SERDE_H
-#define TEMPO_CONFIG_CONFIG_SERDE_H
+#ifndef TEMPO_CONFIG_CONFIG_UTILS_H
+#define TEMPO_CONFIG_CONFIG_UTILS_H
 
 #include <filesystem>
 
@@ -28,4 +28,4 @@ namespace tempo_config {
     tempo_utils::Status write_config_file(const ConfigNode &root, const std::filesystem::path &path);
 }
 
-#endif // TEMPO_CONFIG_CONFIG_SERDE_H
+#endif // TEMPO_CONFIG_CONFIG_UTILS_H

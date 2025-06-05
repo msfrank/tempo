@@ -3,7 +3,7 @@
 #include <absl/strings/numbers.h>
 
 #include <tempo_config/base_conversions.h>
-#include <tempo_config/config_serde.h>
+#include <tempo_config/config_utils.h>
 
 tempo_config::BooleanParser::BooleanParser()
 {
@@ -18,7 +18,7 @@ tempo_config::BooleanParser::BooleanParser(bool booleanDefault)
     do { dst = src; return ConfigStatus::ok(); } while (0)
 
 tempo_utils::Status
-tempo_config::BooleanParser::parseValue(const ConfigNode &node, bool &b) const
+tempo_config::BooleanParser::convertValue(const ConfigNode &node, bool &b) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(b, m_default.getValue());
@@ -49,7 +49,7 @@ tempo_config::IntegerParser::IntegerParser(int integerDefault)
 }
 
 tempo_utils::Status
-tempo_config::IntegerParser::parseValue(const ConfigNode &node, int &i) const
+tempo_config::IntegerParser::convertValue(const ConfigNode &node, int &i) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(i, m_default.getValue());
@@ -78,7 +78,7 @@ tempo_config::LongParser::LongParser(int64_t longDefault)
 }
 
 tempo_utils::Status
-tempo_config::LongParser::parseValue(const ConfigNode &node, tu_int64 &i64) const
+tempo_config::LongParser::convertValue(const ConfigNode &node, tu_int64 &i64) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(i64, m_default.getValue());
@@ -107,7 +107,7 @@ tempo_config::FloatParser::FloatParser(double floatDefault)
 }
 
 tempo_utils::Status
-tempo_config::FloatParser::parseValue(const ConfigNode &node, double &dbl) const
+tempo_config::FloatParser::convertValue(const ConfigNode &node, double &dbl) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(dbl, m_default.getValue());
@@ -136,7 +136,7 @@ tempo_config::StringParser::StringParser(const std::string &stringDefault)
 }
 
 tempo_utils::Status
-tempo_config::StringParser::parseValue(const ConfigNode &node, std::string &str) const
+tempo_config::StringParser::convertValue(const ConfigNode &node, std::string &str) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(str, m_default.getValue());
@@ -158,7 +158,7 @@ tempo_config::PathParser::PathParser(const std::filesystem::path &pathDefault)
 }
 
 tempo_utils::Status
-tempo_config::PathParser::parseValue(const ConfigNode &node, std::filesystem::path &path) const
+tempo_config::PathParser::convertValue(const ConfigNode &node, std::filesystem::path &path) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(path, m_default.getValue());
@@ -186,7 +186,7 @@ tempo_config::UrlParser::UrlParser(const tempo_utils::Url &urlDefault)
 }
 
 tempo_utils::Status
-tempo_config::UrlParser::parseValue(const ConfigNode &node, tempo_utils::Url &url) const
+tempo_config::UrlParser::convertValue(const ConfigNode &node, tempo_utils::Url &url) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(url, m_default.getValue());
@@ -214,7 +214,7 @@ tempo_config::UrlPathParser::UrlPathParser(const tempo_utils::UrlPath &pathDefau
 }
 
 tempo_utils::Status
-tempo_config::UrlPathParser::parseValue(const ConfigNode &node, tempo_utils::UrlPath &path) const
+tempo_config::UrlPathParser::convertValue(const ConfigNode &node, tempo_utils::UrlPath &path) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(path, m_default.getValue());
@@ -242,7 +242,7 @@ tempo_config::ConfigStringParser::ConfigStringParser(const ConfigNode &configDef
 }
 
 tempo_utils::Status
-tempo_config::ConfigStringParser::parseValue(const ConfigNode &node, ConfigNode &n) const
+tempo_config::ConfigStringParser::convertValue(const ConfigNode &node, ConfigNode &n) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(n, m_default.getValue());
@@ -269,7 +269,7 @@ tempo_config::ConfigFileParser::ConfigFileParser(const ConfigNode &configDefault
 }
 
 tempo_utils::Status
-tempo_config::ConfigFileParser::parseValue(const ConfigNode &node, ConfigFile &f) const
+tempo_config::ConfigFileParser::convertValue(const ConfigNode &node, ConfigFile &f) const
 {
     if (node.isNil() && !m_default.isEmpty())
         SET_VALUE_AND_RETURN_OK(f, ConfigFile({}, m_default.getValue()));

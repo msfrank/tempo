@@ -8,8 +8,8 @@
 
 #include <tempo_utils/option_template.h>
 
-#include "abstract_config_parser.h"
-#include "config_serde.h"
+#include "abstract_converter.h"
+#include "config_utils.h"
 #include "config_types.h"
 #include "config_result.h"
 
@@ -20,14 +20,14 @@ namespace tempo_config {
      * @tparam T
      */
     template<class T>
-    class OptionTParser : public AbstractConfigParser<Option<T>> {
+    class OptionTParser : public AbstractConverter<Option<T>> {
     public:
 
         /**
          *
          * @param valueParser
          */
-        OptionTParser(const AbstractConfigParser<T> *valueParser)
+        OptionTParser(const AbstractConverter<T> *valueParser)
             : m_valueParser(valueParser) {
         }
 
@@ -38,7 +38,7 @@ namespace tempo_config {
          * @return
          */
         tempo_utils::Status
-        parseValue(
+        convertValue(
             const ConfigNode &node,
             Option<T> &o) const override {
             if (node.isNil()) {
@@ -46,7 +46,7 @@ namespace tempo_config {
                 return ConfigStatus::ok();
             }
             T v;
-            auto status = m_valueParser->parseValue(node, v);
+            auto status = m_valueParser->convertValue(node, v);
             if (status.notOk())
                 return status;
             o = Option<T>(v);
@@ -54,7 +54,7 @@ namespace tempo_config {
         }
 
     private:
-        const AbstractConfigParser<T> *m_valueParser;
+        const AbstractConverter<T> *m_valueParser;
     };
 
     /**
@@ -62,14 +62,14 @@ namespace tempo_config {
      * @tparam T
      */
     template<class T>
-    class SeqTParser : public AbstractConfigParser<std::vector<T>> {
+    class SeqTParser : public AbstractConverter<std::vector<T>> {
     public:
 
         /**
          *
          * @param elementParser
          */
-        SeqTParser(const AbstractConfigParser<T> *elementParser)
+        SeqTParser(const AbstractConverter<T> *elementParser)
             : m_elementParser(elementParser) {
         }
 
@@ -78,7 +78,7 @@ namespace tempo_config {
          * @param elementParser
          * @param seqDefault
          */
-        SeqTParser(const AbstractConfigParser<T> *elementParser, const std::vector<T> &seqDefault)
+        SeqTParser(const AbstractConverter<T> *elementParser, const std::vector<T> &seqDefault)
             : m_elementParser(elementParser), m_default(seqDefault) {
         }
 
@@ -89,7 +89,7 @@ namespace tempo_config {
          * @return
          */
         tempo_utils::Status
-        parseValue(
+        convertValue(
             const ConfigNode &node,
             std::vector<T> &vec) const override {
             if (node.isNil() && !m_default.isEmpty()) {
@@ -103,7 +103,7 @@ namespace tempo_config {
             std::vector<T> vec__;
             for (auto iterator = nodeSeq.seqBegin(); iterator != nodeSeq.seqEnd(); iterator++) {
                 T element;
-                auto status = m_elementParser->parseValue(*iterator, element);
+                auto status = m_elementParser->convertValue(*iterator, element);
                 if (status.notOk())
                     return status;
                 vec__.push_back(element);
@@ -113,7 +113,7 @@ namespace tempo_config {
         }
 
     private:
-        const AbstractConfigParser<T> *m_elementParser;
+        const AbstractConverter<T> *m_elementParser;
         Option<std::vector<T>> m_default;
     };
 
@@ -122,14 +122,14 @@ namespace tempo_config {
      * @tparam T
      */
     template<class T>
-    class SetTParser : public AbstractConfigParser<absl::flat_hash_set<T>> {
+    class SetTParser : public AbstractConverter<absl::flat_hash_set<T>> {
     public:
 
         /**
          *
          * @param elementParser
          */
-        SetTParser(const AbstractConfigParser<T> *elementParser)
+        SetTParser(const AbstractConverter<T> *elementParser)
             : m_elementParser(elementParser) {
         }
 
@@ -138,7 +138,7 @@ namespace tempo_config {
          * @param elementParser
          * @param seqDefault
          */
-        SetTParser(const AbstractConfigParser<T> *elementParser, const absl::flat_hash_set<T> &seqDefault)
+        SetTParser(const AbstractConverter<T> *elementParser, const absl::flat_hash_set<T> &seqDefault)
             : m_elementParser(elementParser), m_default(seqDefault) {
         }
 
@@ -149,7 +149,7 @@ namespace tempo_config {
          * @return
          */
         tempo_utils::Status
-        parseValue(
+        convertValue(
             const ConfigNode &node,
             absl::flat_hash_set<T> &set) const override {
             if (node.isNil() && !m_default.isEmpty()) {
@@ -163,7 +163,7 @@ namespace tempo_config {
             absl::flat_hash_set<T> set__;
             for (auto iterator = nodeSeq.seqBegin(); iterator != nodeSeq.seqEnd(); iterator++) {
                 T element;
-                auto status = m_elementParser->parseValue(*iterator, element);
+                auto status = m_elementParser->convertValue(*iterator, element);
                 if (status.notOk())
                     return status;
                 set__.insert(element);
@@ -173,7 +173,7 @@ namespace tempo_config {
         }
 
     private:
-        const AbstractConfigParser<T> *m_elementParser;
+        const AbstractConverter<T> *m_elementParser;
         Option<absl::flat_hash_set<T>> m_default;
     };
 
@@ -183,7 +183,7 @@ namespace tempo_config {
      * @tparam V
      */
     template<class K, class V>
-    class MapKVParser : public AbstractConfigParser<absl::flat_hash_map<K, V>> {
+    class MapKVParser : public AbstractConverter<absl::flat_hash_map<K, V>> {
     public:
 
         /**
@@ -191,7 +191,7 @@ namespace tempo_config {
          * @param keyParser
          * @param valueParser
          */
-        MapKVParser(const AbstractConfigParser<K> *keyParser, AbstractConfigParser<V> *valueParser)
+        MapKVParser(const AbstractConverter<K> *keyParser, AbstractConverter<V> *valueParser)
             : m_keyParser(keyParser), m_valueParser(valueParser)
         {
         }
@@ -203,8 +203,8 @@ namespace tempo_config {
          * @param mapDefault
          */
         MapKVParser(
-            const AbstractConfigParser<K> *keyParser,
-            const AbstractConfigParser<V> *valueParser,
+            const AbstractConverter<K> *keyParser,
+            const AbstractConverter<V> *valueParser,
             const absl::flat_hash_map<K, V> &mapDefault)
             : m_keyParser(keyParser),
               m_valueParser(valueParser),
@@ -219,7 +219,7 @@ namespace tempo_config {
          * @return
          */
         tempo_utils::Status
-        parseValue(
+        convertValue(
             const ConfigNode &node,
             absl::flat_hash_map<K, V> &map) const override
         {
@@ -236,10 +236,10 @@ namespace tempo_config {
                     K key;
                     V value;
                     tempo_utils::Status status;
-                    status = m_keyParser->parseValue(ConfigValue(iterator->first), key);
+                    status = m_keyParser->convertValue(ConfigValue(iterator->first), key);
                     if (status.notOk())
                         return status;
-                    status = m_valueParser->parseValue(iterator->second, value);
+                    status = m_valueParser->convertValue(iterator->second, value);
                     if (status.notOk())
                         return status;
                     map__[key] = value;
@@ -249,8 +249,8 @@ namespace tempo_config {
         }
 
     private:
-        const AbstractConfigParser<K> *m_keyParser;
-        const AbstractConfigParser<V> *m_valueParser;
+        const AbstractConverter<K> *m_keyParser;
+        const AbstractConverter<V> *m_valueParser;
         Option<absl::flat_hash_map<K, V>> m_default;
     };
 }

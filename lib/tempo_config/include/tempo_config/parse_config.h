@@ -7,8 +7,8 @@
 #include <tempo_utils/option_template.h>
 #include <tempo_utils/url.h>
 
-#include "abstract_config_parser.h"
-#include "config_serde.h"
+#include "abstract_converter.h"
+#include "config_utils.h"
 #include "config_types.h"
 #include "config_result.h"
 
@@ -24,9 +24,9 @@ namespace tempo_config {
      */
     template <class T>
     tempo_utils::Status
-    parse_config(T &dst, const AbstractConfigParser<T> &parser, const ConfigNode &node)
+    parse_config(T &dst, const AbstractConverter<T> &parser, const ConfigNode &node)
     {
-        return parser.parseValue(node, dst);
+        return parser.convertValue(node, dst);
     }
 
     /**
@@ -40,9 +40,9 @@ namespace tempo_config {
      */
     template <class T>
     tempo_utils::Status
-    parse_config(T &dst, const AbstractConfigParser<T> &parser, const ConfigSeq &node, int index)
+    parse_config(T &dst, const AbstractConverter<T> &parser, const ConfigSeq &node, int index)
     {
-        return parser.parseValue(node.seqAt(index), dst);
+        return parser.convertValue(node.seqAt(index), dst);
     }
 
     /**
@@ -56,9 +56,9 @@ namespace tempo_config {
      */
     template <class T>
     tempo_utils::Status
-    parse_config(T &dst, const AbstractConfigParser<T> &parser, const ConfigMap &node, std::string_view key)
+    parse_config(T &dst, const AbstractConverter<T> &parser, const ConfigMap &node, std::string_view key)
     {
-        return parser.parseValue(node.mapAt(key), dst);
+        return parser.convertValue(node.mapAt(key), dst);
     }
 
     /**
@@ -73,7 +73,7 @@ namespace tempo_config {
     tempo_utils::Status
     parse_config_file(
         T &dst,
-        const AbstractConfigParser<T> &parser,
+        const AbstractConverter<T> &parser,
         const std::filesystem::path &path)
     {
         auto result = read_config_file(path);
@@ -81,7 +81,7 @@ namespace tempo_config {
             return result.getStatus();
         tempo_config::ConfigStatus status;
         auto root = result.getResult();
-        return parser.parseValue(root, dst);
+        return parser.convertValue(root, dst);
     }
 }
 

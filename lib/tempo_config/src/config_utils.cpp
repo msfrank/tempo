@@ -4,11 +4,10 @@
 #include <rapidjson/writer.h>
 
 #include <tempo_config/config_result.h>
-#include <tempo_config/config_serde.h>
+#include <tempo_config/config_utils.h>
 #include <tempo_config/extend_map.h>
 #include <tempo_config/internal/config_listener.h>
-#include <tempo_config/internal/lexer_error_listener.h>
-#include <tempo_config/internal/parser_error_listener.h>
+#include <tempo_config/internal/tracing_error_listener.h>
 #include <tempo_utils/file_reader.h>
 #include <tempo_utils/file_writer.h>
 #include <tempo_utils/file_result.h>
@@ -18,6 +17,7 @@
 
 #include "ConfigLexer.h"
 #include "ConfigParser.h"
+#include "tempo_config/config_parser.h"
 
 /**
  * Parse the given string as UTF-8 encoded JSON and deserialize it into a ConfigNode.
@@ -32,40 +32,10 @@ tempo_config::read_config_string(std::string_view utf8, std::shared_ptr<ConfigSo
     if (utf8.empty())
         return ConfigStatus::forCondition(ConfigCondition::kMissingValue, "empty config string");
 
-    antlr4::ANTLRInputStream input(utf8.data(), (size_t) utf8.size());
-    ConfigLexer lexer(&input);
-    antlr4::CommonTokenStream tokens(&lexer);
-    ConfigParser parser(&tokens);
-
-    if (source == nullptr) {
-        source = std::make_shared<ConfigSource>();
-    }
-
-    internal::ConfigListener listener(source);
-
-    lexer.removeErrorListeners();
-    internal::LexerErrorListener lexerErrorListener;
-    lexer.addErrorListener(&lexerErrorListener);
-
-    parser.removeErrorListeners();
-    internal::ParserErrorListener parserErrorListener;
-    parser.addErrorListener(&parserErrorListener);
-    //antlr4::DiagnosticErrorListener diagnosticErrorListener(false);
-    //parser.addErrorListener(&diagnosticErrorListener);
-
-    //auto handler = std::make_shared<internal::ParserErrorStrategy>();
-    //parser.setErrorHandler(handler);
-
-    try {
-        antlr4::tree::ParseTree *tree = parser.root();
-        antlr4::tree::ParseTreeWalker::DEFAULT.walk(&listener, tree);
-    } catch (tempo_utils::StatusException &ex) {
-        return ex.getStatus();
-    } catch (antlr4::ParseCancellationException &ex) {
-        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant, ex.what());
-    }
-
-    return listener.getConfig();
+    ConfigParserOptions options;
+    ConfigParser parser(options);
+    auto recorder = tempo_tracing::TraceRecorder::create();
+    return parser.parseString(utf8, std::move(source), recorder);
 }
 
 /**
@@ -79,42 +49,10 @@ tempo_config::read_config_string(std::string_view utf8, std::shared_ptr<ConfigSo
 tempo_utils::Result<tempo_config::ConfigNode>
 tempo_config::read_config_file(const std::filesystem::path &path)
 {
-    tempo_utils::FileReader fileReader(path);
-    if (!fileReader.isValid())
-        return fileReader.getStatus();
-
-    auto bytes = fileReader.getBytes();
-    antlr4::ANTLRInputStream input((const char *) bytes->getData(), bytes->getSize());
-    ConfigLexer lexer(&input);
-    antlr4::CommonTokenStream tokens(&lexer);
-    ConfigParser parser(&tokens);
-
-    auto source = std::make_shared<ConfigSource>(ConfigSourceType::File, path.string());
-    internal::ConfigListener listener(source);
-
-    lexer.removeErrorListeners();
-    internal::LexerErrorListener lexerErrorListener;
-    lexer.addErrorListener(&lexerErrorListener);
-
-    parser.removeErrorListeners();
-    internal::ParserErrorListener parserErrorListener;
-    parser.addErrorListener(&parserErrorListener);
-    //antlr4::DiagnosticErrorListener diagnosticErrorListener(false);
-    //parser.addErrorListener(&diagnosticErrorListener);
-
-    //auto handler = std::make_shared<internal::ParserErrorStrategy>();
-    //parser.setErrorHandler(handler);
-
-    try {
-        antlr4::tree::ParseTree *tree = parser.root();
-        antlr4::tree::ParseTreeWalker::DEFAULT.walk(&listener, tree);
-    } catch (tempo_utils::StatusException &ex) {
-        return ex.getStatus();
-    } catch (antlr4::ParseCancellationException &ex) {
-        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant, ex.what());
-    }
-
-    return listener.getConfig();
+    ConfigParserOptions options;
+    ConfigParser parser(options);
+    auto recorder = tempo_tracing::TraceRecorder::create();
+    return parser.parseFile(path, recorder);
 }
 
 /**

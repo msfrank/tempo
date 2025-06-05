@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
 
-#include <tempo_config/config_serde.h>
+#include <tempo_config/config_utils.h>
 
 TEST(ConfigListener, ParseNull)
 {

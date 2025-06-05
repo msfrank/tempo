@@ -7,11 +7,12 @@ add_library(tempo_config SHARED)
 add_library(tempo::tempo_config ALIAS tempo_config)
 
 set(TEMPO_CONFIG_INCLUDES
-    include/tempo_config/abstract_config_parser.h
+    include/tempo_config/abstract_converter.h
     include/tempo_config/base_conversions.h
     include/tempo_config/config_builder.h
+    include/tempo_config/config_parser.h
     include/tempo_config/config_result.h
-    include/tempo_config/config_serde.h
+    include/tempo_config/config_utils.h
     include/tempo_config/config_types.h
     include/tempo_config/container_conversions.h
     include/tempo_config/enum_conversions.h
@@ -46,6 +47,7 @@ add_custom_command (
       -lib ${CMAKE_CURRENT_SOURCE_DIR}/share
       -Werror
       -Dlanguage=Cpp
+      -package "tcf1"
       ${CMAKE_CURRENT_SOURCE_DIR}/share/ConfigLexer.g4 ${CMAKE_CURRENT_SOURCE_DIR}/share/ConfigParser.g4
     DEPENDS
       ${CMAKE_CURRENT_SOURCE_DIR}/share/ConfigLexer.g4 ${CMAKE_CURRENT_SOURCE_DIR}/share/ConfigParser.g4
@@ -55,8 +57,9 @@ target_sources(tempo_config
     PRIVATE
     src/base_conversions.cpp
     src/config_builder.cpp
+    src/config_parser.cpp
     src/config_result.cpp
-    src/config_serde.cpp
+    src/config_utils.cpp
     src/config_types.cpp
     src/extend_map.cpp
     src/merge_map.cpp
@@ -73,10 +76,8 @@ target_sources(tempo_config
     src/internal/json_object.cpp
     include/tempo_config/internal/json_value.h
     src/internal/json_value.cpp
-    include/tempo_config/internal/lexer_error_listener.h
-    src/internal/lexer_error_listener.cpp
-    include/tempo_config/internal/parser_error_listener.h
-    src/internal/parser_error_listener.cpp
+    include/tempo_config/internal/tracing_error_listener.h
+    src/internal/tracing_error_listener.cpp
 
     # antlr auto-generated sources
     ${CMAKE_CURRENT_BINARY_DIR}/src/ConfigLexer.cpp

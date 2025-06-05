@@ -3,8 +3,8 @@
 
 #include <tempo_utils/option_template.h>
 
-#include "abstract_config_parser.h"
-#include "config_serde.h"
+#include "abstract_converter.h"
+#include "config_utils.h"
 #include "config_types.h"
 #include "config_result.h"
 
@@ -16,7 +16,7 @@ namespace tempo_config {
      */
     template <typename T,
         typename = std::enable_if_t<std::is_enum<T>::value>>
-    class EnumTParser : public AbstractConfigParser<T> {
+    class EnumTParser : public AbstractConverter<T> {
     public:
 
         /**
@@ -47,7 +47,7 @@ namespace tempo_config {
          * @return
          */
         tempo_utils::Status
-        parseValue(
+        convertValue(
             const ConfigNode &node,
             T &e) const override
         {

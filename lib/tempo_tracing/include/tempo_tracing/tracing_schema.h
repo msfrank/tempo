@@ -78,6 +78,11 @@ namespace tempo_tracing {
         ErrorCategoryName,
         ContinuationHi,
         ContinuationLo,
+        LineNumber,
+        ColumnNumber,
+        FileOffset,
+        TextSpan,
+        FilePath,
         NUM_IDS,
     };
 
@@ -116,6 +121,41 @@ namespace tempo_tracing {
         "ContinuationLo",
         tempo_schema::PropertyType::kUInt64);
 
+    constexpr tempo_schema::SchemaProperty<TempoTracingNs,TempoTracingId>
+    kTempoTracingLineNumberProperty(
+        &kTempoTracingNs,
+        TempoTracingId::LineNumber,
+        "LineNumber",
+        tempo_schema::PropertyType::kUInt64);
+
+    constexpr tempo_schema::SchemaProperty<TempoTracingNs,TempoTracingId>
+    kTempoTracingColumnNumberProperty(
+        &kTempoTracingNs,
+        TempoTracingId::ColumnNumber,
+        "ColumnNumber",
+        tempo_schema::PropertyType::kUInt64);
+
+    constexpr tempo_schema::SchemaProperty<TempoTracingNs,TempoTracingId>
+    kTempoTracingFileOffsetProperty(
+        &kTempoTracingNs,
+        TempoTracingId::FileOffset,
+        "FileOffset",
+        tempo_schema::PropertyType::kUInt64);
+
+    constexpr tempo_schema::SchemaProperty<TempoTracingNs,TempoTracingId>
+    kTempoTracingTextSpanProperty(
+        &kTempoTracingNs,
+        TempoTracingId::TextSpan,
+        "TextSpan",
+        tempo_schema::PropertyType::kUInt64);
+
+    constexpr tempo_schema::SchemaProperty<TempoTracingNs,TempoTracingId>
+    kTempoTracingFilePathProperty(
+        &kTempoTracingNs,
+        TempoTracingId::FilePath,
+        "FilePath",
+        tempo_schema::PropertyType::kString);
+
     constexpr std::array<
         const tempo_schema::SchemaResource<TempoTracingNs,TempoTracingId> *,
         static_cast<std::size_t>(TempoTracingId::NUM_IDS)>
@@ -125,6 +165,11 @@ namespace tempo_tracing {
         &kTempoTracingErrorCategoryNameProperty,
         &kTempoTracingContinuationHiProperty,
         &kTempoTracingContinuationLoProperty,
+        &kTempoTracingLineNumberProperty,
+        &kTempoTracingColumnNumberProperty,
+        &kTempoTracingFileOffsetProperty,
+        &kTempoTracingTextSpanProperty,
+        &kTempoTracingFilePathProperty,
     };
 
     constexpr tempo_schema::SchemaVocabulary<TempoTracingNs, TempoTracingId>
@@ -135,6 +180,11 @@ namespace tempo_tracing {
     extern const tempo_schema::StringAttr kTempoTracingErrorCategoryName;
     extern const tempo_schema::UInt64Attr kTempoTracingContinuationHi;
     extern const tempo_schema::UInt64Attr kTempoTracingContinuationLo;
+    extern const tempo_schema::UInt64Attr kTempoTracingLineNumber;
+    extern const tempo_schema::UInt64Attr kTempoTracingColumnNumber;
+    extern const tempo_schema::UInt64Attr kTempoTracingFileOffset;
+    extern const tempo_schema::UInt64Attr kTempoTracingTextSpan;
+    extern const tempo_schema::StringAttr kTempoTracingFilePath;
 }
 
 #endif // TEMPO_TRACING_TRACING_SCHEMA_H

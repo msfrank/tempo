@@ -114,6 +114,7 @@ target_include_directories(tempo_config PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 target_link_libraries(tempo_config
     PUBLIC
+    tempo::tempo_tracing
     tempo::tempo_utils
     absl::flat_hash_map
     absl::strings

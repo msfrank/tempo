@@ -6,6 +6,8 @@
 #include <tempo_command/command_help.h>
 #include <tempo_command/command_parser.h>
 #include <tempo_utils/file_writer.h>
+
+#include "bytes_to_code_serializer.h"
 #include "tempo_config/base_conversions.h"
 #include "tempo_utils/file_reader.h"
 
@@ -163,73 +165,15 @@ bytes_to_code(int argc, const char *argv[])
     TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(cppNamespace, cppNamespaceParser,
         cmdConfig, "cppNamespace"));
 
-    tempo_utils::FileReader inputDataReader(inputDataFile);
-    if (!inputDataReader.isValid())
-        return inputDataReader.getStatus();
-    auto bytes = inputDataReader.getBytes();
-    auto *inputData = (const char *) bytes->getData();
-    auto inputSize = bytes->getSize();
-
-    std::string code;
-
-    // add timestamp comment
-    auto timestamp = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
-    absl::StrAppend(&code, "// Generated at ", timestamp, endline());
-    absl::StrAppend(&code, endline());
-
-    // add opening conditional compilation directives if includeGuard is specified
-    if (!includeGuard.empty()) {
-        absl::StrAppend(&code, "#ifndef ", includeGuard, endline());
-        absl::StrAppend(&code, "#define ", includeGuard, endline());
-        absl::StrAppend(&code, endline());
-    }
-
-    // include cstdint for uint32_t and uint8_t
-    absl::StrAppend(&code, "#include <cstdint>", endline());
-    absl::StrAppend(&code, endline());
-
-    // open the namespace declaration if cppNamespace is specified
-    if (!cppNamespace.empty()) {
-        absl::StrAppend(&code, "namespace ", cppNamespace, " {", endline());
-    }
-
-    // write the const uint32_t array size
-    absl::StrAppend(&code, "    constexpr uint32_t size = ", inputSize, ";", endline());
-
-    // write the const uint8_t array of bytes
-    absl::StrAppend(&code, "    constexpr uint8_t data[", inputSize + 1, "] = {" , endline());
-    uint32_t i = 0;
-    while (i < inputSize) {
-        absl::StrAppend(&code, "        ");
-        for (int j = 0; i < inputSize && j < 16; i++, j++) {
-            absl::StrAppend(&code, "0x", absl::Hex(inputData[i], absl::kZeroPad2), ",");
-        }
-        absl::StrAppend(&code, endline());
-    }
-
-    // add a trailing null so that the data array can be used as a \0-terminated string
-    absl::StrAppend(&code, "        0", endline());
-
-    // close the data array definition
-    absl::StrAppend(&code, "    };", endline());
-
-    // close the namespace declaration if cppNamespace is specified
-    if (!cppNamespace.empty()) {
-        absl::StrAppend(&code, "}", endline());
-        absl::StrAppend(&code, endline());
-    }
-
-    // add closing conditional compilation directives if includeGuard is specified
-    if (!includeGuard.empty()) {
-        absl::StrAppend(&code, "#endif // ", includeGuard, endline());
-    }
+    // serialize the input
+    BytesToCodeSerializer serializer(inputDataFile, includeGuard, cppNamespace);
+    TU_RETURN_IF_NOT_OK (serializer.getStatus());
 
     // write the code to the path, overwriting if a file already exists at the specified path
-    tempo_utils::FileWriter writer(outputHeaderPath, code, tempo_utils::FileWriterMode::CREATE_OR_OVERWRITE);
-    if (!writer.isValid())
-        return writer.getStatus();
+    tempo_utils::FileWriter writer(outputHeaderPath, serializer.getCode(), tempo_utils::FileWriterMode::CREATE_OR_OVERWRITE);
+    TU_RETURN_IF_NOT_OK (writer.getStatus());
 
-    return tempo_utils::Status();
+    return {};
 }
 
 int

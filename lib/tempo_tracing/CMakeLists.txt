@@ -41,6 +41,19 @@ add_custom_command (
       ${CMAKE_CURRENT_SOURCE_DIR}/share/spanset.fbs
 )
 
+# we can't use tempo-bytes2code directly due to a circular dependency on tempo_tracing,
+# so we instead create a simple wrapper around BytesToCodeSerializer
+add_executable(tracing_schema_to_code src/internal/tracing_schema_to_code.cpp)
+target_compile_definitions(tracing_schema_to_code PRIVATE
+    "INPUT_DATA_FILE=\"${CMAKE_CURRENT_SOURCE_DIR}/share/spanset.fbs\""
+    "INCLUDE_GUARD=\"TEMPO_TRACING_GENERATED_SPANSET_SCHEMA_H\""
+    "CPP_NAMESPACE=\"tempo_tracing::schema::spanset\""
+    "OUTPUT_HEADER_FILE=\"${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset_schema.h\""
+    )
+target_link_libraries(tracing_schema_to_code PUBLIC
+    bytes2code_serializer
+    )
+
 # generate header containing the spanset schema
 add_custom_command(
     OUTPUT
@@ -48,12 +61,10 @@ add_custom_command(
     COMMAND
       cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated
     COMMAND
-      tempo-bytes2code
-      -g TEMPO_TRACING_GENERATED_SPANSET_SCHEMA_H -n tempo_tracing::schema::spanset
-      ${CMAKE_CURRENT_SOURCE_DIR}/share/spanset.fbs
-      ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset_schema.h
+      tracing_schema_to_code
     DEPENDS
       ${CMAKE_CURRENT_SOURCE_DIR}/share/spanset.fbs
+      tracing_schema_to_code
 )
 
 target_sources(tempo_tracing PRIVATE

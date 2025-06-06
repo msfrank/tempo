@@ -23,7 +23,6 @@ namespace tempo_tracing {
     class TracingStatus : public tempo_utils::TypedStatus<TracingCondition> {
     public:
         using TypedStatus::TypedStatus;
-        static TracingStatus ok();
         static bool convert(TracingStatus &dstStatus, const tempo_utils::Status &srcStatus);
 
     private:

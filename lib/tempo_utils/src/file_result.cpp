@@ -8,12 +8,6 @@ tempo_utils::FileStatus::FileStatus(
 {
 }
 
-tempo_utils::FileStatus
-tempo_utils::FileStatus::ok()
-{
-    return FileStatus();
-}
-
 bool
 tempo_utils::FileStatus::convert(FileStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {

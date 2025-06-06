@@ -43,29 +43,29 @@ parse_tokens(
             case tempo_command::TokenType::OPT_END: {
                 tokens.pop_back();  // discard the OPT_END token
                 if (terminator.type == tempo_command::TerminatorType::FIRST_POSITIONAL)
-                    return tempo_command::CommandStatus::ok();
+                    return {};
                 while (!tokens.empty()) {
                     const auto &value = tokens.front().value;
                     if (terminator.type == tempo_command::TerminatorType::MATCHING_TOKEN
                         && terminator.match.type == tempo_command::TokenType::ARGUMENT
                         && terminator.match.value == tokens.front().value)
-                        return tempo_command::CommandStatus::ok();
+                        return {};
                     arguments.push_back(value);
                     tokens.erase(tokens.cbegin());
                 }
-                return tempo_command::CommandStatus::ok();
+                return {};
             }
         }
 
         // if terminating on matching token and current token matches the terminator, then we are done
         if (terminator.type == tempo_command::TerminatorType::MATCHING_TOKEN
             && first == terminator.match)
-            return tempo_command::CommandStatus::ok();
+            return {};
 
         // if terminating on first positional argument and token is an argument, then we are done
         if (terminator.type == tempo_command::TerminatorType::FIRST_POSITIONAL
             && first.type == tempo_command::TokenType::ARGUMENT)
-            return tempo_command::CommandStatus::ok();
+            return {};
 
         // otherwise pop the next token and continue processing
         auto token = tokens.front();
@@ -179,7 +179,7 @@ parse_tokens(
         }
     }
 
-    return tempo_command::CommandStatus::ok();
+    return {};
 }
 
 /**
@@ -227,7 +227,7 @@ tempo_command::parse_until_subcommand(
     auto token = tokens.front();
     tokens.erase(tokens.cbegin());
     subcommand = token.value;
-    return CommandStatus::ok();
+    return {};
 }
 
 /**

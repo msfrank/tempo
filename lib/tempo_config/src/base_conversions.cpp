@@ -15,7 +15,7 @@ tempo_config::BooleanParser::BooleanParser(bool booleanDefault)
 }
 
 #define SET_VALUE_AND_RETURN_OK(dst,src) \
-    do { dst = src; return ConfigStatus::ok(); } while (0)
+    do { dst = src; return tempo_utils::Status{}; } while (0)
 
 tempo_utils::Status
 tempo_config::BooleanParser::convertValue(const ConfigNode &node, bool &b) const

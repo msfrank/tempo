@@ -10,12 +10,6 @@ tempo_command::CommandStatus::CommandStatus(
 {
 }
 
-tempo_command::CommandStatus
-tempo_command::CommandStatus::ok()
-{
-    return CommandStatus();
-}
-
 bool
 tempo_command::CommandStatus::convert(CommandStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {

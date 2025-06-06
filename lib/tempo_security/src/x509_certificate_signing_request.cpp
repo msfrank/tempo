@@ -315,7 +315,7 @@ generate_certificate_from_X509_REQ(
             tempo_security::SecurityCondition::kSigningFailure, "failed to sign certificate");
 
     // take ownership of crt from the ctx, then return the crt
-    return tempo_security::SecurityStatus::ok();
+    return {};
 }
 
 tempo_utils::Result<std::string>

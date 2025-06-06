@@ -135,7 +135,7 @@ tempo_command::convert_options(
         }
     }
 
-    return CommandStatus::ok();
+    return {};
 }
 
 /**
@@ -235,7 +235,7 @@ tempo_command::convert_arguments(
         return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
             "unexpected argument '{}'", *curr);
 
-    return CommandStatus::ok();
+    return {};
 }
 
 /**

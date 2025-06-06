@@ -8,12 +8,6 @@ tempo_security::SecurityStatus::SecurityStatus(
 {
 }
 
-tempo_security::SecurityStatus
-tempo_security::SecurityStatus::ok()
-{
-    return SecurityStatus();
-}
-
 bool
 tempo_security::SecurityStatus::convert(SecurityStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {

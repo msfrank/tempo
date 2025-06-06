@@ -183,12 +183,6 @@ errno_to_condition(int errNo)
 }
 
 tempo_utils::PosixStatus
-tempo_utils::PosixStatus::ok()
-{
-    return PosixStatus();
-}
-
-tempo_utils::PosixStatus
 tempo_utils::PosixStatus::last(std::string_view message)
 {
     return PosixStatus(errno_to_condition(errno), message);

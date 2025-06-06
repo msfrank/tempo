@@ -41,7 +41,7 @@ namespace tempo_tracing {
             if (result.isStatus())
                 return result.getStatus();
             putFieldLocked(serde.getKey(), writer.getValue());
-            return TracingStatus::ok();
+            return {};
         }
     };
 }

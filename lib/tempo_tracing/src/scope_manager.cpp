@@ -2,7 +2,7 @@
 #include <tempo_tracing/scope_manager.h>
 
 tempo_tracing::ScopeManager::ScopeManager(std::shared_ptr<TraceRecorder> recorder)
-    : m_recorder(recorder)
+    : m_recorder(std::move(recorder))
 {
     TU_ASSERT (m_recorder != nullptr);
 }
@@ -10,7 +10,14 @@ tempo_tracing::ScopeManager::ScopeManager(std::shared_ptr<TraceRecorder> recorde
 tempo_tracing::ScopeManager::~ScopeManager()
 {
     while (!m_spanStack.empty()) {
-        popSpan();
+        auto span = popSpan();
+        if (span->isOpen()) {
+            auto endTime = absl::Now();
+            auto activeTime = endTime - span->getStartTime();
+            span->setEndTime(endTime);
+            span->addActiveTime(activeTime);
+            span->close();
+        }
     }
 }
 

@@ -29,7 +29,7 @@ posix_create_tempdir(
 
         tempdir = base / filename;
         if (mkdir(tempdir.c_str(), 0700) == 0)
-            return tempo_utils::FileStatus::ok();
+            return {};
 
         switch (errno) {
             case EEXIST:

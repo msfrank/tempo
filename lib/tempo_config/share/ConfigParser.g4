@@ -61,7 +61,6 @@ array               : BracketOpen BracketClose
                         { notifyErrorListeners("Extra ']' closing array"); }
                     | BracketOpen elementSequence
                         { notifyErrorListeners("Missing ']' closing array"); }
-                    |
                     ;
 
 

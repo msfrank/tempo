@@ -62,7 +62,7 @@ tempo_security::X509Store::verifyCertificate(std::shared_ptr<X509Certificate> x5
             status = SecurityStatus::forCondition(SecurityCondition::kVerificationFailure,
                 "cert verification failed at depth {}: {}", depth, cause);
         } else {
-            status = SecurityStatus::ok();
+            status = {};
         }
     }
 

@@ -66,7 +66,7 @@ load_library(const std::filesystem::path &path, const char *symbol, void **ptr)
             tempo_utils::LibraryCondition::kLibraryInvariant,
             "failed to resolve symbol '{}' in shared object {}: {}", symbol, path.string(), dlerror());
 
-    return tempo_utils::LibraryStatus::ok();
+    return {};
 }
 
 #elif BOOST_OS_LINUX

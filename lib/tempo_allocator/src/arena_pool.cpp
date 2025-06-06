@@ -45,7 +45,7 @@ tempo_allocator::ArenaPool::decay()
 {
     absl::MutexLock locker(&m_lock);
     if (m_destroyed)
-        return tempo_utils::PosixStatus::ok();
+        return {};
 
     auto mib = absl::StrCat("arena.", getArena(), ".decay");
     auto ret = je_mallctl(
@@ -57,7 +57,7 @@ tempo_allocator::ArenaPool::decay()
     if (ret < 0)
         return tempo_utils::PosixStatus::fromError(ret, "failed to decay memory arena");
 
-    return tempo_utils::PosixStatus::ok();
+    return {};
 }
 
 std::string
@@ -71,7 +71,7 @@ tempo_allocator::ArenaPool::purge()
 {
     absl::MutexLock locker(&m_lock);
     if (m_destroyed)
-        return tempo_utils::PosixStatus::ok();
+        return {};
 
     auto mib = absl::StrCat("arena.", getArena(), ".purge");
     auto ret = je_mallctl(
@@ -83,7 +83,7 @@ tempo_allocator::ArenaPool::purge()
     if (ret < 0)
         return tempo_utils::PosixStatus::fromError(ret, "failed to purge memory arena");
 
-    return tempo_utils::PosixStatus::ok();
+    return {};
 }
 
 tempo_utils::Status
@@ -91,7 +91,7 @@ tempo_allocator::ArenaPool::reset()
 {
     absl::MutexLock locker(&m_lock);
     if (m_destroyed)
-        return tempo_utils::PosixStatus::ok();
+        return {};
 
     auto mib = absl::StrCat("arena.", getArena(), ".reset");
     auto ret = je_mallctl(
@@ -103,7 +103,7 @@ tempo_allocator::ArenaPool::reset()
     if (ret < 0)
         return tempo_utils::PosixStatus::fromError(ret, "failed to reset memory arena");
 
-    return tempo_utils::PosixStatus::ok();
+    return {};
 }
 
 tempo_utils::Status
@@ -111,7 +111,7 @@ tempo_allocator::ArenaPool::destroy()
 {
     absl::MutexLock locker(&m_lock);
     if (m_destroyed)
-        return tempo_utils::PosixStatus::ok();
+        return {};
 
     auto mib = absl::StrCat("arena.", getArena(), ".destroy");
     auto ret = je_mallctl(
@@ -124,5 +124,5 @@ tempo_allocator::ArenaPool::destroy()
         return tempo_utils::PosixStatus::fromError(ret, "failed to destroy memory arena");
 
     m_destroyed = true;
-    return tempo_utils::PosixStatus::ok();
+    return {};
 }

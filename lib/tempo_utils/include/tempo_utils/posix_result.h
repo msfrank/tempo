@@ -97,7 +97,6 @@ namespace tempo_utils {
     public:
         using TypedStatus::TypedStatus;
 
-        static PosixStatus ok();
         static PosixStatus last(std::string_view message = {});
         static PosixStatus fromError(int errNo, std::string_view message = {});
 

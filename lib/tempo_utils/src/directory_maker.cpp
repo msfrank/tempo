@@ -47,7 +47,7 @@ posix_create_directories(const std::filesystem::path &absolutePath, const std::f
             }
         }
     }
-    return tempo_utils::FileStatus::ok();
+    return {};
 }
 
 tempo_utils::DirectoryMaker::DirectoryMaker(

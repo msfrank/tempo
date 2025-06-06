@@ -53,7 +53,7 @@ posix_open_file(
     }
 
     *fd = _fd;
-    return tempo_utils::FileStatus::ok();
+    return {};
 }
 
 static tempo_utils::Status
@@ -88,7 +88,7 @@ posix_close(int fd)
             continue;
         return tempo_utils::PosixStatus::fromError(errno);
     }
-    return tempo_utils::FileStatus::ok();
+    return {};
 }
 
 tempo_utils::FileAppender::FileAppender(

@@ -24,7 +24,6 @@ namespace tempo_command {
     class CommandStatus : public tempo_utils::TypedStatus<CommandCondition> {
     public:
         using TypedStatus::TypedStatus;
-        static CommandStatus ok();
         static bool convert(CommandStatus &dstStatus, const tempo_utils::Status &srcStatus);
 
     private:

@@ -43,14 +43,14 @@ namespace tempo_config {
             Option<T> &o) const override {
             if (node.isNil()) {
                 o = Option<T>();
-                return ConfigStatus::ok();
+                return {};
             }
             T v;
             auto status = m_valueParser->convertValue(node, v);
             if (status.notOk())
                 return status;
             o = Option<T>(v);
-            return ConfigStatus::ok();
+            return {};
         }
 
     private:
@@ -94,7 +94,7 @@ namespace tempo_config {
             std::vector<T> &vec) const override {
             if (node.isNil() && !m_default.isEmpty()) {
                 vec = m_default.getValue();
-                return ConfigStatus::ok();
+                return {};
             }
             if (node.getNodeType() != ConfigNodeType::kSeq)
                 return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -109,7 +109,7 @@ namespace tempo_config {
                 vec__.push_back(element);
             }
             vec = std::move(vec__);
-            return ConfigStatus::ok();
+            return {};
         }
 
     private:
@@ -154,7 +154,7 @@ namespace tempo_config {
             absl::flat_hash_set<T> &set) const override {
             if (node.isNil() && !m_default.isEmpty()) {
                 set = m_default.getValue();
-                return ConfigStatus::ok();
+                return {};
             }
             if (node.getNodeType() != ConfigNodeType::kSeq)
                 return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -169,7 +169,7 @@ namespace tempo_config {
                 set__.insert(element);
             }
             set = std::move(set__);
-            return ConfigStatus::ok();
+            return {};
         }
 
     private:
@@ -225,7 +225,7 @@ namespace tempo_config {
         {
             if (node.isNil() && !m_default.isEmpty()) {
                 map = m_default.getValue();
-                return ConfigStatus::ok();
+                return {};
             }
             if (node.getNodeType() != ConfigNodeType::kMap)
                 return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -245,7 +245,7 @@ namespace tempo_config {
                     map__[key] = value;
                 }
                 map = std::move(map__);
-                return ConfigStatus::ok();
+                return {};
         }
 
     private:

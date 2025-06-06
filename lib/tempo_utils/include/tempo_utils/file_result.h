@@ -22,7 +22,6 @@ namespace tempo_utils {
     class FileStatus : public TypedStatus<FileCondition> {
     public:
         using TypedStatus::TypedStatus;
-        static FileStatus ok();
         static bool convert(FileStatus &dstStatus, const tempo_utils::Status &srcStatus);
 
     private:

@@ -63,7 +63,7 @@ namespace tempo_config {
             auto value = node.toValue().getValue();
             if (m_stringToEnumMap.contains(value)) {
                 e = m_stringToEnumMap.at(value);
-                return tempo_config::ConfigStatus::ok();
+                return {};
             }
             return tempo_config::ConfigStatus::forCondition(ConfigCondition::kMissingValue,
                 "missing required enum value");

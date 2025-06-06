@@ -31,7 +31,6 @@ namespace tempo_security {
     class SecurityStatus : public tempo_utils::TypedStatus<SecurityCondition> {
     public:
         using TypedStatus::TypedStatus;
-        static SecurityStatus ok();
         static bool convert(SecurityStatus &dstStatus, const tempo_utils::Status &srcStatus);
 
     private:

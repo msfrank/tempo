@@ -8,12 +8,6 @@ tempo_config::ConfigStatus::ConfigStatus(
 {
 }
 
-tempo_config::ConfigStatus
-tempo_config::ConfigStatus::ok()
-{
-    return ConfigStatus();
-}
-
 bool
 tempo_config::ConfigStatus::convert(ConfigStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {

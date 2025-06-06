@@ -9,12 +9,6 @@ tempo_tracing::TracingStatus::TracingStatus(
 {
 }
 
-tempo_tracing::TracingStatus
-tempo_tracing::TracingStatus::ok()
-{
-    return TracingStatus();
-}
-
 bool
 tempo_tracing::TracingStatus::convert(TracingStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {

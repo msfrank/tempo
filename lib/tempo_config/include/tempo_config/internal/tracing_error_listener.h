@@ -25,8 +25,6 @@ namespace tempo_config::internal {
 
     private:
         ConfigListener *m_listener;
-        std::shared_ptr<tempo_tracing::TraceSpan> m_span;
-        tempo_utils::Status m_status;
     };
 }
 

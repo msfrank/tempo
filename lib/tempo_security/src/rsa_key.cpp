@@ -18,7 +18,7 @@ tempo_security::RSAKey::RSAKey(const std::filesystem::path &pemPrivateKeyFile)
     if (!PEM_read_bio_RSAPrivateKey(bio, &rsa, nullptr, nullptr))
         goto err;
     BIO_free(bio);
-    m_status = tempo_utils::FileStatus::ok();
+    m_status = {};
     m_rsa = rsa;
     return;
 

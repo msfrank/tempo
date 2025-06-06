@@ -18,7 +18,7 @@ tempo_security::ECCKey::ECCKey(const std::filesystem::path &pemPrivateKeyFile)
     if (!PEM_read_bio_ECPrivateKey(bio, &ecc, nullptr, nullptr))
         goto err;
     BIO_free(bio);
-    m_status = tempo_utils::FileStatus::ok();
+    m_status = {};
     m_ecc = ecc;
     return;
 

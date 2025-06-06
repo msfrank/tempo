@@ -95,7 +95,7 @@ namespace tempo_tracing {
                 return result.getStatus();
             absl::MutexLock locker(m_lock);
             putTagUnlocked(serde.getKey(), writer.getValue());
-            return TracingStatus::ok();
+            return {};
         }
 
         /**

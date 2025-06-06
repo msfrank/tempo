@@ -1,11 +1,11 @@
 
 #include <gtest/gtest.h>
-#include <gmock/gmock-matchers.h>
+#include <gmock/gmock.h>
 
+#include <tempo_config/config_builder.h>
 #include <tempo_config/config_utils.h>
 
-TEST(ConfigListener, ParseNull)
-{
+TEST(ConfigListener, ParseNull) {
     auto readNilResult = tempo_config::read_config_string("null");
     ASSERT_TRUE (readNilResult.isResult());
     ASSERT_EQ (readNilResult.getResult(), tempo_config::ConfigNil());
@@ -248,4 +248,91 @@ TEST(ConfigListener, ParseDeeplyNestedMaps)
             })},
         })},
     }), configMap);
+}
+
+TEST(ConfigListener, ParseStringValueWithLeadingComments)
+{
+    auto readStringResult = tempo_config::read_config_string(R"(
+// this is a single line comment
+/*
+ * this is a multi line comment
+ */
+"hello, world!"
+    )");
+    ASSERT_TRUE (readStringResult.isResult());
+    ASSERT_EQ (readStringResult.getResult(), tempo_config::ConfigValue("hello, world!"));
+}
+
+TEST(ConfigListener, ParseStringValueWithTrailingSingleLineComment)
+{
+    auto readStringResult = tempo_config::read_config_string(R"(
+"hello, world!"
+/*
+ * this is a multi line comment
+ */
+// this is a single line comment
+    )");
+    ASSERT_TRUE (readStringResult.isResult());
+    ASSERT_EQ (readStringResult.getResult(), tempo_config::ConfigValue("hello, world!"));
+}
+
+TEST(ConfigListener, ParseObjectWithInBetweenComments)
+{
+    auto readStringResult = tempo_config::read_config_string(R"(
+{                               // comment before first object member
+    "key1": true,               // comment between members
+    "key2":                     // comment between member key and value
+      "hello, world!",
+    "key3": [                   // comment before first array element
+        1,                      // comment between elements
+        2                       // comment after element and before comma
+        ,
+        3                       // comment after last element
+    ]                           // comment after last member
+}
+    )");
+    ASSERT_TRUE (readStringResult.isResult());
+    ASSERT_EQ (readStringResult.getResult(), tempo_config::startMap()
+        .put("key1", tempo_config::valueNode("true"))
+        .put("key2", tempo_config::valueNode("hello, world!"))
+        .put("key3", tempo_config::startSeq()
+            .append(tempo_config::valueNode("1"))
+            .append(tempo_config::valueNode("2"))
+            .append(tempo_config::valueNode("3"))
+            .buildNode())
+        .buildNode()
+    );
+}
+
+TEST(ConfigListener, ParseArrayWithSingleTrailingComma)
+{
+    auto readStringResult = tempo_config::read_config_string(R"(
+[ 1, 2, 3, ]
+    )");
+    ASSERT_TRUE (readStringResult.isResult());
+    ASSERT_EQ (readStringResult.getResult(), tempo_config::startSeq()
+        .append(tempo_config::valueNode("1"))
+        .append(tempo_config::valueNode("2"))
+        .append(tempo_config::valueNode("3"))
+        .buildNode()
+    );
+}
+
+TEST(ConfigListener, ParseObjectWithSingleTrailingComma)
+{
+    auto readStringResult = tempo_config::read_config_string(R"(
+{
+    "key1": 1,
+    "key2": 2,
+    "key3": 3,
+}
+    )");
+    ASSERT_TRUE (readStringResult.isResult());
+    auto json = readStringResult.getResult();
+    ASSERT_EQ (readStringResult.getResult(), tempo_config::startMap()
+        .put("key1", tempo_config::valueNode("1"))
+        .put("key2", tempo_config::valueNode("2"))
+        .put("key3", tempo_config::valueNode("3"))
+        .buildNode()
+    );
 }

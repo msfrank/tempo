@@ -23,7 +23,6 @@ namespace tempo_config {
     class ConfigStatus : public tempo_utils::TypedStatus<ConfigCondition> {
     public:
         using TypedStatus::TypedStatus;
-        static ConfigStatus ok();
         static bool convert(ConfigStatus &dstStatus, const tempo_utils::Status &srcStatus);
 
     private:

@@ -8,12 +8,6 @@ tempo_utils::LibraryStatus::LibraryStatus(
 {
 }
 
-tempo_utils::LibraryStatus
-tempo_utils::LibraryStatus::ok()
-{
-    return LibraryStatus();
-}
-
 bool
 tempo_utils::LibraryStatus::convert(LibraryStatus &dstStatus, const tempo_utils::Status &srcStatus)
 {

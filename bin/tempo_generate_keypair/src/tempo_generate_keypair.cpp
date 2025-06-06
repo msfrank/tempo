@@ -274,7 +274,7 @@ run(int argc, const char *argv[])
 
     TU_CONSOLE_OUT << "generated key-pair " << fileName << " in " << outputDirectory;
 
-    return tempo_command::CommandStatus::ok();
+    return {};
 }
 
 int

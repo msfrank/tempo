@@ -14,7 +14,6 @@ namespace tempo_utils {
     class LibraryStatus : public TypedStatus<LibraryCondition> {
     public:
         using TypedStatus::TypedStatus;
-        static LibraryStatus ok();
         static bool convert(LibraryStatus &dstStatus, const tempo_utils::Status &srcStatus);
 
     private:

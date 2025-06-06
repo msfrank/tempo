@@ -266,7 +266,7 @@ tempo_config::write_config_string(const tempo_config::ConfigNode &root, std::str
 
     // write the buffer to the supplied string
     bytes = std::string(buffer.GetString(), buffer.GetSize());
-    return ConfigStatus::ok();
+    return {};
 }
 
 /**
@@ -288,5 +288,5 @@ tempo_config::write_config_file(const tempo_config::ConfigNode &root, const std:
     tempo_utils::FileWriter fileWriter(path, bytes, tempo_utils::FileWriterMode::CREATE_OR_OVERWRITE);
     if (!fileWriter.isValid())
         return fileWriter.getStatus();
-    return ConfigStatus::ok();
+    return {};
 }

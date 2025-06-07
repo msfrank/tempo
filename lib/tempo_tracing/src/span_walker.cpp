@@ -70,6 +70,16 @@ tempo_tracing::SpanWalker::getEndTime() const
 }
 
 bool
+tempo_tracing::SpanWalker::isFailed() const
+{
+    if (!isValid())
+        return {};
+    auto *span = m_reader->getSpan(m_index);
+    TU_ASSERT (span != nullptr);
+    return span->failed();
+}
+
+bool
 tempo_tracing::SpanWalker::hasTag(const tempo_schema::AttrKey &key) const
 {
     auto index = findIndexForTag(key);

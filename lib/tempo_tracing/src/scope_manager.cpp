@@ -22,14 +22,14 @@ tempo_tracing::ScopeManager::~ScopeManager()
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
-tempo_tracing::ScopeManager::makeSpan()
+tempo_tracing::ScopeManager::makeSpan(FailurePropagation propagation, FailureCollection collection)
 {
     std::shared_ptr<TraceSpan> span;
     if (!m_spanStack.empty()) {
         auto parent = m_spanStack.top();
-        span = parent->makeSpan();
+        span = parent->makeSpan(propagation, collection);
     } else {
-        span = m_recorder->makeSpan();
+        span = m_recorder->makeSpan(propagation, collection);
     }
     pushSpan(span);
     return span;
@@ -38,7 +38,7 @@ tempo_tracing::ScopeManager::makeSpan()
 void
 tempo_tracing::ScopeManager::pushSpan(std::shared_ptr<TraceSpan> span)
 {
-    m_spanStack.push(span);
+    m_spanStack.push(std::move(span));
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>

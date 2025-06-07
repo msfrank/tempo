@@ -3,15 +3,14 @@
 
 #include <absl/base/thread_annotations.h>
 #include <fmt/core.h>
-#include <fmt/format.h>
 
+#include <tempo_schema/attr_serde.h>
 #include <tempo_utils/status.h>
 #include <tempo_utils/tracing.h>
 
+#include "spanset_attr_writer.h"
 #include "tracing_result.h"
 #include "tracing_types.h"
-#include "spanset_attr_writer.h"
-#include "tempo_schema/attr_serde.h"
 
 namespace tempo_tracing {
 
@@ -20,6 +19,9 @@ namespace tempo_tracing {
     class SpanLog;
     class TraceRecorder;
 
+    /**
+     *
+     */
     class TraceSpan : public std::enable_shared_from_this<TraceSpan> {
 
     public:
@@ -31,6 +33,14 @@ namespace tempo_tracing {
 
         std::string getOperationName() const;
         void setOperationName(std::string_view name);
+
+        FailurePropagation getPropagation() const;
+        void setPropagation(FailurePropagation propagation);
+        FailureCollection getCollection() const;
+        void setCollection(FailureCollection collection);
+
+        bool isFailed() const;
+        void setFailed(bool failed);
 
         absl::Time getStartTime() const;
         void setStartTime(absl::Time startTime);
@@ -54,7 +64,9 @@ namespace tempo_tracing {
         void activate(ActiveScope *scope);
         void deactivate();
 
-        std::shared_ptr<TraceSpan> makeSpan();
+        std::shared_ptr<TraceSpan> makeSpan(
+            FailurePropagation propagation = FailurePropagation::NoPropagation,
+            FailureCollection collection = FailureCollection::IgnoresPropagation);
 
         bool isOpen() const;
         void close();
@@ -66,6 +78,7 @@ namespace tempo_tracing {
         ActiveScope *m_scope ABSL_GUARDED_BY(m_lock);
 
         TraceSpan(std::shared_ptr<TraceRecorder> recorder, SpanData &data);
+
         void putTagUnlocked(const tempo_schema::AttrKey &key, const tempo_schema::AttrValue &value);
         LogEntry& appendLogUnlocked(absl::Time ts, LogSeverity severity);
         void putFieldUnlocked(
@@ -174,6 +187,24 @@ namespace tempo_tracing {
 
         /**
          *
+         * @param condition
+         * @param message
+         * @return
+         */
+        template<typename ConditionType,
+            typename StatusType = typename tempo_utils::ConditionTraits<ConditionType>::StatusType>
+        StatusType close(
+            ConditionType condition,
+            LogSeverity severity,
+            std::string_view message)
+        {
+            StatusType status(condition, message, traceId(), spanId());
+            logStatusAndClose(status.getErrorCategory(), status.getErrorCode(), severity, status.getMessage());
+            return status;
+        }
+
+        /**
+         *
          * @tparam Args
          * @param condition
          * @param messageFmt
@@ -182,14 +213,16 @@ namespace tempo_tracing {
          */
         template<typename ConditionType,
             typename StatusType = typename tempo_utils::ConditionTraits<ConditionType>::StatusType,
+            typename Arg0,
             typename... Args>
         StatusType close(
             ConditionType condition,
             LogSeverity severity,
             fmt::string_view messageFmt,
+            Arg0 &&messageArg0,
             Args &&... messageArgs)
         {
-            auto message = fmt::vformat(messageFmt, fmt::make_format_args(messageArgs...));
+            auto message = fmt::vformat(messageFmt, fmt::make_format_args(messageArg0, messageArgs...));
             StatusType status(condition, message, traceId(), spanId());
             logStatusAndClose(status.getErrorCategory(), status.getErrorCode(), severity, status.getMessage());
             return status;

@@ -57,6 +57,48 @@ tempo_tracing::TraceSpan::setOperationName(std::string_view name)
     m_data.operationName = name;
 }
 
+tempo_tracing::FailurePropagation
+tempo_tracing::TraceSpan::getPropagation() const
+{
+    absl::MutexLock locker(m_lock);
+    return m_data.propagation;
+}
+
+void
+tempo_tracing::TraceSpan::setPropagation(FailurePropagation propagation)
+{
+    absl::MutexLock locker(m_lock);
+    m_data.propagation = propagation;
+}
+
+tempo_tracing::FailureCollection
+tempo_tracing::TraceSpan::getCollection() const
+{
+    absl::MutexLock locker(m_lock);
+    return m_data.collection;
+}
+
+void
+tempo_tracing::TraceSpan::setCollection(FailureCollection collection)
+{
+    absl::MutexLock locker(m_lock);
+    m_data.collection = collection;
+}
+
+bool
+tempo_tracing::TraceSpan::isFailed() const
+{
+    absl::MutexLock locker(m_lock);
+    return m_data.failed;
+}
+
+void
+tempo_tracing::TraceSpan::setFailed(bool failed)
+{
+    absl::MutexLock locker(m_lock);
+    m_data.failed = true;
+}
+
 absl::Time
 tempo_tracing::TraceSpan::getStartTime() const
 {
@@ -128,44 +170,6 @@ tempo_tracing::TraceSpan::putTagUnlocked(const tempo_schema::AttrKey &key, const
     m_data.tags[key] = value;
 }
 
-//void
-//tempo_tracing::TraceSpan::putTag(const tempo_schema::Attr &tag)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
-//    putTagUnlocked(tag.first, tag.second);
-//}
-//
-//void
-//tempo_tracing::TraceSpan::putTags(std::initializer_list<tempo_schema::Attr> tags)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
-//    for (const auto &tag : tags) {
-//        m_data.tags[tag.first] = tag.second;
-//    }
-//}
-//
-//std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withTag(const tempo_schema::Attr &tag)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
-//    m_data.tags[tag.first] = tag.second;
-//    return shared_from_this();
-//}
-//
-//std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withTags(std::initializer_list<tempo_schema::Attr> tags)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to set tag on closed span";
-//    for (const auto &tag : tags) {
-//        m_data.tags[tag.first] = tag.second;
-//    }
-//    return shared_from_this();
-//}
-
 tempo_tracing::LogEntry&
 tempo_tracing::TraceSpan::appendLogUnlocked(absl::Time ts, LogSeverity severity)
 {
@@ -181,7 +185,7 @@ tempo_tracing::TraceSpan::appendLog(absl::Time ts, LogSeverity severity)
     switch (severity) {
         case LogSeverity::kFatal:
         case LogSeverity::kError:
-            m_data.error = true;
+            m_data.failed = true;
             break;
         default:
             break;
@@ -197,48 +201,6 @@ tempo_tracing::TraceSpan::putFieldUnlocked(
 {
     logEntry.fields[key] = value;
 }
-
-//void
-//tempo_tracing::TraceSpan::putLog(LogSeverity severity, const tempo_schema::Attr &field)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
-//    auto &entry = appendLog(absl::Now(), severity);
-//    putLogUnlocked(entry, field.first, field.second);
-//}
-//
-//void
-//tempo_tracing::TraceSpan::putLogs(LogSeverity severity, std::initializer_list<tempo_schema::Attr> fields)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
-//    auto &entry = appendLog(absl::Now(), severity);
-//    for (const auto &field : fields) {
-//        putLogUnlocked(entry, field.first, field.second);
-//    }
-//}
-//
-//std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withLog(LogSeverity severity, const tempo_schema::Attr &field)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
-//    auto &entry = appendLog(absl::Now(), severity);
-//    putLogUnlocked(entry, field.first, field.second);
-//    return shared_from_this();
-//}
-//
-//std::shared_ptr<tempo_tracing::TraceSpan>
-//tempo_tracing::TraceSpan::withLogs(LogSeverity severity, std::initializer_list<tempo_schema::Attr> fields)
-//{
-//    absl::MutexLock locker(m_lock);
-//    TU_LOG_FATAL_IF(m_data.complete) << "failed to append log on closed span";
-//    auto &entry = appendLog(absl::Now(), severity);
-//    for (const auto &field : fields) {
-//        putLogUnlocked(entry, field.first, field.second);
-//    }
-//    return shared_from_this();
-//}
 
 std::shared_ptr<tempo_tracing::SpanLog>
 tempo_tracing::TraceSpan::logMessage(std::string_view message, absl::Time ts, tempo_tracing::LogSeverity severity)
@@ -314,11 +276,11 @@ tempo_tracing::TraceSpan::deactivate()
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
-tempo_tracing::TraceSpan::makeSpan()
+tempo_tracing::TraceSpan::makeSpan(FailurePropagation propagation, FailureCollection collection)
 {
     absl::MutexLock locker(m_lock);
     TU_LOG_FATAL_IF(m_data.complete) << "failed to make child span on closed span";
-    return m_recorder->makeSpan(shared_from_this());
+    return m_recorder->makeSpan(shared_from_this(), propagation, collection);
 }
 
 bool
@@ -337,13 +299,6 @@ tempo_tracing::TraceSpan::close()
     }
 }
 
-//tempo_utils::Status
-//tempo_tracing::TraceSpan::close(tempo_utils::Status status, LogSeverity severity)
-//{
-//    applyStatusAndClose(status.getErrorCategory(), status.getErrorCode(), severity, std::string(status.getMessage()));
-//    return status;
-//}
-
 void
 tempo_tracing::TraceSpan::logStatusAndClose(
     std::string_view category,
@@ -354,7 +309,7 @@ tempo_tracing::TraceSpan::logStatusAndClose(
     absl::MutexLock locker(m_lock);
     TU_LOG_FATAL_IF(m_data.complete) << "failed to apply status to closed span";
 
-    m_data.error = true;
+    m_data.failed = true;
     m_data.complete = true;
 
     SpansetAttrWriter writer;

@@ -6,14 +6,15 @@ include(GoogleTest)
 
 set(TEST_CASES
     active_scope_tests.cpp
+    span_failure_propagation_tests.cpp
     span_log_tests.cpp
-    status_span_tests.cpp
+    span_status_tests.cpp
     trace_span_tests.cpp
     )
 
 # define test suite driver
 
-add_executable(tempo_tracing_testsuite ${TEST_CASES})
+add_executable(tempo_tracing_testsuite ${TEST_CASES} base_tracing_fixture.cpp base_tracing_fixture.h)
 target_include_directories(tempo_tracing_testsuite PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
     ${CMAKE_CURRENT_BINARY_DIR}/../src
@@ -28,7 +29,7 @@ gtest_discover_tests(tempo_tracing_testsuite)
 
 # define test suite static library
 
-add_library(TempoTracingTestSuite OBJECT ${TEST_CASES})
+add_library(TempoTracingTestSuite OBJECT ${TEST_CASES} base_tracing_fixture.cpp base_tracing_fixture.h)
 target_include_directories(TempoTracingTestSuite PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
     ${CMAKE_CURRENT_BINARY_DIR}/../src

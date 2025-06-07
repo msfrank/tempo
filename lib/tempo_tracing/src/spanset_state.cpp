@@ -3,40 +3,52 @@
 #include <tempo_tracing/spanset_state.h>
 #include <tempo_tracing/tempo_spanset.h>
 #include <tempo_tracing/tracing_types.h>
+#include <tempo_utils/compressed_bitmap.h>
 #include <tempo_utils/memory_bytes.h>
 
 tempo_tracing::SpansetState::SpansetState(tempo_utils::TraceId id)
     : m_id(id),
       m_size(0)
 {
-    m_last = m_spans.before_begin();
 }
 
 tempo_tracing::SpanData&
-tempo_tracing::SpansetState::appendSpan(tempo_utils::SpanId id)
+tempo_tracing::SpansetState::appendSpan(
+    const tempo_utils::SpanId &id,
+    FailurePropagation propagation,
+    FailureCollection collection)
 {
     tu_uint32 index = m_size;
 
     // construct span data in-place at the end of the spans list
-    m_last = m_spans.emplace_after(m_last, index, id);
-    SpanData& data = *m_last;
+    auto data = m_spans.emplace(m_spans.cend(), index, id);
     m_size++;
 
-    return data;
+    data->propagation = propagation;
+    data->collection = collection;
+
+    return *data;
 }
 
 tempo_tracing::SpanData&
-tempo_tracing::SpansetState::appendSpan(tempo_utils::SpanId id, tu_uint32 parentIndex, tempo_utils::SpanId parentId)
+tempo_tracing::SpansetState::appendSpan(
+    const tempo_utils::SpanId &id,
+    tu_uint32 parentIndex,
+    const tempo_utils::SpanId &parentId,
+    FailurePropagation propagation,
+    FailureCollection collection)
 {
     tu_uint32 index = m_size;
     TU_ASSERT (parentIndex < index);    // the parent span must come before the child  span (prevents cycles)
 
     // construct span data in-place at the end of the spans list
-    m_last = m_spans.emplace_after(m_last, index, id, parentIndex, parentId);
-    SpanData& data = *m_last;
+    auto data = m_spans.emplace(m_spans.cend(), index, id, parentIndex, parentId);
     m_size++;
 
-    return data;
+    data->propagation = propagation;
+    data->collection = collection;
+
+    return *data;
 }
 
 static std::pair<tts1::Value,flatbuffers::Offset<void>>
@@ -94,6 +106,60 @@ serialize_value(flatbuffers::FlatBufferBuilder &buffer, const tempo_schema::Attr
     }
 }
 
+void
+evaluate_error_propagation(std::vector<tempo_tracing::SpanData> &spans)
+{
+    if (spans.empty())
+        return;
+
+    tempo_utils::CompressedBitmap seenMap(spans.size());
+
+    std::stack<tu_uint32> stack;
+    stack.emplace(spans.front().spanIndex);
+
+    while (!stack.empty()) {
+        auto span_index = stack.top();
+        if (!seenMap.contains(span_index)) {
+            seenMap.add(span_index);
+            const auto &span = spans.at(span_index);
+            for (auto child_index : span.children) {
+                const auto &child = spans.at(child_index);
+                stack.push(child.spanIndex);
+            }
+        } else {
+            stack.pop();
+            auto &span = spans.at(span_index);
+            // if span ignores propagation then do nothing
+            if (span.collection == tempo_tracing::FailureCollection::IgnoresPropagation)
+                continue;
+            // otherwise count the number of failed children with propagation enabled
+            int nerrors = 0;
+            for (auto child_index : span.children) {
+                const auto &child = spans.at(child_index);
+                if (child.failed && child.propagation == tempo_tracing::FailurePropagation::PropagatesToParent) {
+                    nerrors++;
+                }
+            }
+            switch (span.collection) {
+                // set failure on span if all children failed
+                case tempo_tracing::FailureCollection::AllChildrenFailed:
+                    if (nerrors == span.children.size()) {
+                        span.failed = true;
+                    }
+                    break;
+                // set failure on span if at least one child failed
+                case tempo_tracing::FailureCollection::AnyChildFailed:
+                    if (nerrors > 0) {
+                        span.failed = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 tempo_utils::Result<tempo_tracing::TempoSpanset>
 tempo_tracing::SpansetState::toSpanset() const
 {
@@ -111,7 +177,14 @@ tempo_tracing::SpansetState::toSpanset() const
     std::vector<tu_uint32> roots_vector;
     std::vector<tu_uint32> errors_vector;
 
-    for (const auto &spanData : m_spans) {
+    // copy spans list into mutable span vector
+    std::vector spans(m_spans.cbegin(), m_spans.cend());
+
+    // apply error propagation
+    evaluate_error_propagation(spans);
+
+    // build vector of span descriptors
+    for (const auto &spanData : spans) {
 
         tu_uint32 span_index = spans_vector.size();
 
@@ -130,7 +203,7 @@ tempo_tracing::SpansetState::toSpanset() const
         }
 
         // if span is marked failed, then add the index to the errors vector
-        if (spanData.error) {
+        if (spanData.failed) {
             errors_vector.push_back(span_index);
         }
 
@@ -229,6 +302,7 @@ tempo_tracing::SpansetState::toSpanset() const
             parent_index,
             parent_id,
             buffer.CreateVector(children),
+            spanData.failed,
             start_time,
             end_time,
             buffer.CreateVector(tags),

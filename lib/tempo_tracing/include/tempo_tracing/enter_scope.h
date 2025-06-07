@@ -9,8 +9,15 @@ namespace tempo_tracing {
     class EnterScope {
 
     public:
-        explicit EnterScope(ScopeManager *scopeManager);
-        EnterScope(std::string_view operationName, ScopeManager *scopeManager);
+        EnterScope(
+            ScopeManager *scopeManager,
+            FailurePropagation propagation = FailurePropagation::NoPropagation,
+            FailureCollection collection = FailureCollection::IgnoresPropagation);
+        EnterScope(
+            std::string_view operationName,
+            ScopeManager *scopeManager,
+            FailurePropagation propagation = FailurePropagation::NoPropagation,
+            FailureCollection collection = FailureCollection::IgnoresPropagation);
         ~EnterScope();
 
         std::shared_ptr<TraceSpan> getSpan();

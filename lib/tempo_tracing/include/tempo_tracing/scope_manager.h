@@ -11,10 +11,12 @@ namespace tempo_tracing {
     class ScopeManager {
 
     public:
-        ScopeManager(std::shared_ptr<TraceRecorder> recorder);
+        explicit ScopeManager(std::shared_ptr<TraceRecorder> recorder);
         ~ScopeManager();
 
-        std::shared_ptr<TraceSpan> makeSpan();
+        std::shared_ptr<TraceSpan> makeSpan(
+            FailurePropagation propagation,
+            FailureCollection collection);
         void pushSpan(std::shared_ptr<TraceSpan> span);
         std::shared_ptr<TraceSpan> popSpan();
         std::shared_ptr<TraceSpan> popSpanAndCheck(const tempo_utils::SpanId &spanId);

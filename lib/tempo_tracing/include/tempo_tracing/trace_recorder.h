@@ -22,8 +22,13 @@ namespace tempo_tracing {
 
         tempo_utils::TraceId traceId() const;
 
-        std::shared_ptr<TraceSpan> makeSpan();
-        std::shared_ptr<TraceSpan> makeSpan(std::shared_ptr<TraceSpan> parentSpan);
+        std::shared_ptr<TraceSpan> makeSpan(
+            FailurePropagation propagation = FailurePropagation::NoPropagation,
+            FailureCollection collection = FailureCollection::IgnoresPropagation);
+        std::shared_ptr<TraceSpan> makeSpan(
+            std::shared_ptr<TraceSpan> parentSpan,
+            FailurePropagation propagation = FailurePropagation::NoPropagation,
+            FailureCollection collection = FailureCollection::IgnoresPropagation);
         void close();
         tempo_utils::Result<TempoSpanset> toSpanset() const;
 

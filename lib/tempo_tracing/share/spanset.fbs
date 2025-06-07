@@ -34,8 +34,8 @@ table NamespaceDescriptor {
 }
 
 table AttributeDescriptor {
-    attr_ns: uint32;                            // namespace of the attribute
-    attr_type: uint32;                          // the type of the attribute. this only has meaning relative to the ns
+    attr_ns: uint32 = 0xffffffff;               // namespace of the attribute
+    attr_type: uint32 = 0xffffffff;             // the type of the attribute. this only has meaning relative to the ns
     attr_value: Value;                          // value of the attribute
 }
 
@@ -49,27 +49,28 @@ enum LogSeverity : uint8 {
 }
 
 table LogDescriptor {
-    log_ts: uint64;                             // timestamp of the log event (in epoch millis)
+    log_ts: uint64 = 0;                         // timestamp of the log event (in epoch millis)
     log_severity: LogSeverity;                  // severity of the log event
     log_fields: [uint32];                       // array of offsets to attribute descriptors
 }
 
 table SpanDescriptor {
-    span_id: uint64;                            // the span id
+    span_id: uint64 = 0xffffffffffffffff;       // the span id
     operation_name: string;                     // the span operation name
-    parent: uint32;                             // the offset of the parent span in the spanset, or INVALID_ADDRESS_U32 if this is a root span
-    parent_id: uint64;                          // the id of the parent span, or 0 if this is a root span
+    parent: uint32 = 0xffffffff;                // the offset of the parent span in the spanset, or INVALID_ADDRESS_U32 if this is a root span
+    parent_id: uint64 = 0xffffffffffffffff;     // the id of the parent span, or 0 if this is a root span
     children: [uint32];                         // array of offsets to children of this span
-    span_start: uint64;                         // the timestamp (in epoch millis) representing the start of the span
-    span_end: uint64;                           // the timestamp (in epoch millis) representing the end of the span
+    failed: bool = false;                       // true if the operation failed, otherwise false
+    span_start: uint64 = 0;                     // the timestamp (in epoch millis) representing the start of the span
+    span_end: uint64 = 0;                       // the timestamp (in epoch millis) representing the end of the span
     span_tags: [uint32];                        // array of offsets to attribute descriptors
     span_logs: [uint32];                        // array of offsets to log descriptors
 }
 
 table Spanset {
     abi: SpansetVersion;                        // target ABI the spanset was generated for
-    trace_id_hi: uint64;                        // the high 64 bits of the trace id
-    trace_id_lo: uint64;                        // the low 64 bits of the trace id
+    trace_id_hi: uint64 = 0xffffffffffffffff;   // the high 64 bits of the trace id
+    trace_id_lo: uint64 = 0xffffffffffffffff;   // the low 64 bits of the trace id
     namespaces: [NamespaceDescriptor];          // array of namespace descriptors
     spans: [SpanDescriptor];                    // array of span descriptors
     attrs: [AttributeDescriptor];               // array of attribute descriptors

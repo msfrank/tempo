@@ -21,6 +21,8 @@ namespace tempo_tracing {
         absl::Time getStartTime() const;
         absl::Time getEndTime() const;
 
+        bool isFailed() const;
+
         bool hasTag(const tempo_schema::AttrKey &key) const;
         bool hasTag(const tempo_schema::AbstractAttrValidator &validator) const;
         int numTags() const;

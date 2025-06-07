@@ -28,6 +28,17 @@ namespace tempo_tracing {
         kVeryVerbose,
     };
 
+    enum class FailurePropagation {
+        NoPropagation,          /**< span does not request any propagation of failure. */
+        PropagatesToParent,     /**< span requests that parent be marked failed. */
+    };
+
+    enum class FailureCollection {
+        IgnoresPropagation,     /**< requests from children to be marked failed are ignored. */
+        AnyChildFailed,         /**< a failure propagating from any child will mark the span as failed. */
+        AllChildrenFailed,      /**< span is marked failed if all children have propagated failure. */
+    };
+
     struct LogEntry {
         absl::Time ts;
         LogSeverity severity;
@@ -48,8 +59,10 @@ namespace tempo_tracing {
         std::vector<uint32_t> children;
         tempo_schema::AttrMap tags;
         std::vector<LogEntry> logs;
-        bool error;
-        bool complete;
+        FailurePropagation propagation = FailurePropagation::NoPropagation;
+        FailureCollection collection = FailureCollection::IgnoresPropagation;
+        bool failed = false;
+        bool complete = false;
 
         SpanData(tu_uint32 index, tempo_utils::SpanId id);
         SpanData(tu_uint32 spanIndex, tempo_utils::SpanId spanId, tu_uint32 parentIndex, tempo_utils::SpanId parentId);

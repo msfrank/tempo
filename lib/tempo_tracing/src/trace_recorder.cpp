@@ -32,20 +32,24 @@ tempo_tracing::TraceRecorder::traceId() const
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
-tempo_tracing::TraceRecorder::makeSpan()
+tempo_tracing::TraceRecorder::makeSpan(FailurePropagation propagation, FailureCollection collection)
 {
     absl::MutexLock locker(m_lock);
 
     if (m_closed)
         return {};
 
-    SpanData& data = m_state->appendSpan(tempo_utils::SpanId::generate());
+    SpanData& data = m_state->appendSpan(tempo_utils::SpanId::generate(), propagation, collection);
+
     auto *span = new TraceSpan(shared_from_this(), data);
     return std::shared_ptr<TraceSpan>(span);
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
-tempo_tracing::TraceRecorder::makeSpan(std::shared_ptr<TraceSpan> parentSpan)
+tempo_tracing::TraceRecorder::makeSpan(
+    std::shared_ptr<TraceSpan> parentSpan,
+    FailurePropagation propagation,
+    FailureCollection collection)
 {
     TU_ASSERT (parentSpan != nullptr);
 
@@ -55,8 +59,10 @@ tempo_tracing::TraceRecorder::makeSpan(std::shared_ptr<TraceSpan> parentSpan)
         return {};
 
     SpanData& parentData = parentSpan->m_data;
-    SpanData& data = m_state->appendSpan(tempo_utils::SpanId::generate(), parentData.spanIndex, parentData.spanId);
+    SpanData& data = m_state->appendSpan(tempo_utils::SpanId::generate(), parentData.spanIndex,
+        parentData.spanId, propagation, collection);
     parentData.children.push_back(data.spanIndex);
+
     auto *span = new TraceSpan(shared_from_this(), data);
     return std::shared_ptr<TraceSpan>(span);
 }

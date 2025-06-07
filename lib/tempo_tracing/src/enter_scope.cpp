@@ -1,17 +1,24 @@
 
 #include <tempo_tracing/enter_scope.h>
 
-tempo_tracing::EnterScope::EnterScope(ScopeManager *scopeManager)
+tempo_tracing::EnterScope::EnterScope(
+    ScopeManager *scopeManager,
+    FailurePropagation propagation,
+    FailureCollection collection)
     : m_scopeManager(scopeManager)
 {
     TU_ASSERT (m_scopeManager != nullptr);
-    m_span = m_scopeManager->makeSpan();
+    m_span = m_scopeManager->makeSpan(propagation, collection);
     m_startTime = absl::Now();
     m_span->setStartTime(m_startTime);
 }
 
-tempo_tracing::EnterScope::EnterScope(std::string_view operationName, ScopeManager *scopeManager)
-    : EnterScope(scopeManager)
+tempo_tracing::EnterScope::EnterScope(
+    std::string_view operationName,
+    ScopeManager *scopeManager,
+    FailurePropagation propagation,
+    FailureCollection collection)
+    : EnterScope(scopeManager, propagation, collection)
 {
     m_span->setOperationName(operationName);
 }

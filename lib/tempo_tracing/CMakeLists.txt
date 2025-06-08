@@ -19,6 +19,7 @@ set(TEMPO_TRACING_INCLUDES
     include/tempo_tracing/spanset_state.h
     include/tempo_tracing/span_walker.h
     include/tempo_tracing/tempo_spanset.h
+    include/tempo_tracing/trace_context.h
     include/tempo_tracing/trace_recorder.h
     include/tempo_tracing/trace_span.h
     include/tempo_tracing/tracing_result.h
@@ -80,6 +81,7 @@ target_sources(tempo_tracing PRIVATE
     src/spanset_state.cpp
     src/span_walker.cpp
     src/tempo_spanset.cpp
+    src/trace_context.cpp
     src/trace_recorder.cpp
     src/trace_span.cpp
     src/tracing_result.cpp
@@ -88,6 +90,8 @@ target_sources(tempo_tracing PRIVATE
 
     include/tempo_tracing/internal/spanset_reader.h
     src/internal/spanset_reader.cpp
+    include/tempo_tracing/internal/thread_context.h
+    src/internal/thread_context.cpp
 
     ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset.h
     ${CMAKE_CURRENT_BINARY_DIR}/include/tempo_tracing/generated/spanset_schema.h

@@ -188,8 +188,9 @@ tempo_tracing::SpansetState::toSpanset() const
 
         tu_uint32 span_index = spans_vector.size();
 
-        tu_uint64 start_time = ToUnixMillis(spanData.startTime);
-        tu_uint64 end_time = ToUnixMillis(spanData.endTime);
+        tu_int64 start_time = spanData.startTimeMillisSinceEpoch;
+        tu_int64 end_time = spanData.endTimeMillisSinceEpoch;
+        tu_int64 duration = absl::ToInt64Nanoseconds(spanData.activeDuration);
 
         tu_uint32 parent_index = tempo_tracing::kInvalidAddressU32;
         tu_uint64 parent_id = 0;
@@ -305,6 +306,7 @@ tempo_tracing::SpansetState::toSpanset() const
             spanData.failed,
             start_time,
             end_time,
+            duration,
             buffer.CreateVector(tags),
             buffer.CreateVector(logs)));
     }

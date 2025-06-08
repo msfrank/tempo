@@ -16,8 +16,9 @@ tempo_tracing::SpanData::SpanData(uint32_t index, tempo_utils::SpanId id)
       spanId(id),
       parentIndex(kInvalidAddressU32),
       parentId(),
-      startTime(),
-      endTime(),
+      startTimeMillisSinceEpoch(-1),
+      endTimeMillisSinceEpoch(-1),
+      activeTimeNanosSinceEpoch(-1),
       complete(false)
 {
 }
@@ -31,8 +32,9 @@ tempo_tracing::SpanData::SpanData(
       spanId(spanId),
       parentIndex(parentIndex),
       parentId(parentId),
-      startTime(),
-      endTime(),
+      startTimeMillisSinceEpoch(-1),
+      endTimeMillisSinceEpoch(-1),
+      activeTimeNanosSinceEpoch(-1),
       complete(false)
 {
 }

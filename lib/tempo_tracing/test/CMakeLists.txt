@@ -9,6 +9,8 @@ set(TEST_CASES
     span_failure_propagation_tests.cpp
     span_log_tests.cpp
     span_status_tests.cpp
+    span_timing_tests.cpp
+    trace_context_tests.cpp
     trace_span_tests.cpp
     )
 

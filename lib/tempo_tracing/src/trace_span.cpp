@@ -1,5 +1,4 @@
 
-#include <tempo_tracing/active_scope.h>
 #include <tempo_tracing/span_log.h>
 #include <tempo_tracing/trace_span.h>
 #include <tempo_tracing/trace_recorder.h>
@@ -96,14 +95,14 @@ void
 tempo_tracing::TraceSpan::setFailed(bool failed)
 {
     absl::MutexLock locker(m_lock);
-    m_data.failed = true;
+    m_data.failed = failed;
 }
 
 absl::Time
 tempo_tracing::TraceSpan::getStartTime() const
 {
     absl::MutexLock locker(m_lock);
-    return m_data.startTime;
+    return absl::FromUnixMillis(m_data.startTimeMillisSinceEpoch);
 }
 
 void
@@ -111,16 +110,14 @@ tempo_tracing::TraceSpan::setStartTime(absl::Time startTime)
 {
     absl::MutexLock locker(m_lock);
     TU_LOG_FATAL_IF(m_data.complete) << "failed to set start time on closed span";
-    if (m_data.startTime == absl::Time() || m_data.startTime > startTime) {
-        m_data.startTime = startTime;
-    }
+    m_data.startTimeMillisSinceEpoch = absl::ToUnixMillis(startTime);
 }
 
 absl::Time
 tempo_tracing::TraceSpan::getEndTime() const
 {
     absl::MutexLock locker(m_lock);
-    return m_data.endTime;
+    return absl::FromUnixMillis(m_data.endTimeMillisSinceEpoch);
 }
 
 void
@@ -128,24 +125,74 @@ tempo_tracing::TraceSpan::setEndTime(absl::Time endTime)
 {
     absl::MutexLock locker(m_lock);
     TU_LOG_FATAL_IF(m_data.complete) << "failed to set end time on closed span";
-    if (m_data.endTime == absl::Time() || m_data.endTime < endTime) {
-        m_data.endTime = endTime;
-    }
-}
-
-absl::Duration
-tempo_tracing::TraceSpan::getActiveTime() const
-{
-    absl::MutexLock locker(m_lock);
-    return m_data.activeTime;
+    m_data.endTimeMillisSinceEpoch = absl::ToUnixMillis(endTime);
 }
 
 void
-tempo_tracing::TraceSpan::addActiveTime(absl::Duration duration)
+tempo_tracing::TraceSpan::activate()
 {
     absl::MutexLock locker(m_lock);
-    TU_LOG_FATAL_IF(m_data.complete) << "failed to set end time on closed span";
-    m_data.activeTime += duration;
+    TU_LOG_FATAL_IF(m_data.complete) << "failed to activate closed span";
+    auto now = absl::Now();
+    // if start time has never been set then set it
+    if (m_data.startTimeMillisSinceEpoch < 0) {
+        m_data.startTimeMillisSinceEpoch = absl::ToUnixMillis(now);
+    }
+    // if we are not already active then set active time
+    if (m_data.activeTimeNanosSinceEpoch < 0) {
+        m_data.activeTimeNanosSinceEpoch = ToUnixNanos(now);
+    }
+}
+
+void
+tempo_tracing::TraceSpan::deactivateUnlocked()
+{
+    TU_LOG_FATAL_IF(m_data.complete) << "failed to deactivate closed span";
+    // if we are not already active then do nothing
+    if (m_data.activeTimeNanosSinceEpoch < 0)
+        return;
+    // calculate the active duration
+    auto now = absl::Now();
+    auto durationNanos = ToUnixNanos(now) - m_data.activeTimeNanosSinceEpoch;
+    auto duration = absl::Nanoseconds(durationNanos);
+    // add duration to existing duration
+    m_data.activeDuration += duration;
+    // clear the active time
+    m_data.activeTimeNanosSinceEpoch = -1;
+    // if end time has never been set then set it
+    if (m_data.endTimeMillisSinceEpoch >= 0) {
+        m_data.endTimeMillisSinceEpoch = absl::ToUnixMillis(now);
+    }
+}
+
+void
+tempo_tracing::TraceSpan::deactivate()
+{
+    absl::MutexLock locker(m_lock);
+    deactivateUnlocked();
+}
+
+absl::Duration
+tempo_tracing::TraceSpan::getActiveDuration() const
+{
+    absl::MutexLock locker(m_lock);
+    return m_data.activeDuration;
+}
+
+void
+tempo_tracing::TraceSpan::addToActiveDuration(absl::Duration duration)
+{
+    absl::MutexLock locker(m_lock);
+    TU_LOG_FATAL_IF(m_data.complete) << "failed to add active time on closed span";
+    m_data.activeDuration += duration;
+}
+
+void
+tempo_tracing::TraceSpan::setActiveDuration(absl::Duration duration)
+{
+    absl::MutexLock locker(m_lock);
+    TU_LOG_FATAL_IF(m_data.complete) << "failed to add active time on closed span";
+    m_data.activeDuration = duration;
 }
 
 bool
@@ -203,17 +250,17 @@ tempo_tracing::TraceSpan::putFieldUnlocked(
 }
 
 std::shared_ptr<tempo_tracing::SpanLog>
-tempo_tracing::TraceSpan::logMessage(std::string_view message, absl::Time ts, tempo_tracing::LogSeverity severity)
+tempo_tracing::TraceSpan::logMessage(std::string_view message, absl::Time ts, LogSeverity severity)
 {
     auto log = appendLog(ts, severity);
     if (!message.empty()) {
-        log->putField(tempo_tracing::kOpentracingMessage, std::string(message));
+        log->putField(kOpentracingMessage, std::string(message));
     }
     return log;
 }
 
 std::shared_ptr<tempo_tracing::SpanLog>
-tempo_tracing::TraceSpan::logMessage(std::string_view message, tempo_tracing::LogSeverity severity)
+tempo_tracing::TraceSpan::logMessage(std::string_view message, LogSeverity severity)
 {
     return logMessage(message, absl::Now(), severity);
 }
@@ -225,8 +272,8 @@ tempo_tracing::TraceSpan::logStatus(const tempo_utils::Status &status, absl::Tim
 
     auto category = status.getErrorCategory();
     if (!category.empty()) {
-        log->putField(tempo_tracing::kTempoTracingErrorCategoryName, std::string(category));
-        log->putField(tempo_tracing::kTempoTracingErrorCode, static_cast<tu_int64>(status.getErrorCode()));
+        log->putField(kTempoTracingErrorCategoryName, std::string(category));
+        log->putField(kTempoTracingErrorCode, static_cast<tu_int64>(status.getErrorCode()));
     }
 
     auto message = status.getMessage();
@@ -252,29 +299,6 @@ tempo_tracing::TraceSpan::checkStatus(const tempo_utils::Status &status, LogSeve
     return status;
 }
 
-bool
-tempo_tracing::TraceSpan::isActive() const
-{
-    absl::MutexLock locker(m_lock);
-    return m_scope != nullptr;
-}
-
-void
-tempo_tracing::TraceSpan::activate(ActiveScope *scope)
-{
-    absl::MutexLock locker(m_lock);
-    TU_ASSERT (m_scope == nullptr);
-    m_scope = scope;
-}
-
-void
-tempo_tracing::TraceSpan::deactivate()
-{
-    absl::MutexLock locker(m_lock);
-    TU_ASSERT (m_scope != nullptr);
-    m_scope = nullptr;
-}
-
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceSpan::makeSpan(FailurePropagation propagation, FailureCollection collection)
 {
@@ -295,6 +319,7 @@ tempo_tracing::TraceSpan::close()
 {
     absl::MutexLock locker(m_lock);
     if (!m_data.complete) {
+        deactivateUnlocked();
         m_data.complete = true;
     }
 }
@@ -309,25 +334,26 @@ tempo_tracing::TraceSpan::logStatusAndClose(
     absl::MutexLock locker(m_lock);
     TU_LOG_FATAL_IF(m_data.complete) << "failed to apply status to closed span";
 
+    deactivateUnlocked();
     m_data.failed = true;
     m_data.complete = true;
 
     SpansetAttrWriter writer;
 
-    tempo_tracing::kOpentracingEvent.writeAttr(&writer, "error");
-    putTagUnlocked(tempo_tracing::kOpentracingEvent.getKey(), writer.getValue());
+    kOpentracingEvent.writeAttr(&writer, "error");
+    putTagUnlocked(kOpentracingEvent.getKey(), writer.getValue());
 
     auto &entry = appendLogUnlocked(absl::Now(), severity);
 
     if (!category.empty()) {
-        tempo_tracing::kTempoTracingErrorCategoryName.writeAttr(&writer, std::string(category));
-        putFieldUnlocked(entry, tempo_tracing::kTempoTracingErrorCategoryName.getKey(), writer.getValue());
-        tempo_tracing::kTempoTracingErrorCode.writeAttr(&writer, code);
-        putFieldUnlocked(entry, tempo_tracing::kTempoTracingErrorCode.getKey(), writer.getValue());
+        kTempoTracingErrorCategoryName.writeAttr(&writer, std::string(category));
+        putFieldUnlocked(entry, kTempoTracingErrorCategoryName.getKey(), writer.getValue());
+        kTempoTracingErrorCode.writeAttr(&writer, code);
+        putFieldUnlocked(entry, kTempoTracingErrorCode.getKey(), writer.getValue());
     }
 
     if (!message.empty()) {
-        tempo_tracing::kOpentracingMessage.writeAttr(&writer, std::string(message));
-        putFieldUnlocked(entry, tempo_tracing::kOpentracingMessage.getKey(), writer.getValue());
+        kOpentracingMessage.writeAttr(&writer, std::string(message));
+        putFieldUnlocked(entry, kOpentracingMessage.getKey(), writer.getValue());
     }
 }

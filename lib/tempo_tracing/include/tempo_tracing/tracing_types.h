@@ -53,9 +53,10 @@ namespace tempo_tracing {
         const uint32_t parentIndex;
         tempo_utils::SpanId parentId;
         std::string operationName;
-        absl::Time startTime;
-        absl::Time endTime;
-        absl::Duration activeTime;
+        tu_int64 startTimeMillisSinceEpoch = -1;
+        tu_int64 endTimeMillisSinceEpoch = -1;
+        tu_int64 activeTimeNanosSinceEpoch = -1;
+        absl::Duration activeDuration;
         std::vector<uint32_t> children;
         tempo_schema::AttrMap tags;
         std::vector<LogEntry> logs;

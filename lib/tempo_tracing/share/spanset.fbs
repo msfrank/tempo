@@ -61,8 +61,9 @@ table SpanDescriptor {
     parent_id: uint64 = 0xffffffffffffffff;     // the id of the parent span, or 0 if this is a root span
     children: [uint32];                         // array of offsets to children of this span
     failed: bool = false;                       // true if the operation failed, otherwise false
-    span_start: uint64 = 0;                     // the timestamp (in epoch millis) representing the start of the span
-    span_end: uint64 = 0;                       // the timestamp (in epoch millis) representing the end of the span
+    span_start: int64 = 0;                      // the timestamp (in epoch millis) representing the start of the span
+    span_end: int64 = 0;                        // the timestamp (in epoch millis) representing the end of the span
+    span_duration: int64 = 0;                   // the duration of the span in nanoseconds
     span_tags: [uint32];                        // array of offsets to attribute descriptors
     span_logs: [uint32];                        // array of offsets to log descriptors
 }

@@ -46,8 +46,13 @@ namespace tempo_tracing {
         void setStartTime(absl::Time startTime);
         absl::Time getEndTime() const;
         void setEndTime(absl::Time endTime);
-        absl::Duration getActiveTime() const;
-        void addActiveTime(absl::Duration duration);
+
+        void activate();
+        void deactivate();
+
+        absl::Duration getActiveDuration() const;
+        void addToActiveDuration(absl::Duration duration);
+        void setActiveDuration(absl::Duration duration);
 
         bool hasTag(const tempo_schema::AttrKey &key) const;
         tempo_schema::AttrValue getTag(const tempo_schema::AttrKey &key) const;
@@ -59,10 +64,6 @@ namespace tempo_tracing {
         std::shared_ptr<SpanLog> logStatus(const tempo_utils::Status &status, LogSeverity severity);
 
         tempo_utils::Status checkStatus(const tempo_utils::Status &status, LogSeverity severity = LogSeverity::kError);
-
-        bool isActive() const;
-        void activate(ActiveScope *scope);
-        void deactivate();
 
         std::shared_ptr<TraceSpan> makeSpan(
             FailurePropagation propagation = FailurePropagation::NoPropagation,
@@ -82,9 +83,10 @@ namespace tempo_tracing {
         void putTagUnlocked(const tempo_schema::AttrKey &key, const tempo_schema::AttrValue &value);
         LogEntry& appendLogUnlocked(absl::Time ts, LogSeverity severity);
         void putFieldUnlocked(
-            tempo_tracing::LogEntry &logEntry,
+            LogEntry &logEntry,
             const tempo_schema::AttrKey &key,
             const tempo_schema::AttrValue &value);
+        void deactivateUnlocked();
         void logStatusAndClose(std::string_view category, int code, LogSeverity severity, std::string_view message);
 
         friend class SpanLog;

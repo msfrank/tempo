@@ -128,6 +128,13 @@ tempo_tracing::TraceSpan::setEndTime(absl::Time endTime)
     m_data.endTimeMillisSinceEpoch = absl::ToUnixMillis(endTime);
 }
 
+bool
+tempo_tracing::TraceSpan::isActive() const
+{
+    absl::MutexLock locker(m_lock);
+    return m_data.activeTimeNanosSinceEpoch >= 0;
+}
+
 void
 tempo_tracing::TraceSpan::activate()
 {

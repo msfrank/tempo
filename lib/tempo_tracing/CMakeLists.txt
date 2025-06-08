@@ -7,12 +7,13 @@ add_library(tempo_tracing SHARED)
 add_library(tempo::tempo_tracing ALIAS tempo_tracing)
 
 set(TEMPO_TRACING_INCLUDES
-    include/tempo_tracing/active_scope.h
+    include/tempo_tracing/base_scope.h
+    include/tempo_tracing/current_scope.h
     include/tempo_tracing/enter_scope.h
+    include/tempo_tracing/exit_scope.h
     include/tempo_tracing/error_walker.h
     include/tempo_tracing/log_walker.h
     include/tempo_tracing/root_walker.h
-    include/tempo_tracing/scope_manager.h
     include/tempo_tracing/span_log.h
     include/tempo_tracing/spanset_attr_parser.h
     include/tempo_tracing/spanset_attr_writer.h
@@ -69,12 +70,13 @@ add_custom_command(
 )
 
 target_sources(tempo_tracing PRIVATE
-    src/active_scope.cpp
+    src/base_scope.cpp
+    src/current_scope.cpp
     src/enter_scope.cpp
+    src/exit_scope.cpp
     src/error_walker.cpp
     src/log_walker.cpp
     src/root_walker.cpp
-    src/scope_manager.cpp
     src/span_log.cpp
     src/spanset_attr_parser.cpp
     src/spanset_attr_writer.cpp

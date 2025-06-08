@@ -28,14 +28,17 @@ namespace tempo_tracing {
         void activate();
         void deactivate();
 
-        std::shared_ptr<TraceSpan> makeSpan(
+        std::shared_ptr<TraceSpan> pushSpan(
             FailurePropagation propagation,
             FailureCollection collection);
-        void pushSpan(std::shared_ptr<TraceSpan> span);
         std::shared_ptr<TraceSpan> popSpan();
         std::shared_ptr<TraceSpan> popSpanAndCheck(const tempo_utils::SpanId &spanId);
         std::shared_ptr<TraceSpan> peekSpan() const;
         std::shared_ptr<TraceSpan> peekSpanAndCheck(const tempo_utils::SpanId &spanId) const;
+
+        bool isEmpty() const;
+        std::shared_ptr<TraceSpan> getSpan(int index) const;
+        int numSpans() const;
 
         tempo_utils::Result<TempoSpanset> finish();
 

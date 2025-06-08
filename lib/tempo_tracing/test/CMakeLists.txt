@@ -5,7 +5,9 @@ include(GoogleTest)
 # define unit tests
 
 set(TEST_CASES
-    active_scope_tests.cpp
+    current_scope_tests.cpp
+    enter_scope_tests.cpp
+    exit_scope_tests.cpp
     span_failure_propagation_tests.cpp
     span_log_tests.cpp
     span_status_tests.cpp

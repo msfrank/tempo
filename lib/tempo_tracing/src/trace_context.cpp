@@ -155,6 +155,7 @@ tempo_tracing::TraceContext::activate()
     for (auto &span : m_spanStack) {
         span->activate();
     }
+    m_isActive = true;
 }
 
 void
@@ -166,10 +167,11 @@ tempo_tracing::TraceContext::deactivate()
         auto &span = *it;
         span->deactivate();
     }
+    m_isActive = false;
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
-tempo_tracing::TraceContext::makeSpan(FailurePropagation propagation, FailureCollection collection)
+tempo_tracing::TraceContext::pushSpan(FailurePropagation propagation, FailureCollection collection)
 {
     std::shared_ptr<TraceSpan> span;
     if (!m_spanStack.empty()) {
@@ -178,14 +180,8 @@ tempo_tracing::TraceContext::makeSpan(FailurePropagation propagation, FailureCol
     } else {
         span = m_recorder->makeSpan(propagation, collection);
     }
-    pushSpan(span);
+    m_spanStack.push_back(span);
     return span;
-}
-
-void
-tempo_tracing::TraceContext::pushSpan(std::shared_ptr<TraceSpan> span)
-{
-    m_spanStack.push_back(std::move(span));
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
@@ -239,6 +235,26 @@ tempo_tracing::TraceContext::peekSpanAndCheck(const tempo_utils::SpanId &spanId)
             TracingStatus::forCondition(TracingCondition::kTracingInvariant,
                 "unexpected span on top of scope stack"));
     return span;
+}
+
+bool
+tempo_tracing::TraceContext::isEmpty() const
+{
+    return m_spanStack.empty();
+}
+
+std::shared_ptr<tempo_tracing::TraceSpan>
+tempo_tracing::TraceContext::getSpan(int index) const
+{
+    if (0 <= index && index < m_spanStack.size())
+        return m_spanStack.at(index);
+    return {};
+}
+
+int
+tempo_tracing::TraceContext::numSpans() const
+{
+    return m_spanStack.size();
 }
 
 tempo_utils::Result<tempo_tracing::TempoSpanset>

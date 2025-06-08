@@ -47,6 +47,7 @@ namespace tempo_tracing {
         absl::Time getEndTime() const;
         void setEndTime(absl::Time endTime);
 
+        bool isActive() const;
         void activate();
         void deactivate();
 

@@ -3,14 +3,13 @@
 #include <tempo_config/config_result.h>
 #include <tempo_config/internal/config_listener.h>
 #include <tempo_config/internal/tracing_error_listener.h>
+#include <tempo_tracing/enter_scope.h>
+#include <tempo_utils/file_reader.h>
 
 #include <antlr4-runtime.h>
 
 #include "ConfigLexer.h"
 #include "ConfigParser.h"
-#include "tempo_tracing/enter_scope.h"
-#include "tempo_tracing/scope_manager.h"
-#include "tempo_utils/file_reader.h"
 
 tempo_config::ConfigParser::ConfigParser(const ConfigParserOptions &options)
     : m_options(options)
@@ -36,9 +35,8 @@ tempo_config::ConfigParser::parseString(
     }
 
     // create a new span
-    tempo_tracing::ScopeManager scopeManager(std::move(recorder));
-    tempo_tracing::EnterScope scope("tempo_config::ConfigParser", &scopeManager);
-    auto span = scope.getSpan();
+    auto span = recorder->makeSpan(
+        tempo_tracing::FailurePropagation::NoPropagation, tempo_tracing::FailureCollection::AnyChildFailed);
 
     // create the listener
     internal::ConfigListener listener(configSource, std::move(span));

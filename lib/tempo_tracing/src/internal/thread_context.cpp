@@ -13,6 +13,5 @@ void
 tempo_tracing::internal::reset_thread_context()
 {
     thread_context.currentContext = nullptr;
-    thread_context.currentName = {};
     thread_context.contexts.clear();
 }

@@ -6,9 +6,10 @@
 namespace tempo_tracing::internal {
 
     struct ThreadContext {
-        absl::flat_hash_map<std::string,std::unique_ptr<tempo_tracing::TraceContext>> contexts;
-        std::string currentName;
-        tempo_tracing::TraceContext *currentContext = nullptr;
+        absl::flat_hash_map<
+            std::string,
+            std::shared_ptr<tempo_tracing::TraceContext>> contexts;
+        std::shared_ptr<tempo_tracing::TraceContext> currentContext;
     };
 
     ThreadContext& get_thread_context();

@@ -29,7 +29,10 @@ namespace tempo_tracing {
             std::shared_ptr<TraceSpan> parentSpan,
             FailurePropagation propagation = FailurePropagation::NoPropagation,
             FailureCollection collection = FailureCollection::IgnoresPropagation);
+
+        bool isClosed() const;
         void close();
+
         tempo_utils::Result<TempoSpanset> toSpanset() const;
 
     private:

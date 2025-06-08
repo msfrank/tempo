@@ -26,7 +26,7 @@ namespace tempo_tracing {
         std::shared_ptr<SpanLog> logStatus(const tempo_utils::Status &status, LogSeverity severity);
 
     protected:
-        TraceContext *m_context;
+        std::shared_ptr<TraceContext> m_context;
         tempo_utils::Status m_status;
 
         bool checkCurrentContext();

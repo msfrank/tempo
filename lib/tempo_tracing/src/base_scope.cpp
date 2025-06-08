@@ -2,14 +2,13 @@
 #include <tempo_tracing/base_scope.h>
 
 static tempo_utils::Status
-get_context(std::string_view contextName, tempo_tracing::TraceContext **contextptr)
+get_context(std::string_view contextName, std::shared_ptr<tempo_tracing::TraceContext> &context)
 {
-    TU_ASSERT (contextptr != nullptr);
     if (!contextName.empty()) {
-        TU_ASSIGN_OR_RETURN (*contextptr, tempo_tracing::TraceContext::switchCurrent(contextName));
+        TU_ASSIGN_OR_RETURN (context, tempo_tracing::TraceContext::switchCurrent(contextName));
     } else {
-        *contextptr = tempo_tracing::TraceContext::currentContext();
-        if (*contextptr == nullptr)
+        context = tempo_tracing::TraceContext::currentContext();
+        if (context == nullptr)
             return tempo_tracing::TracingStatus::forCondition(
                 tempo_tracing::TracingCondition::kTracingInvariant, "missing current context");
     }
@@ -19,7 +18,7 @@ get_context(std::string_view contextName, tempo_tracing::TraceContext **contextp
 tempo_tracing::BaseScope::BaseScope(std::string_view contextName)
     : m_context(nullptr)
 {
-    m_status = get_context(contextName, &m_context);
+    m_status = get_context(contextName, m_context);
 }
 
 bool
@@ -27,7 +26,7 @@ tempo_tracing::BaseScope::checkCurrentContext()
 {
     if (m_context == nullptr)
         return false;
-    auto *current = tempo_tracing::TraceContext::currentContext();
+    auto current = tempo_tracing::TraceContext::currentContext();
     return m_context == current;
 }
 

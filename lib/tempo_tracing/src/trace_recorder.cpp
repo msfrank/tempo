@@ -67,6 +67,13 @@ tempo_tracing::TraceRecorder::makeSpan(
     return std::shared_ptr<TraceSpan>(span);
 }
 
+bool
+tempo_tracing::TraceRecorder::isClosed() const
+{
+    absl::MutexLock locker(m_lock);
+    return m_closed;
+}
+
 void
 tempo_tracing::TraceRecorder::close()
 {

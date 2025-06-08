@@ -8,12 +8,14 @@ set(TEST_CASES
     current_scope_tests.cpp
     enter_scope_tests.cpp
     exit_scope_tests.cpp
+    multi_threading_tests.cpp
     span_failure_propagation_tests.cpp
     span_log_tests.cpp
     span_status_tests.cpp
     span_timing_tests.cpp
     trace_context_tests.cpp
     trace_span_tests.cpp
+    unowned_trace_context_tests.cpp
     )
 
 # define test suite driver

@@ -10,43 +10,43 @@
 
 #include "base_tracing_fixture.h"
 
-class TraceContext : public BaseTracingFixture {
+class UnownedTraceContext : public BaseTracingFixture {
 protected:
     void TearDown() override {
         tempo_tracing::internal::reset_thread_context();
     }
 };
 
-TEST_F(TraceContext, ThreadInitiallyHasNoCurrentContext)
+TEST_F(UnownedTraceContext, MakeUnownedContext)
 {
-    ASSERT_EQ (nullptr, tempo_tracing::TraceContext::currentContext());
-}
-
-TEST_F(TraceContext, MakeContext)
-{
-    auto makeContextResult = tempo_tracing::TraceContext::makeContext("test");
-    ASSERT_THAT (makeContextResult, tempo_test::IsResult());
+    auto makeUnownedContextResult = tempo_tracing::TraceContext::makeUnownedContext(
+        tempo_tracing::TraceRecorder::create(), "test");
+    ASSERT_THAT (makeUnownedContextResult, tempo_test::IsResult());
     auto currentContext = tempo_tracing::TraceContext::currentContext();
     ASSERT_TRUE (currentContext == nullptr);
     auto testContext = tempo_tracing::TraceContext::getContext("test");
     ASSERT_TRUE (testContext != nullptr);
     ASSERT_EQ ("test", testContext->getName());
+    ASSERT_TRUE (testContext->isUnowned());
 }
 
-TEST_F(TraceContext, MakeContextAndSwitch)
+TEST_F(UnownedTraceContext, MakeUnownedContextAndSwitch)
 {
-    auto makeContextResult = tempo_tracing::TraceContext::makeContextAndSwitch("test");
-    ASSERT_THAT (makeContextResult, tempo_test::IsResult());
+    auto makeUnownedContextResult = tempo_tracing::TraceContext::makeUnownedContextAndSwitch(
+        tempo_tracing::TraceRecorder::create(), "test");
+    ASSERT_THAT (makeUnownedContextResult, tempo_test::IsResult());
     auto currentContext = tempo_tracing::TraceContext::currentContext();
     auto testContext = tempo_tracing::TraceContext::getContext("test");
     ASSERT_EQ (currentContext, testContext);
     ASSERT_EQ ("test", currentContext->getName());
+    ASSERT_TRUE (currentContext->isUnowned());
 }
 
-TEST_F(TraceContext, MakeContextThenSwitch)
+TEST_F(UnownedTraceContext, MakeUnownedContextThenSwitch)
 {
-    auto makeContextResult = tempo_tracing::TraceContext::makeContext("test");
-    ASSERT_THAT (makeContextResult, tempo_test::IsResult());
+    auto makeUnownedContextResult = tempo_tracing::TraceContext::makeUnownedContext(
+        tempo_tracing::TraceRecorder::create(), "test");
+    ASSERT_THAT (makeUnownedContextResult, tempo_test::IsResult());
     auto currentContext = tempo_tracing::TraceContext::currentContext();
     ASSERT_TRUE (currentContext == nullptr);
     auto switchCurrentResult = tempo_tracing::TraceContext::switchCurrent("test");
@@ -56,32 +56,33 @@ TEST_F(TraceContext, MakeContextThenSwitch)
     currentContext = tempo_tracing::TraceContext::currentContext();
     ASSERT_EQ (currentContext, testContext);
     ASSERT_EQ ("test", currentContext->getName());
+    ASSERT_TRUE (currentContext->isUnowned());
 }
 
-TEST_F(TraceContext, FinishContext)
+TEST_F(UnownedTraceContext, FinishFailsForUnownedContext)
 {
-    auto makeContextResult = tempo_tracing::TraceContext::makeContext("test");
-    ASSERT_THAT (makeContextResult, tempo_test::IsResult());
-    auto context = makeContextResult.getResult();
+    auto makeUnownedContextResult = tempo_tracing::TraceContext::makeUnownedContext(
+        tempo_tracing::TraceRecorder::create(), "test");
+    ASSERT_THAT (makeUnownedContextResult, tempo_test::IsResult());
+    auto context = makeUnownedContextResult.getResult();
+    ASSERT_TRUE (context->isUnowned());
+
     auto span = context->pushSpan(
         tempo_tracing::FailurePropagation::NoPropagation, tempo_tracing::FailureCollection::IgnoresPropagation);
     span->setOperationName("TestOperation");
-    auto traceId = context->getTraceId();
 
     auto finishContextResult = tempo_tracing::TraceContext::finishContext("test");
-    ASSERT_THAT (finishContextResult, tempo_test::IsResult());
-    ASSERT_FALSE (tempo_tracing::TraceContext::hasContext("test"));
-
-    auto spanset = finishContextResult.getResult();
-    ASSERT_TRUE (spanset.isValid());
-    ASSERT_EQ (traceId, spanset.getTraceId());
+    ASSERT_THAT (finishContextResult, tempo_test::IsStatus());
 }
 
-TEST_F(TraceContext, ReleaseContext)
+TEST_F(UnownedTraceContext, ReleaseUnownedContext)
 {
-    auto makeContextResult = tempo_tracing::TraceContext::makeContext("test");
-    ASSERT_THAT (makeContextResult, tempo_test::IsResult());
-    auto context = makeContextResult.getResult();
+    auto makeUnownedContextResult = tempo_tracing::TraceContext::makeUnownedContext(
+        tempo_tracing::TraceRecorder::create(), "test");
+    ASSERT_THAT (makeUnownedContextResult, tempo_test::IsResult());
+    auto context = makeUnownedContextResult.getResult();
+    ASSERT_TRUE (context->isUnowned());
+
     auto span = context->pushSpan(
         tempo_tracing::FailurePropagation::NoPropagation, tempo_tracing::FailureCollection::IgnoresPropagation);
     span->setOperationName("TestOperation");

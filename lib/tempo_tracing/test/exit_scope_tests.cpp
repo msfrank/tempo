@@ -27,7 +27,7 @@ TEST_F(ExitScope, PopSpanOnCurrentContextAfterScopeDestructs)
         tempo_tracing::ExitScope scope;
         auto span = scope.getSpan();
 
-        auto *currentContext = tempo_tracing::TraceContext::currentContext();
+        auto currentContext = tempo_tracing::TraceContext::currentContext();
         ASSERT_TRUE (currentContext->isActive());
         ASSERT_EQ (1, currentContext->numSpans());
         auto top = currentContext->peekSpan();
@@ -35,7 +35,7 @@ TEST_F(ExitScope, PopSpanOnCurrentContextAfterScopeDestructs)
         ASSERT_EQ ("TestOperation", span->getOperationName());
     }
 
-    auto *currentContext = tempo_tracing::TraceContext::currentContext();
+    auto currentContext = tempo_tracing::TraceContext::currentContext();
     ASSERT_TRUE (currentContext->isActive());
     ASSERT_TRUE (currentContext->isEmpty());
 }
@@ -53,7 +53,7 @@ TEST_F(ExitScope, PopSpanOnSpecifiedContextAfterScopeDestructs)
         tempo_tracing::ExitScope scope("test");
         auto span = scope.getSpan();
 
-        auto *currentContext = tempo_tracing::TraceContext::currentContext();
+        auto currentContext = tempo_tracing::TraceContext::currentContext();
         ASSERT_TRUE (currentContext->isActive());
         ASSERT_EQ (1, currentContext->numSpans());
         auto top = currentContext->peekSpan();
@@ -61,7 +61,7 @@ TEST_F(ExitScope, PopSpanOnSpecifiedContextAfterScopeDestructs)
         ASSERT_EQ ("TestOperation", span->getOperationName());
     }
 
-    auto *currentContext = tempo_tracing::TraceContext::currentContext();
+    auto currentContext = tempo_tracing::TraceContext::currentContext();
     ASSERT_TRUE (currentContext->isActive());
     ASSERT_TRUE (currentContext->isEmpty());
 }

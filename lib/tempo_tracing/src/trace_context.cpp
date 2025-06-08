@@ -3,36 +3,28 @@
 #include <tempo_tracing/trace_context.h>
 #include <tempo_utils/uuid.h>
 
-tempo_tracing::TraceContext *
+std::shared_ptr<tempo_tracing::TraceContext>
 tempo_tracing::TraceContext::currentContext()
 {
     auto &thread_context = internal::get_thread_context();
     return thread_context.currentContext;
 }
 
-tempo_tracing::TraceContext *
-tempo_tracing::TraceContext::getContext(std::string_view name)
-{
-    auto &thread_context = internal::get_thread_context();
-    auto entry = thread_context.contexts.find(name);
-    if (entry != thread_context.contexts.cend())
-        return entry->second.get();
-    return nullptr;
-}
-
-tempo_utils::Result<tempo_tracing::TraceContext *>
+tempo_utils::Result<std::shared_ptr<tempo_tracing::TraceContext>>
 tempo_tracing::TraceContext::switchCurrent(std::string_view name)
 {
     auto &thread_context = internal::get_thread_context();
-    if (thread_context.currentName == name)
-        return thread_context.currentContext;
 
     // get the next context
     auto entry = thread_context.contexts.find(name);
     if (entry == thread_context.contexts.cend())
         return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
             "missing trace context {}", name);
-    auto &nextContext = entry->second;
+    auto nextContext = entry->second;
+
+    // if named context is the current context then return it
+    if (thread_context.currentContext == nextContext)
+        return nextContext;
 
     // if there is an active context then deactivate it
     if (thread_context.currentContext != nullptr) {
@@ -40,13 +32,11 @@ tempo_tracing::TraceContext::switchCurrent(std::string_view name)
     }
 
     //
-    auto nextContextPtr = nextContext.get();
-    nextContextPtr->activate();
+    nextContext->activate();
 
-    thread_context.currentContext = nextContextPtr;
-    thread_context.currentName = name;
+    thread_context.currentContext = nextContext;
 
-    return nextContextPtr;
+    return nextContext;
 }
 
 tempo_utils::Status
@@ -60,11 +50,27 @@ tempo_tracing::TraceContext::clearCurrent()
     // otherwise deactivate the context and clear the current data
     thread_context.currentContext->deactivate();
     thread_context.currentContext = nullptr;
-    thread_context.currentName = {};
     return {};
 }
 
-tempo_utils::Result<tempo_tracing::TraceContext *>
+bool
+tempo_tracing::TraceContext::hasContext(std::string_view name)
+{
+    auto &thread_context = internal::get_thread_context();
+    return thread_context.contexts.contains(name);
+}
+
+std::shared_ptr<tempo_tracing::TraceContext>
+tempo_tracing::TraceContext::getContext(std::string_view name)
+{
+    auto &thread_context = internal::get_thread_context();
+    auto entry = thread_context.contexts.find(name);
+    if (entry != thread_context.contexts.cend())
+        return entry->second;
+    return nullptr;
+}
+
+tempo_utils::Result<std::shared_ptr<tempo_tracing::TraceContext>>
 tempo_tracing::TraceContext::makeContext(std::string_view name)
 {
     auto &thread_context = internal::get_thread_context();
@@ -79,16 +85,16 @@ tempo_tracing::TraceContext::makeContext(std::string_view name)
         return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
             "trace context {} already exists", contextName);
     auto recorder = TraceRecorder::create();
-    auto context = std::make_unique<TraceContext>(contextName, std::move(recorder));
-    auto *contextPtr = context.get();
-    thread_context.contexts[contextName] = std::move(context);
-    return contextPtr;
+    auto context = std::shared_ptr<TraceContext>(
+        new TraceContext(contextName, std::move(recorder), /* unowned= */ false));
+    thread_context.contexts[contextName] = context;
+    return context;
 }
 
-tempo_utils::Result<tempo_tracing::TraceContext *>
+tempo_utils::Result<std::shared_ptr<tempo_tracing::TraceContext>>
 tempo_tracing::TraceContext::makeContextAndSwitch(std::string_view name)
 {
-    TraceContext *context;
+    std::shared_ptr<TraceContext> context;
     TU_ASSIGN_OR_RETURN (context, makeContext(name));
     return switchCurrent(context->m_name);
 }
@@ -102,17 +108,98 @@ tempo_tracing::TraceContext::finishContext(std::string_view name)
         return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
             "missing trace context {}", name);
 
-    auto &context = entry->second;
+    auto context = entry->second;
+    if (context->isUnowned())
+        return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
+            "unowned trace context {} cannot be finished", name);
+
     auto recorder = context->m_recorder;
+    recorder->close();
 
     thread_context.contexts.erase(entry);
-    recorder->close();
     return recorder->toSpanset();
 }
 
-tempo_tracing::TraceContext::TraceContext(std::string_view name, std::shared_ptr<TraceRecorder> recorder)
+/**
+ * Create a new unowned context in the thread-local context map using the specified TraceRecorder.
+ * If the specified name is empty then a name is autogenerated.
+ *
+ * @param recorder
+ * @param name
+ * @return
+ */
+tempo_utils::Result<std::shared_ptr<tempo_tracing::TraceContext>>
+tempo_tracing::TraceContext::makeUnownedContext(
+    std::shared_ptr<TraceRecorder> recorder,
+    std::string_view name)
+{
+    auto &thread_context = internal::get_thread_context();
+    std::string contextName;
+    if (name.empty()) {
+        auto uuid = tempo_utils::UUID::randomUUID();
+        contextName = uuid.toString();
+    } else {
+        contextName = name;
+    }
+    if (thread_context.contexts.contains(contextName))
+        return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
+            "trace context {} already exists", contextName);
+    auto context = std::shared_ptr<TraceContext>(
+        new TraceContext(contextName, std::move(recorder), /* unowned= */ true));
+    thread_context.contexts[contextName] = context;
+    return context;
+}
+
+/**
+ * Create a new unowned context in the thread-local context map using the specified TraceRecorder.
+ * If the specified name is empty then a name is autogenerated. Once the context is created it is
+ * made the current context for the thread.
+ *
+ * @param recorder
+ * @param name
+ * @return
+ */
+tempo_utils::Result<std::shared_ptr<tempo_tracing::TraceContext>>
+tempo_tracing::TraceContext::makeUnownedContextAndSwitch(
+    std::shared_ptr<TraceRecorder> recorder,
+    std::string_view name)
+{
+    std::shared_ptr<TraceContext> context;
+    TU_ASSIGN_OR_RETURN (context, makeUnownedContext(recorder, name));
+    return switchCurrent(context->m_name);
+}
+
+/**
+ * Releases the specified context from the thread-local context map and returns the associated
+ * recorder. The recorder is not closed.
+ *
+ * @param name
+ * @return
+ */
+tempo_utils::Result<std::shared_ptr<tempo_tracing::TraceRecorder>>
+tempo_tracing::TraceContext::releaseContext(std::string_view name)
+{
+    auto &thread_context = internal::get_thread_context();
+    auto entry = thread_context.contexts.find(name);
+    if (entry == thread_context.contexts.cend())
+        return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
+            "missing trace context {}", name);
+
+    auto context = entry->second;
+    auto recorder = context->m_recorder;
+
+    thread_context.contexts.erase(entry);
+    return recorder;
+}
+
+tempo_tracing::TraceContext::TraceContext(
+    std::string_view name,
+    std::shared_ptr<TraceRecorder> recorder,
+    bool unowned)
     : m_name(name),
+      m_tid(std::this_thread::get_id()),
       m_recorder(std::move(recorder)),
+      m_unowned(unowned),
       m_isActive(false)
 {
     TU_ASSERT (!m_name.empty());
@@ -129,6 +216,15 @@ tempo_tracing::TraceContext::~TraceContext()
     }
 }
 
+void
+tempo_tracing::TraceContext::checkCurrentThreadOrThrow() const
+{
+    if (std::this_thread::get_id() != m_tid)
+        throw tempo_utils::StatusException(
+            TracingStatus::forCondition(TracingCondition::kTracingInvariant,
+                "trace context {} is only valid on the thread it was created from", m_name));
+}
+
 std::string
 tempo_tracing::TraceContext::getName() const
 {
@@ -141,15 +237,29 @@ tempo_tracing::TraceContext::getTraceId() const
     return m_recorder->traceId();
 }
 
+std::thread::id
+tempo_tracing::TraceContext::getThreadId() const
+{
+    return m_tid;
+}
+
+bool
+tempo_tracing::TraceContext::isUnowned() const
+{
+    return m_unowned;
+}
+
 bool
 tempo_tracing::TraceContext::isActive() const
 {
+    checkCurrentThreadOrThrow();
     return m_isActive;
 }
 
 void
 tempo_tracing::TraceContext::activate()
 {
+    checkCurrentThreadOrThrow();
     if (m_isActive)
         return;
     for (auto &span : m_spanStack) {
@@ -161,6 +271,7 @@ tempo_tracing::TraceContext::activate()
 void
 tempo_tracing::TraceContext::deactivate()
 {
+    checkCurrentThreadOrThrow();
     if (!m_isActive)
         return;
     for (auto it = m_spanStack.rbegin(); it != m_spanStack.rend(); it++) {
@@ -173,6 +284,7 @@ tempo_tracing::TraceContext::deactivate()
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceContext::pushSpan(FailurePropagation propagation, FailureCollection collection)
 {
+    checkCurrentThreadOrThrow();
     std::shared_ptr<TraceSpan> span;
     if (!m_spanStack.empty()) {
         auto &parent = m_spanStack.back();
@@ -187,6 +299,7 @@ tempo_tracing::TraceContext::pushSpan(FailurePropagation propagation, FailureCol
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceContext::popSpan()
 {
+    checkCurrentThreadOrThrow();
     if (m_spanStack.empty())
         throw tempo_utils::StatusException(
             TracingStatus::forCondition(TracingCondition::kTracingInvariant,
@@ -199,6 +312,7 @@ tempo_tracing::TraceContext::popSpan()
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceContext::popSpanAndCheck(const tempo_utils::SpanId &spanId)
 {
+    checkCurrentThreadOrThrow();
     if (m_spanStack.empty())
         throw tempo_utils::StatusException(
             TracingStatus::forCondition(TracingCondition::kTracingInvariant,
@@ -215,6 +329,7 @@ tempo_tracing::TraceContext::popSpanAndCheck(const tempo_utils::SpanId &spanId)
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceContext::peekSpan() const
 {
+    checkCurrentThreadOrThrow();
     if (m_spanStack.empty())
         throw tempo_utils::StatusException(
             TracingStatus::forCondition(TracingCondition::kTracingInvariant,
@@ -225,6 +340,7 @@ tempo_tracing::TraceContext::peekSpan() const
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceContext::peekSpanAndCheck(const tempo_utils::SpanId &spanId) const
 {
+    checkCurrentThreadOrThrow();
     if (m_spanStack.empty())
         throw tempo_utils::StatusException(
             TracingStatus::forCondition(TracingCondition::kTracingInvariant,
@@ -240,12 +356,14 @@ tempo_tracing::TraceContext::peekSpanAndCheck(const tempo_utils::SpanId &spanId)
 bool
 tempo_tracing::TraceContext::isEmpty() const
 {
+    checkCurrentThreadOrThrow();
     return m_spanStack.empty();
 }
 
 std::shared_ptr<tempo_tracing::TraceSpan>
 tempo_tracing::TraceContext::getSpan(int index) const
 {
+    checkCurrentThreadOrThrow();
     if (0 <= index && index < m_spanStack.size())
         return m_spanStack.at(index);
     return {};
@@ -254,12 +372,14 @@ tempo_tracing::TraceContext::getSpan(int index) const
 int
 tempo_tracing::TraceContext::numSpans() const
 {
+    checkCurrentThreadOrThrow();
     return m_spanStack.size();
 }
 
 tempo_utils::Result<tempo_tracing::TempoSpanset>
 tempo_tracing::TraceContext::finish()
 {
+    checkCurrentThreadOrThrow();
     m_recorder->close();
     return m_recorder->toSpanset();
 }

@@ -1,15 +1,16 @@
 #ifndef TEMPO_CONFIG_INTERNAL_CONFIG_LISTENER_H
 #define TEMPO_CONFIG_INTERNAL_CONFIG_LISTENER_H
 
-#include <tempo_config/config_types.h>
+#include <tempo_tracing/tempo_spanset.h>
+#include <tempo_tracing/trace_span.h>
 
 #include "ConfigParserBaseListener.h"
+
+#include "../config_types.h"
 
 #include "abstract_json_node.h"
 #include "json_array.h"
 #include "json_object.h"
-#include "tempo_tracing/scope_manager.h"
-#include "tempo_tracing/tempo_spanset.h"
 
 namespace tempo_config::internal {
 

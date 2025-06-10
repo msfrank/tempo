@@ -2,7 +2,7 @@
 #define TEMPO_CONFIG_INTERNAL_CONFIG_LISTENER_H
 
 #include <tempo_tracing/tempo_spanset.h>
-#include <tempo_tracing/trace_span.h>
+#include <tempo_tracing/trace_context.h>
 
 #include "ConfigParserBaseListener.h"
 
@@ -17,8 +17,7 @@ namespace tempo_config::internal {
     class ConfigListener : public tcf1::ConfigParserBaseListener {
 
     public:
-        explicit ConfigListener(std::shared_ptr<ConfigSource> source);
-        ConfigListener(std::shared_ptr<ConfigSource> source, std::shared_ptr<tempo_tracing::TraceSpan> span);
+        ConfigListener(std::shared_ptr<ConfigSource> source, std::shared_ptr<tempo_tracing::TraceContext> context);
 
         std::shared_ptr<ConfigSource> getSource() const;
 
@@ -28,6 +27,9 @@ namespace tempo_config::internal {
             const std::string &message);
 
         bool hasError() const;
+
+        void enterRoot(tcf1::ConfigParser::RootContext *ctx) override;
+        void exitRoot(tcf1::ConfigParser::RootContext *ctx) override;
 
         void exitNullLiteral(tcf1::ConfigParser::NullLiteralContext *ctx) override;
         void exitTrueLiteral(tcf1::ConfigParser::TrueLiteralContext *ctx) override;
@@ -62,7 +64,7 @@ namespace tempo_config::internal {
 
     private:
         std::shared_ptr<ConfigSource> m_source;
-        std::shared_ptr<tempo_tracing::TraceSpan> m_span;
+        std::shared_ptr<tempo_tracing::TraceContext> m_context;
 
         AbstractJsonNode *m_root;
         std::vector<AbstractJsonNode *> m_stack;

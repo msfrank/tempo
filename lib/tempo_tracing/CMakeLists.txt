@@ -12,6 +12,7 @@ set(TEMPO_TRACING_INCLUDES
     include/tempo_tracing/enter_scope.h
     include/tempo_tracing/exit_scope.h
     include/tempo_tracing/error_walker.h
+    include/tempo_tracing/leaf_scope.h
     include/tempo_tracing/log_walker.h
     include/tempo_tracing/root_walker.h
     include/tempo_tracing/span_log.h
@@ -75,6 +76,7 @@ target_sources(tempo_tracing PRIVATE
     src/enter_scope.cpp
     src/exit_scope.cpp
     src/error_walker.cpp
+    src/leaf_scope.cpp
     src/log_walker.cpp
     src/root_walker.cpp
     src/span_log.cpp

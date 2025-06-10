@@ -34,12 +34,22 @@ tempo_config::ConfigParser::parseString(
         configSource = std::make_shared<ConfigSource>();
     }
 
-    // create a new span
-    auto span = recorder->makeSpan(
-        tempo_tracing::FailurePropagation::NoPropagation, tempo_tracing::FailureCollection::AnyChildFailed);
+    // create the trace context
+    std::shared_ptr<tempo_tracing::TraceContext> context;
+    if (recorder != nullptr) {
+        TU_ASSIGN_OR_RETURN (context, tempo_tracing::TraceContext::makeUnownedContextAndSwitch(recorder));
+    } else {
+        TU_ASSIGN_OR_RETURN (context, tempo_tracing::TraceContext::makeContextAndSwitch());
+    }
+
+    // ensure context is released
+    tempo_tracing::ReleaseContext releaser(context);
+
+    // create the root span
+    tempo_tracing::EnterScope scope("tempo_config::ConfigParser");
 
     // create the listener
-    internal::ConfigListener listener(configSource, std::move(span));
+    internal::ConfigListener listener(configSource, context);
 
     // create the error listener
     internal::TracingErrorListener tracingErrorListener(&listener);

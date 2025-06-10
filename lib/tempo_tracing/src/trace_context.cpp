@@ -383,3 +383,21 @@ tempo_tracing::TraceContext::finish()
     m_recorder->close();
     return m_recorder->toSpanset();
 }
+
+tempo_tracing::ReleaseContext::ReleaseContext(std::string_view name)
+{
+    m_context = TraceContext::getContext(name);
+}
+
+tempo_tracing::ReleaseContext::ReleaseContext(std::shared_ptr<TraceContext> context)
+    : m_context(std::move(context))
+{
+    TU_ASSERT (m_context != nullptr);
+}
+
+tempo_tracing::ReleaseContext::~ReleaseContext()
+{
+    if (m_context) {
+        TraceContext::releaseContext(m_context->getName());
+    }
+}

@@ -30,6 +30,25 @@ namespace tempo_tracing {
         tempo_utils::Status m_status;
 
         bool checkCurrentContext();
+
+    public:
+        /**
+         *
+         * @tparam T
+         * @param serde
+         * @param value
+         * @return
+         */
+        template <typename T>
+        tempo_utils::Status
+        putTag(const tempo_schema::AttrSerde<T> &serde, const T &value)
+        {
+            auto span = getSpan();
+            if (span == nullptr)
+                return TracingStatus::forCondition(TracingCondition::kTracingInvariant,
+                    "invalid scope");
+            return span->putTag(serde, value);
+        }
     };
 }
 

@@ -6,25 +6,22 @@
 #include <tempo_config/internal/json_array.h>
 #include <tempo_config/internal/json_object.h>
 #include <tempo_config/internal/json_value.h>
+#include <tempo_tracing/current_scope.h>
+#include <tempo_tracing/enter_scope.h>
+#include <tempo_tracing/exit_scope.h>
 #include <tempo_tracing/span_log.h>
 #include <tempo_tracing/tracing_schema.h>
 #include <tempo_utils/log_message.h>
 
-tempo_config::internal::ConfigListener::ConfigListener(std::shared_ptr<ConfigSource> source)
-    : m_source(std::move(source)),
-      m_root(nullptr)
-{
-    TU_ASSERT (m_source != nullptr);
-}
 tempo_config::internal::ConfigListener::ConfigListener(
     std::shared_ptr<ConfigSource> source,
-    std::shared_ptr<tempo_tracing::TraceSpan> span)
+    std::shared_ptr<tempo_tracing::TraceContext> context)
     : m_source(std::move(source)),
-      m_span(std::move(span)),
+      m_context(std::move(context)),
       m_root(nullptr)
 {
     TU_ASSERT (m_source != nullptr);
-    TU_ASSERT (m_span != nullptr);
+    TU_ASSERT (m_context != nullptr);
 }
 
 std::shared_ptr<tempo_config::ConfigSource>
@@ -47,15 +44,12 @@ tempo_config::internal::ConfigListener::logErrorOrThrow(
             ConfigCondition::kParseError, fullMessage);
     }
 
-    if (m_span != nullptr) {
-        m_span->putTag(tempo_tracing::kOpentracingError, true);
-        auto log = m_span->appendLog(absl::Now(), tempo_tracing::LogSeverity::kError);
-        log->putField(tempo_tracing::kTempoTracingLineNumber, (tu_uint64) lineNr);
-        log->putField(tempo_tracing::kTempoTracingColumnNumber, (tu_uint64) columnNr);
-        log->putField(tempo_tracing::kOpentracingMessage, message);
-    } else {
-        throw tempo_utils::StatusException(m_status);
-    }
+    tempo_tracing::CurrentScope scope;
+    scope.putTag(tempo_tracing::kOpentracingError, true);
+    auto log = scope.appendLog(absl::Now(), tempo_tracing::LogSeverity::kError);
+    log->putField(tempo_tracing::kTempoTracingLineNumber, (tu_uint64) lineNr);
+    log->putField(tempo_tracing::kTempoTracingColumnNumber, (tu_uint64) columnNr);
+    log->putField(tempo_tracing::kOpentracingMessage, message);
 }
 
 bool
@@ -74,6 +68,18 @@ antlr_ctx_to_config_location(std::shared_ptr<tempo_config::ConfigSource> source,
 }
 
 #define IGNORE_RULE_IF_HAS_ERROR   do { if (hasError()) return; } while (0);
+
+void
+tempo_config::internal::ConfigListener::enterRoot(tcf1::ConfigParser::RootContext *ctx)
+{
+    tempo_tracing::EnterScope scope("tempo_config::ConfigListener::enterRoot");
+}
+
+void
+tempo_config::internal::ConfigListener::exitRoot(tcf1::ConfigParser::RootContext *ctx)
+{
+    tempo_tracing::ExitScope scope;
+}
 
 void
 tempo_config::internal::ConfigListener::exitNullLiteral(tcf1::ConfigParser::NullLiteralContext *ctx)

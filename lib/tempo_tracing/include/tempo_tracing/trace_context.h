@@ -69,6 +69,15 @@ namespace tempo_tracing {
         friend class CurrentScope;
         friend class ExitScope;
     };
+
+    class ReleaseContext {
+    public:
+        explicit ReleaseContext(std::string_view name);
+        explicit ReleaseContext(std::shared_ptr<TraceContext> context);
+        ~ReleaseContext();
+    private:
+        std::shared_ptr<TraceContext> m_context;
+    };
 }
 
 #endif // TEMPO_TRACING_THREAD_CONTEXT_H

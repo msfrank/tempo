@@ -8,6 +8,7 @@ set(TEST_CASES
     current_scope_tests.cpp
     enter_scope_tests.cpp
     exit_scope_tests.cpp
+    leaf_scope_tests.cpp
     multi_threading_tests.cpp
     span_failure_propagation_tests.cpp
     span_log_tests.cpp

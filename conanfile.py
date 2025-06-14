@@ -33,10 +33,10 @@ class Tempo(ConanFile):
         'flatbuffers/23.5.26@timbre',
         'gtest/1.14.0@timbre',
         'hdrhistogram/0.9.6@timbre',
-        'icu/77.1@timbre',
         'jemalloc/5.3.0@timbre',
         'openssl/3.2.0@timbre',
-        'rapidjson/20230820.1@timbre',
+        'rapidjson/20250205.1@timbre',
+        'utfcpp/4.0.6@timbre',
         )
 
     def validate(self):

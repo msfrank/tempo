@@ -144,12 +144,12 @@ target_link_libraries(tempo_utils
     absl::time
     absl::time_zone
     fmt::fmt
-    icu::icu
     PRIVATE
     Boost::headers
     Boost::url
     croaring::croaring
     hdrhistogram::hdrhistogram
+    utfcpp::utfcpp
     )
 
 # install targets

@@ -36,6 +36,7 @@ add_executable(tempo_utils_testsuite ${TEMPO_UTILS_TEST_CASES})
 target_link_libraries(tempo_utils_testsuite PUBLIC
     tempo::tempo_utils
     gtest::gtest
+    utfcpp::utfcpp
     )
 add_dependencies(tempo_utils_testsuite process-runner-child)
 target_compile_definitions(tempo_utils_testsuite PRIVATE
@@ -53,4 +54,5 @@ target_compile_definitions(TempoUtilsTestSuite PRIVATE
 target_link_libraries(TempoUtilsTestSuite PUBLIC
     tempo::tempo_utils
     gtest::gtest
+    utfcpp::utfcpp
     )

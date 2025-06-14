@@ -115,8 +115,8 @@ find_package(flatbuffers REQUIRED)
 # find required Openssl dependency
 find_package(openssl REQUIRED)
 
-# find required ICU dependency
-find_package(icu REQUIRED)
+# find required Utfcpp dependency
+find_package(utfcpp REQUIRED)
 
 # find required Fmt dependency
 find_package(fmt REQUIRED)

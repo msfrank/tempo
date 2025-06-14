@@ -124,7 +124,6 @@ target_link_libraries(tempo_config
     fmt::fmt
     PRIVATE
     antlr::antlr
-    icu::icu
     rapidjson::rapidjson
     )
 

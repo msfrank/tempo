@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <tempo_utils/url_authority.h>
+#include <tempo_utils/url.h>
 
-TEST(UrlAuthority, EmptyAuthority)
-{
+TEST(UrlAuthority, EmptyAuthority) {
     auto authority = tempo_utils::UrlAuthority::fromString("");
 
     ASSERT_FALSE (authority.isValid());
@@ -105,4 +105,12 @@ TEST(UrlAuthority, ParseAuthorityUsernamePasswordHostAndPort)
     ASSERT_EQ (authority.getPassword(), "pass");
 
     ASSERT_EQ (authority.toString(), "user:pass@foo.com:443");
+}
+
+TEST(UrlAuthority, CompareAuthorityEquals)
+{
+    auto authority = tempo_utils::UrlAuthority::fromString("user:pass@foo.com:443");
+    ASSERT_EQ (authority, authority);
+    auto url = tempo_utils::Url::fromString("http://user:pass@foo.com:443");
+    ASSERT_EQ (authority, url.toAuthority());
 }

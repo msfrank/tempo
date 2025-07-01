@@ -179,7 +179,9 @@ tempo_utils::UrlAuthority::operator==(const UrlAuthority &other) const
         return other.m_priv == nullptr;
     if (other.m_priv == nullptr)
         return false;
-    return boost::urls::authority_view(m_priv->url) == boost::urls::authority_view(other.m_priv->url);
+    auto thisAuthority = m_priv->url.authority();
+    auto otherAuthority = other.m_priv->url.authority();
+    return thisAuthority == otherAuthority;
 }
 
 bool

@@ -1,4 +1,6 @@
 
+#include <stack>
+
 #include <tempo_tracing/internal/spanset_reader.h>
 #include <tempo_tracing/spanset_state.h>
 #include <tempo_tracing/tempo_spanset.h>

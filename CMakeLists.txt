@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.27)
 
 project(tempo)
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "build type not specified so defaulting to Debug" FORCE)
+endif()
+
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(IS_DEBUG_BUILD ON)
 else()
@@ -15,13 +19,32 @@ endif()
 #######################################################################
 
 option(USE_SANITIZER "Enable sanitizer library" OFF)
+
 set(SANITIZER ""
     CACHE STRING
     "one of 'address', 'thread', 'memory', 'ub', or 'leak'")
+
 set(SANITIZER_IGNORELIST ""
     CACHE PATH
     "Instruct sanitizer to ignore symbols specified in ignorelist")
+
 option(USE_PROFILER "Enable gperftools profiler" OFF)
+
+set(DOCKER_PROGRAM ""
+    CACHE FILEPATH
+    "Path to the docker command. If empty then the program path is auto-detected. Defaults to ''")
+
+set(DOCKER_REQUIRES_SUDO "FALSE"
+    CACHE BOOL
+    "TRUE if the docker command requires sudo privileges. Defaults to 'FALSE'")
+
+set(DOCKER_PLATFORM ""
+    CACHE STRING
+    "Target platform for docker image. If empty then the platform is auto-detected. Defaults to ''")
+
+set(DOCKER_REGISTRY ""
+    CACHE STRING
+    "The docker registry to export to. If empty then defaults to the local image store. Defaults to ''")
 
 #######################################################################
 #
@@ -148,6 +171,19 @@ else()
     message(STATUS "gperftools profiler not enabled")
 endif(${USE_PROFILER})
 
+# find docker CLI
+if (DOCKER_PROGRAM)
+    set(Docker ${DOCKER_PROGRAM})
+    message(STATUS "Using Docker: ${Docker} (specified by DOCKER_PROGRAM)")
+else()
+    find_program(Docker docker)
+    if (Docker EQUAL "Docker-NOTFOUND")
+        message(STATUS "Docker not found, skipping generation of docker targets")
+    else()
+        message(STATUS "Found Docker: ${Docker}")
+    endif()
+endif()
+
 # include needed CMake features
 include(CMakePackageConfigHelpers)
 include(CTest)
@@ -172,6 +208,12 @@ set(ANTLR
     org.antlr.v4.Tool
 )
 message(STATUS "antlr command is ${ANTLR}")
+
+if (DOCKER_REQUIRES_SUDO)
+    set(DOCKER "sudo;${Docker}")
+else ()
+    set(DOCKER ${Docker})
+endif ()
 
 #######################################################################
 #
@@ -265,3 +307,50 @@ install(FILES
     COMPONENT Devel
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tempo"
     )
+
+
+#######################################################################
+#
+# build docker image
+#
+#######################################################################
+
+if (Docker)
+
+    if (DOCKER_REGISTRY)
+        set(DOCKER_BASE_IMAGE "${DOCKER_REGISTRY}/timbre/timbre:latest")
+        set(DOCKER_OUTPUT "type=registry,push=true")
+        set(DOCKER_TAG_PREFIX "${DOCKER_REGISTRY}/")
+    else()
+        set(DOCKER_BASE_IMAGE "timbre/timbre:latest")
+        set(DOCKER_OUTPUT "type=docker")
+        set(DOCKER_TAG_PREFIX "")
+    endif()
+
+    # set the PLATFORM_ID
+    if (DOCKER_PLATFORM)
+        set(PLATFORM_ID ${DOCKER_PLATFORM})
+    else()
+        set(PLATFORM_ID "linux/${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+    if (NOT PLATFORM_ID)
+        message(FATAL_ERROR "failed to determine docker platform id")
+    endif()
+
+    set(DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/Dockerfile")
+
+    # build the timbre/timbre image
+    add_custom_target(build_docker_image
+        COMMAND ${DOCKER} build
+          --platform ${PLATFORM_ID}
+          --build-arg base_image=${DOCKER_BASE_IMAGE}
+          -o ${DOCKER_OUTPUT}
+          -t "${DOCKER_TAG_PREFIX}tempo/tempo"
+          -f ${DOCKERFILE_PATH}
+          .
+        COMMENT "building tempo/tempo docker image"
+        DEPENDS ${DOCKERFILE_PATH}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+
+endif()

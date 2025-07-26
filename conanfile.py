@@ -13,8 +13,24 @@ class Tempo(ConanFile):
     description = 'Utility libraries for the Zuri project'
 
     settings = 'os', 'compiler', 'build_type', 'arch'
-    options = {'shared': [True, False], 'compiler.cppstd': ['17', '20'], 'build_type': ['Debug', 'Release']}
-    default_options = {'shared': True, 'compiler.cppstd': '20', 'build_type': 'Debug'}
+    options = {
+        'shared': [True, False],
+        'compiler.cppstd': ['17', '20'],
+        'build_type': ['Debug', 'Release'],
+        'docker_program': ['ANY', None],
+        'docker_requires_sudo': [True, False, None],
+        'docker_platform_id': ['ANY', None],
+        'docker_registry': ['ANY', None],
+    }
+    default_options = {
+        'shared': True,
+        'compiler.cppstd': '20',
+        'build_type': 'Debug',
+        'docker_program': None,
+        'docker_requires_sudo': False,
+        'docker_platform_id': None,
+        'docker_registry': None,
+    }
 
     exports_sources = (
         'CMakeLists.txt',
@@ -53,6 +69,16 @@ class Tempo(ConanFile):
         tc.variables['TEMPO_PACKAGE_VERSION'] = self.version
         tc.variables['ANTLR_TOOL_JAR'] = antlr.get('ANTLR_TOOL_JAR')
         tc.variables['FLATBUFFERS_FLATC'] = flatbuffers.get('FLATBUFFERS_FLATC')
+
+        if self.options.docker_program:
+            tc.cache_variables['DOCKER_PROGRAM'] = self.options.docker_program
+        if self.options.docker_requires_sudo is not None:
+            tc.cache_variables['DOCKER_REQUIRES_SUDO'] = self.options.docker_requires_sudo
+        if self.options.docker_platform_id:
+            tc.cache_variables['DOCKER_PLATFORM_ID'] = self.options.docker_platform_id
+        if self.options.docker_registry:
+            tc.cache_variables['DOCKER_REGISTRY'] = self.options.docker_registry
+
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()

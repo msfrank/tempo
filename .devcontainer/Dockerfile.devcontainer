@@ -1,0 +1,7 @@
+
+# define arguments
+ARG base_image=timbre/timbre:latest
+
+FROM ${base_image}
+
+USER jrandomhacker

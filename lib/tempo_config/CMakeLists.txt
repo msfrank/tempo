@@ -20,6 +20,7 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/merge_map.h
     include/tempo_config/parse_config.h
     include/tempo_config/program_config.h
+    include/tempo_config/time_conversions.h
     include/tempo_config/workspace_config.h
     )
 set_target_properties(tempo_config PROPERTIES PUBLIC_HEADER "${TEMPO_CONFIG_INCLUDES}")
@@ -65,6 +66,7 @@ target_sources(tempo_config
     src/merge_map.cpp
     src/parse_directories.cpp
     src/program_config.cpp
+    src/time_conversions.cpp
     src/workspace_config.cpp
 
     include/tempo_config/internal/abstract_json_node.h

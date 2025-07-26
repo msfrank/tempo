@@ -1,0 +1,8 @@
+{
+  "name": "tempo-devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile.devcontainer"
+  },
+  "customizations": {
+  }
+}

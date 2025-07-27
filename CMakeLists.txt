@@ -1,6 +1,24 @@
 cmake_minimum_required(VERSION 3.27)
 
-project(tempo)
+set(TEMPO_PACKAGE_VERSION "0.0.0"
+    CACHE STRING
+    "The project version. Defaults to 0.0.0")
+set(TEMPO_PACKAGE_URL ""
+    CACHE STRING
+    "The project url. Defaults to ''")
+set(TEMPO_PACKAGE_DESCRIPTION ""
+    CACHE STRING
+    "The project description. Defaults to ''")
+set(TEMPO_PACKAGE_LICENSE ""
+    CACHE STRING
+    "The project license. Defaults to ''")
+
+
+project(tempo
+    VERSION ${TEMPO_PACKAGE_VERSION}
+    HOMEPAGE_URL ${TEMPO_PACKAGE_URL}
+    DESCRIPTION ${TEMPO_PACKAGE_DESCRIPTION}
+    )
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "build type not specified so defaulting to Debug" FORCE)
@@ -41,6 +59,10 @@ set(DOCKER_REQUIRES_SUDO "FALSE"
 set(DOCKER_PLATFORM ""
     CACHE STRING
     "Target platform for docker image. If empty then the platform is auto-detected. Defaults to ''")
+
+set(DOCKER_BASE_IMAGE_REGISTRY ""
+    CACHE STRING
+    "The docker registry containing the base image. Defaults to ''")
 
 set(DOCKER_REGISTRY ""
     CACHE STRING
@@ -318,11 +340,9 @@ install(FILES
 if (Docker)
 
     if (DOCKER_REGISTRY)
-        set(DOCKER_BASE_IMAGE "${DOCKER_REGISTRY}/timbre/timbre:latest")
         set(DOCKER_OUTPUT "type=registry,push=true")
         set(DOCKER_TAG_PREFIX "${DOCKER_REGISTRY}/")
     else()
-        set(DOCKER_BASE_IMAGE "timbre/timbre:latest")
         set(DOCKER_OUTPUT "type=docker")
         set(DOCKER_TAG_PREFIX "")
     endif()
@@ -339,18 +359,23 @@ if (Docker)
 
     set(DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/Dockerfile")
 
-    # build the timbre/timbre image
+    # build the tempo/tempo image
     add_custom_target(build_docker_image
         COMMAND ${DOCKER} build
           --platform ${PLATFORM_ID}
-          --build-arg base_image=${DOCKER_BASE_IMAGE}
+          --build-arg base_image_registry=${DOCKER_BASE_IMAGE_REGISTRY}
           -o ${DOCKER_OUTPUT}
           -t "${DOCKER_TAG_PREFIX}tempo/tempo"
+          -t "${DOCKER_TAG_PREFIX}tempo/tempo:${CMAKE_PROJECT_VERSION}"
           -f ${DOCKERFILE_PATH}
+          --label "org.opencontainers.image.version=${CMAKE_PROJECT_VERSION}"
+          --label "org.opencontainers.image.source=${CMAKE_PROJECT_HOMEPAGE_URL}"
+          --label "org.opencontainers.image.description=${CMAKE_PROJECT_DESCRIPTION}"
+          --label "org.opencontainers.image.licenses=${TEMPO_PACKAGE_LICENSE}"
           .
         COMMENT "building tempo/tempo docker image"
         DEPENDS ${DOCKERFILE_PATH}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
+        )
 
 endif()

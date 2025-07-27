@@ -1,8 +1,8 @@
 
 # define arguments
-ARG base_image=timbre/timbre:latest
+ARG base_image_registry
 
-FROM ${base_image}
+FROM ${base_image_registry}timbre/timbre:latest
 
 # switch current user
 USER jrandomhacker

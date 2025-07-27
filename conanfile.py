@@ -14,18 +14,18 @@ class Tempo(ConanFile):
 
     settings = 'os', 'compiler', 'build_type', 'arch'
     options = {
-        'shared': [True, False],
-        'compiler.cppstd': ['17', '20'],
-        'build_type': ['Debug', 'Release'],
+        'use_sanitizer': [True, False, None],
+        'sanitizer': ['address', 'thread', 'memory', 'ub', 'leak', None],
+        'use_profiler': [True, False, None],
         'docker_program': ['ANY', None],
         'docker_requires_sudo': [True, False, None],
         'docker_platform_id': ['ANY', None],
         'docker_registry': ['ANY', None],
     }
     default_options = {
-        'shared': True,
-        'compiler.cppstd': '20',
-        'build_type': 'Debug',
+        'use_sanitizer': None,
+        'sanitizer': None,
+        'use_profiler': None,
         'docker_program': None,
         'docker_requires_sudo': False,
         'docker_platform_id': None,
@@ -66,10 +66,19 @@ class Tempo(ConanFile):
         flatbuffers = self.dependencies['flatbuffers'].buildenv_info.vars(self)
 
         tc = CMakeToolchain(self)
-        tc.variables['TEMPO_PACKAGE_VERSION'] = self.version
-        tc.variables['ANTLR_TOOL_JAR'] = antlr.get('ANTLR_TOOL_JAR')
-        tc.variables['FLATBUFFERS_FLATC'] = flatbuffers.get('FLATBUFFERS_FLATC')
+        tc.cache_variables['TEMPO_PACKAGE_VERSION'] = self.version
+        tc.cache_variables['TEMPO_PACKAGE_URL'] = self.url
+        tc.cache_variables['TEMPO_PACKAGE_DESCRIPTION'] = self.description
+        tc.cache_variables['TEMPO_PACKAGE_LICENSE'] = self.license
+        tc.cache_variables['ANTLR_TOOL_JAR'] = antlr.get('ANTLR_TOOL_JAR')
+        tc.cache_variables['FLATBUFFERS_FLATC'] = flatbuffers.get('FLATBUFFERS_FLATC')
 
+        if self.options.use_sanitizer:
+            tc.cache_variables['USE_SANITIZER'] = self.options.use_sanitizer
+        if self.options.sanitizer:
+            tc.cache_variables['SANITIZER'] = self.options.sanitizer
+        if self.options.use_profiler:
+            tc.cache_variables['USE_PROFILER'] = self.options.use_profiler
         if self.options.docker_program:
             tc.cache_variables['DOCKER_PROGRAM'] = self.options.docker_program
         if self.options.docker_requires_sudo is not None:

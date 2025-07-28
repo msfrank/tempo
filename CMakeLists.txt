@@ -10,9 +10,9 @@ string(STRIP ${TEMPO_PROJECT_DESCRIPTION} TEMPO_PROJECT_DESCRIPTION)
 
 # declare the project
 project(tempo
-    VERSION ${TEMPO_PACKAGE_VERSION}
-    HOMEPAGE_URL ${TEMPO_PACKAGE_URL}
-    DESCRIPTION ${TEMPO_PACKAGE_DESCRIPTION}
+    VERSION ${TEMPO_PROJECT_VERSION}
+    HOMEPAGE_URL ${TEMPO_PROJECT_URL}
+    DESCRIPTION ${TEMPO_PROJECT_DESCRIPTION}
     )
 
 # if build type was not explicitly defined then default to Debug
@@ -229,19 +229,6 @@ message(STATUS "antlr command is ${ANTLR}")
 set(FULL_PLATFORM "${CMAKE_SYSTEM_NAME}.${CMAKE_SYSTEM_VERSION}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "full platform is ${FULL_PLATFORM}")
 
-# define individual version components and version string
-string(REGEX REPLACE "([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1"
-    MAJOR_VERSION
-    "${TEMPO_PACKAGE_VERSION}")
-string(REGEX REPLACE "[0-9]+\\.([0-9]+)\\.[0-9]+" "\\1"
-    MINOR_VERSION
-    "${TEMPO_PACKAGE_VERSION}")
-string(REGEX REPLACE "[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1"
-    PATCH_VERSION
-    "${TEMPO_PACKAGE_VERSION}")
-set(FULL_VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
-message(STATUS "version is ${FULL_VERSION}")
-
 # build paths
 set(TEMPO_BUILD_OUTPUT_ROOT         "${CMAKE_BINARY_DIR}/output")
 set(TEMPO_BUILD_BIN_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_BINDIR}")
@@ -296,7 +283,7 @@ configure_package_config_file(
     )
 
 write_basic_package_version_file(tempo-config-version.cmake
-    VERSION "${FULL_VERSION}"
+    VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion
     )
 

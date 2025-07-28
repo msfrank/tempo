@@ -67,10 +67,8 @@ endif ()
 
 if (DOCKER_REGISTRY)
     set(DOCKER_OUTPUT "type=registry,push=true")
-    set(DOCKER_TAG_PREFIX "${DOCKER_REGISTRY}/")
 else()
     set(DOCKER_OUTPUT "type=docker")
-    set(DOCKER_TAG_PREFIX "")
 endif()
 
 # set the PLATFORM_ID
@@ -85,21 +83,21 @@ endif()
 
 set(DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/Dockerfile")
 
-# build the tempo/tempo image
+# build the tempo image
 add_custom_target(build_docker_image
     COMMAND ${DOCKER} build
     --platform ${PLATFORM_ID}
     --build-arg base_image_registry=${DOCKER_BASE_IMAGE_REGISTRY}
     -o ${DOCKER_OUTPUT}
-    -t "${DOCKER_TAG_PREFIX}tempo/tempo"
-    -t "${DOCKER_TAG_PREFIX}tempo/tempo:${CMAKE_PROJECT_VERSION}"
+    -t "${DOCKER_REGISTRY}tempo"
+    -t "${DOCKER_REGISTRY}tempo:${CMAKE_PROJECT_VERSION}"
     -f ${DOCKERFILE_PATH}
     --label "org.opencontainers.image.version=${CMAKE_PROJECT_VERSION}"
     --label "org.opencontainers.image.source=${CMAKE_PROJECT_HOMEPAGE_URL}"
     --label "org.opencontainers.image.description=${CMAKE_PROJECT_DESCRIPTION}"
-    --label "org.opencontainers.image.licenses=${TEMPO_PACKAGE_LICENSE}"
+    --label "org.opencontainers.image.licenses=${TEMPO_PROJECT_LICENSE}"
     .
-    COMMENT "building tempo/tempo docker image"
+    COMMENT "building tempo docker image"
     DEPENDS ${DOCKERFILE_PATH}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
+    )

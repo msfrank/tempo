@@ -3,6 +3,12 @@ on:
   push:
     branches:
       - master
+  registry_package:
+    action: published
+    package:
+      namespace: msfrank
+      name: [timbre]
+
 
 jobs:
   build-and-upload:
@@ -56,4 +62,4 @@ jobs:
         run: |
           docker buildx imagetools create \
             --tag ghcr.io/msfrank/tempo:latest \
-            localhost:5000/tempo/tempo:latest
+            localhost:5000/tempo:latest

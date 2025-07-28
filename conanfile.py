@@ -3,21 +3,11 @@ from os.path import join
 from conan import ConanFile
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import copy
-
-def get_meta(key):
-    '''get the metadata value for the specified key.'''
-    from pathlib import Path
-    meta = Path(__file__).parent / "meta" / key
-    return meta.read_text().strip()
+from conan.tools.files import copy, load
 
 
 class Tempo(ConanFile):
     name = 'tempo'
-    version = get_meta('version')
-    license = get_meta('license')
-    url = get_meta('url')
-    description = get_meta('description')
 
     settings = 'os', 'compiler', 'build_type', 'arch'
     options = {
@@ -43,11 +33,15 @@ class Tempo(ConanFile):
         'docker_registry': None,
     }
 
+    exports = ('meta/*')
+
     exports_sources = (
         'CMakeLists.txt',
         'bin/*',
         'cmake/*',
+        'docker/*',
         'lib/*',
+        'meta/*',
         )
 
     requires = (
@@ -65,6 +59,15 @@ class Tempo(ConanFile):
         'rapidjson/20250205.1@timbre',
         'utfcpp/4.0.6@timbre',
         )
+
+    def _get_meta(self, key):
+        return load(self, join(self.recipe_folder, "meta", key))
+
+    def set_version(self):
+        self.version = self._get_meta('version')
+        self.license = self._get_meta('license')
+        self.url = self._get_meta('url')
+        self.description = self._get_meta('description')
 
     def validate(self):
         check_min_cppstd(self, "20")

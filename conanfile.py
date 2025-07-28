@@ -5,30 +5,41 @@ from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy
 
+def get_meta(key):
+    '''get the metadata value for the specified key.'''
+    from pathlib import Path
+    meta = Path(__file__).parent / "meta" / key
+    return meta.read_text().strip()
+
+
 class Tempo(ConanFile):
     name = 'tempo'
-    version = '0.0.1'
-    license = 'BSD-3-Clause'
-    url = 'https://github.com/msfrank/tempo'
-    description = 'Utility libraries for the Zuri project'
+    version = get_meta('version')
+    license = get_meta('license')
+    url = get_meta('url')
+    description = get_meta('description')
 
     settings = 'os', 'compiler', 'build_type', 'arch'
     options = {
-        'use_sanitizer': [True, False, None],
+        'enable_sanitizer': [True, False, None],
         'sanitizer': ['address', 'thread', 'memory', 'ub', 'leak', None],
-        'use_profiler': [True, False, None],
+        'enable_profiler': [True, False, None],
+        'enable_docker_build': [True, False, None],
         'docker_program': ['ANY', None],
         'docker_requires_sudo': [True, False, None],
         'docker_platform_id': ['ANY', None],
+        'docker_base_image_registry': ['ANY', None],
         'docker_registry': ['ANY', None],
     }
     default_options = {
-        'use_sanitizer': None,
+        'enable_sanitizer': None,
         'sanitizer': None,
-        'use_profiler': None,
+        'enable_profiler': None,
+        'enable_docker_build': None,
         'docker_program': None,
         'docker_requires_sudo': False,
         'docker_platform_id': None,
+        'docker_base_image_registry': None,
         'docker_registry': None,
     }
 
@@ -66,19 +77,17 @@ class Tempo(ConanFile):
         flatbuffers = self.dependencies['flatbuffers'].buildenv_info.vars(self)
 
         tc = CMakeToolchain(self)
-        tc.cache_variables['TEMPO_PACKAGE_VERSION'] = self.version
-        tc.cache_variables['TEMPO_PACKAGE_URL'] = self.url
-        tc.cache_variables['TEMPO_PACKAGE_DESCRIPTION'] = self.description
-        tc.cache_variables['TEMPO_PACKAGE_LICENSE'] = self.license
         tc.cache_variables['ANTLR_TOOL_JAR'] = antlr.get('ANTLR_TOOL_JAR')
         tc.cache_variables['FLATBUFFERS_FLATC'] = flatbuffers.get('FLATBUFFERS_FLATC')
 
-        if self.options.use_sanitizer:
-            tc.cache_variables['USE_SANITIZER'] = self.options.use_sanitizer
+        if self.options.enable_sanitizer:
+            tc.cache_variables['ENABLE_SANITIZER'] = self.options.enable_sanitizer
         if self.options.sanitizer:
             tc.cache_variables['SANITIZER'] = self.options.sanitizer
-        if self.options.use_profiler:
-            tc.cache_variables['USE_PROFILER'] = self.options.use_profiler
+        if self.options.enable_profiler:
+            tc.cache_variables['ENABLE_PROFILER'] = self.options.enable_profiler
+        if self.options.enable_docker_build:
+            tc.cache_variables['ENABLE_DOCKER_BUILD'] = self.options.enable_docker_build
         if self.options.docker_program:
             tc.cache_variables['DOCKER_PROGRAM'] = self.options.docker_program
         if self.options.docker_requires_sudo is not None:

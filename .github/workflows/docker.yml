@@ -52,7 +52,7 @@ jobs:
             -DENABLE_DOCKER_BUILD=True \
             -DDISABLE_LOCAL_BUILD=True \
             -DDOCKER_BASE_IMAGE_REGISTRY=ghcr.io/msfrank/ \
-            -DDOCKER_REGISTRY=localhost:5000 \
+            -DDOCKER_REGISTRY=localhost:5000/ \
             -DDOCKER_PLATFORM_ID=${{matrix.platform}}
 
       - name: Build tempo docker image

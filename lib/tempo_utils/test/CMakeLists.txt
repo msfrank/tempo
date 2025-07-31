@@ -11,6 +11,7 @@ set(TEMPO_UTILS_TEST_CASES
     bytes_appender_tests.cpp
     bytes_iterator_tests.cpp
     big_endian_tests.cpp
+    date_time_tests.cpp
     hdr_histogram_tests.cpp
     ieee754_tests.cpp
     logging_tests.cpp

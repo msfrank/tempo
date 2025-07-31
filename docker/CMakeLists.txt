@@ -17,9 +17,9 @@ set(DOCKER_PLATFORM_ID ""
     CACHE STRING
     "Target platform for docker image. If empty then the platform is auto-detected. Defaults to ''")
 
-set(DOCKER_BASE_IMAGE_REGISTRY ""
+set(DOCKER_BASE_IMAGE "timbre:latest"
     CACHE STRING
-    "The docker registry containing the base image. Defaults to ''")
+    "The docker image to use as the base. Defaults to 'timbre:latest'")
 
 set(DOCKER_REGISTRY ""
     CACHE STRING
@@ -87,7 +87,7 @@ set(DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/Dockerfile")
 add_custom_target(build_docker_image
     COMMAND ${DOCKER} build
     --platform ${PLATFORM_ID}
-    --build-arg base_image_registry=${DOCKER_BASE_IMAGE_REGISTRY}
+    --build-arg base_image=${DOCKER_BASE_IMAGE}
     -o ${DOCKER_OUTPUT}
     -t "${DOCKER_REGISTRY}tempo"
     -t "${DOCKER_REGISTRY}tempo:${CMAKE_PROJECT_VERSION}"

@@ -2,7 +2,7 @@
 # define arguments
 ARG base_image
 
-FROM ${base_image}timbre:latest
+FROM ${base_image}
 
 # switch current user
 USER jrandomhacker

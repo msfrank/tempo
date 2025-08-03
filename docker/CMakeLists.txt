@@ -81,17 +81,22 @@ if (NOT PLATFORM_ID)
     message(FATAL_ERROR "failed to determine docker platform id")
 endif()
 
-set(DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/Dockerfile")
+set(PLATFORM_DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/platform/Dockerfile")
+set(PKGCACHE_DOCKERFILE_PATH "${CMAKE_SOURCE_DIR}/docker/pkgcache/Dockerfile")
 
 # build the tempo image
+set(PLATFORM_IMAGE_NAME "$<IF:$<BOOL:${IS_DEBUG_BUILD}>,tempo-debug,tempo>")
 add_custom_target(build_docker_image
     COMMAND ${DOCKER} build
     --platform ${PLATFORM_ID}
     --build-arg base_image=${DOCKER_BASE_IMAGE}
+    --build-arg is_debug_build=$<BOOL:${IS_DEBUG_BUILD}>
     -o ${DOCKER_OUTPUT}
-    -t "${DOCKER_REGISTRY}tempo"
-    -t "${DOCKER_REGISTRY}tempo:${CMAKE_PROJECT_VERSION}"
-    -f ${DOCKERFILE_PATH}
+    -t "${DOCKER_REGISTRY}${PLATFORM_IMAGE_NAME}"
+    -t "${DOCKER_REGISTRY}${PLATFORM_IMAGE_NAME}:${CMAKE_PROJECT_VERSION}"
+    -t "${DOCKER_REGISTRY}${PLATFORM_IMAGE_NAME}:latest"
+    -t "${DOCKER_REGISTRY}tempo-current-build"
+    -f ${PLATFORM_DOCKERFILE_PATH}
     --label "org.opencontainers.image.version=${CMAKE_PROJECT_VERSION}"
     --label "org.opencontainers.image.source=${CMAKE_PROJECT_HOMEPAGE_URL}"
     --label "org.opencontainers.image.description=${CMAKE_PROJECT_DESCRIPTION}"
@@ -101,3 +106,25 @@ add_custom_target(build_docker_image
     DEPENDS ${DOCKERFILE_PATH}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
+
+# build the tempo-pkgcache image
+set(PKGCACHE_IMAGE_NAME "$<IF:$<BOOL:${IS_DEBUG_BUILD}>,tempo-pkgcache-debug,tempo-pkgcache>")
+add_custom_target(build_docker_pkgcache_image
+    COMMAND ${DOCKER} build
+    --platform ${PLATFORM_ID}
+    --build-arg tempo_image=${DOCKER_REGISTRY}${PLATFORM_IMAGE_NAME}
+    -o ${DOCKER_OUTPUT}
+    -t "${DOCKER_REGISTRY}${PKGCACHE_IMAGE_NAME}"
+    -t "${DOCKER_REGISTRY}${PKGCACHE_IMAGE_NAME}:${CMAKE_PROJECT_VERSION}"
+    -t "${DOCKER_REGISTRY}${PKGCACHE_IMAGE_NAME}:latest"
+    -t "${DOCKER_REGISTRY}tempo-pkgcache-current-build"
+    -f ${PKGCACHE_DOCKERFILE_PATH}
+    --label "org.opencontainers.image.version=${CMAKE_PROJECT_VERSION}"
+    --label "org.opencontainers.image.source=${CMAKE_PROJECT_HOMEPAGE_URL}"
+    --label "org.opencontainers.image.description=${CMAKE_PROJECT_DESCRIPTION}"
+    --label "org.opencontainers.image.licenses=${TEMPO_PROJECT_LICENSE}"
+    .
+    COMMENT "building tempo-pkgcache docker image"
+    DEPENDS ${DOCKERFILE_PATH}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)

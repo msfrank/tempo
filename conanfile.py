@@ -27,7 +27,7 @@ class Tempo(ConanFile):
         'enable_profiler': None,
         'enable_docker_build': None,
         'docker_program': None,
-        'docker_requires_sudo': False,
+        'docker_requires_sudo': None,
         'docker_platform_id': None,
         'docker_base_image_registry': None,
         'docker_registry': None,

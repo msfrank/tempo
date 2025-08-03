@@ -236,6 +236,7 @@ set(TEMPO_BUILD_OUTPUT_ROOT         "${CMAKE_BINARY_DIR}/output")
 set(TEMPO_BUILD_BIN_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_BINDIR}")
 set(TEMPO_BUILD_LIB_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_LIBDIR}")
 
+
 #######################################################################
 #
 # add targets from subdirectories
@@ -244,6 +245,7 @@ set(TEMPO_BUILD_LIB_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_
 
 add_subdirectory(bin)
 add_subdirectory(lib)
+
 
 #######################################################################
 #
@@ -270,6 +272,7 @@ target_link_libraries(tempo_testsuite
     TempoUtilsTestSuite
 )
 gtest_discover_tests(tempo_testsuite)
+
 
 #######################################################################
 #

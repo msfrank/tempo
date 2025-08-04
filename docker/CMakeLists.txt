@@ -103,7 +103,7 @@ add_custom_target(build_docker_image
     --label "org.opencontainers.image.licenses=${TEMPO_PROJECT_LICENSE}"
     .
     COMMENT "building tempo docker image"
-    DEPENDS ${DOCKERFILE_PATH}
+    DEPENDS ${PLATFORM_DOCKERFILE_PATH}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
 
@@ -125,6 +125,6 @@ add_custom_target(build_docker_pkgcache_image
     --label "org.opencontainers.image.licenses=${TEMPO_PROJECT_LICENSE}"
     .
     COMMENT "building tempo-pkgcache docker image"
-    DEPENDS ${DOCKERFILE_PATH}
+    DEPENDS ${PKGCACHE_DOCKERFILE_PATH}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
+    )

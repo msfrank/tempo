@@ -13,7 +13,7 @@ jobs:
       build_type: Debug
       build_runner: ubuntu-24.04-arm
       platform_id: linux/arm64
-      base_image: ghcr.io/msfrank/timbre:debug-latest
+      base_image: ghcr.io/msfrank/timbre-debug:latest
 
   build-linux-x86-64-debug:
     name: Build linux x86_64 debug image
@@ -22,7 +22,7 @@ jobs:
       build_type: Debug
       build_runner: ubuntu-24.04
       platform_id: linux/x86_64
-      base_image: ghcr.io/msfrank/timbre:debug-latest
+      base_image: ghcr.io/msfrank/timbre-debug:latest
 
   build-debug-images:
     name: Build platform and pkgcache debug images

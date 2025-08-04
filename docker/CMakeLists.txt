@@ -17,9 +17,9 @@ set(DOCKER_PLATFORM_ID ""
     CACHE STRING
     "Target platform for docker image. If empty then the platform is auto-detected. Defaults to ''")
 
-set(DOCKER_BASE_IMAGE "timbre:latest"
+set(DOCKER_BASE_IMAGE "$<IF:$<BOOL:${IS_DEBUG_BUILD}>,timbre-debug:latest,timbre:latest>"
     CACHE STRING
-    "The docker image to use as the base. Defaults to 'timbre:latest'")
+    "The docker image to use as the base. Defaults to 'timbre-debug:latest' for a debug build, otherwise 'timbre:latest'")
 
 set(DOCKER_REGISTRY ""
     CACHE STRING

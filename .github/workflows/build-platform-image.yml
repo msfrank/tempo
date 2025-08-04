@@ -23,15 +23,16 @@ on:
       platform_image_path:
         value: ${{ jobs.build-platform-image.outputs.platform_image_path }}
       pkgcache_image_path:
-        value: ${{ jobs.build-pkgcache-image.outputs.pkgcache_image_path }}
+        value: ${{ jobs.build-platform-image.outputs.pkgcache_image_path }}
 
 jobs:
   build-platform-image:
-    name: Build platform docker image
+    name: Build platform image and pkgcache image
     runs-on: ${{ inputs.build_runner }}
 
     outputs:
-      platform_image_path: ${{ steps.push-image-to-ghcr.outputs.platform_image_path }}
+      platform_image_path: ${{ steps.push-platform-image-to-ghcr.outputs.platform_image_path }}
+      pkgcache_image_path: ${{ steps.push-pkgcache-image-to-ghcr.outputs.pkgcache_image_path }}
 
     services:
       registry:

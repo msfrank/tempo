@@ -1,6 +1,9 @@
 #ifndef TEMPO_UTILS_DATE_TIME_H
 #define TEMPO_UTILS_DATE_TIME_H
 
+#include <memory>
+#include <string>
+
 #include "integer_types.h"
 
 namespace tempo_utils {

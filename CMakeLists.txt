@@ -249,33 +249,6 @@ add_subdirectory(lib)
 
 #######################################################################
 #
-# declare the package test suite target
-#
-#######################################################################
-
-set(EMPTY_CPP ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-add_custom_command(
-    OUTPUT ${EMPTY_CPP}
-    COMMAND cmake -E touch ${EMPTY_CPP}
-    )
-
-add_executable(tempo_testsuite ${EMPTY_CPP})
-target_link_libraries(tempo_testsuite
-    PUBLIC gtest::gtest
-    PRIVATE
-    TempoAllocatorTestSuite
-    TempoConfigTestSuite
-    TempoSchemaTestSuite
-    TempoSecurityTestSuite
-    TempoTestTestSuite
-    TempoTracingTestSuite
-    TempoUtilsTestSuite
-)
-gtest_discover_tests(tempo_testsuite)
-
-
-#######################################################################
-#
 # create cmake package config
 #
 #######################################################################

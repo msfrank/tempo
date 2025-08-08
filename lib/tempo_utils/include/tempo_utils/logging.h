@@ -28,13 +28,37 @@ namespace tempo_utils {
         kVeryVerbose,
     };
 
+    constexpr const char *log_severity_name(LogSeverity severity) {
+        switch (severity) {
+            case LogSeverity::kFatal:           return "FATAL";
+            case LogSeverity::kError:           return "ERROR";
+            case LogSeverity::kWarn:            return "WARN";
+            case LogSeverity::kInfo:            return "INFO";
+            case LogSeverity::kVerbose:         return "V";
+            case LogSeverity::kVeryVerbose:     return "VV";
+            case LogSeverity::kConsoleStdout:   return "STDOUT";
+            case LogSeverity::kConsoleStderr:   return "STDERR";
+            default:                            return "???";
+        }
+    }
+
+    class AbstractLogSink {
+    public:
+        virtual ~AbstractLogSink() = default;
+        virtual bool openSink() = 0;
+        virtual bool writeLog(
+            const absl::Time &ts,
+            LogSeverity severity,
+            const char *filePath,
+            int lineNr,
+            std::string_view message) = 0;
+        virtual bool flushSink() = 0;
+        virtual bool closeSink() = 0;
+    };
+
     struct LoggingConfiguration {
         SeverityFilter severityFilter = SeverityFilter::kDefault;
-        bool colorizeOutput = false;
-        bool displayShortForm = false;
-        bool logToStdout = false;
         bool flushEveryMessage = false;
-        std::FILE *logFile = nullptr;
     };
 
     struct LogCategory {
@@ -43,22 +67,27 @@ namespace tempo_utils {
         const char *category() const;
     };
 
-    bool init_logging(const LoggingConfiguration &config);
+    bool init_logging(
+        const LoggingConfiguration &config,
+        std::unique_ptr<AbstractLogSink> &&logSink);
+
+    bool init_logging(
+        const LoggingConfiguration &config,
+        bool displayShortForm = false,
+        bool logToStdout = false);
 
     LoggingConfiguration get_logging_configuration();
-
-    FILE *get_logging_sink();
-
-    bool cleanup_logging();
 
     bool write_log(
         const absl::Time &ts,
         LogSeverity severity,
         const char *filePath,
         int lineNr,
-        const std::string &log);
+        std::string_view message);
 
-    bool write_console(LogSeverity severity, const std::string &log);
+    bool cleanup_logging();
+
+    bool write_console(LogSeverity severity, std::string_view message);
 }
 
 #endif // TEMPO_UTILS_LOGGING_H

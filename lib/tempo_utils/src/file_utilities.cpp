@@ -7,7 +7,7 @@
 
 #define TEMPLATE_REPLACEMENT    "XXXXXXXX"
 
-static inline
+inline
 char base62_to_ascii(unsigned char b62)
 {
     if (b62 < 10)

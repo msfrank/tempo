@@ -10,6 +10,7 @@
 #include "bytes_to_code_serializer.h"
 #include "tempo_config/base_conversions.h"
 #include "tempo_utils/file_reader.h"
+#include "tempo_utils/log_sink.h"
 
 inline const char *endline()
 {
@@ -112,8 +113,6 @@ bytes_to_code(int argc, const char *argv[])
     tempo_utils::LoggingConfiguration logging = {
         tempo_utils::SeverityFilter::kDefault,
         true,
-        false,
-        false,
     };
 
     bool silent;

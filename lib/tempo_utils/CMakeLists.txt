@@ -33,6 +33,7 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/log_console.h
     include/tempo_utils/log_helpers.h
     include/tempo_utils/log_message.h
+    include/tempo_utils/log_sink.h
     include/tempo_utils/log_stream.h
     include/tempo_utils/memory_bytes.h
     include/tempo_utils/memory_mapped_bytes.h
@@ -84,6 +85,7 @@ target_sources(tempo_utils
     src/log_console.cpp
     src/log_helpers.cpp
     src/log_message.cpp
+    src/log_sink.cpp
     src/log_stream.cpp
     src/memory_bytes.cpp
     src/memory_mapped_bytes.cpp

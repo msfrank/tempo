@@ -7,7 +7,7 @@ target_link_libraries(process-runner-child tempo::tempo_utils)
 
 # define unit tests
 
-set(TEMPO_UTILS_TEST_CASES
+set(TEST_CASES
     bytes_appender_tests.cpp
     bytes_iterator_tests.cpp
     big_endian_tests.cpp
@@ -33,7 +33,7 @@ set(TEMPO_UTILS_TEST_CASES
 
 # define test suite driver
 
-add_executable(tempo_utils_testsuite ${TEMPO_UTILS_TEST_CASES} ${TEST_MAIN_CPP})
+add_executable(tempo_utils_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
 target_link_libraries(tempo_utils_testsuite PUBLIC
     tempo::tempo_utils
     gtest::gtest
@@ -47,7 +47,7 @@ gtest_discover_tests(tempo_utils_testsuite)
 
 # define test suite static library
 
-add_library(TempoUtilsTestSuite OBJECT ${TEMPO_UTILS_TEST_CASES})
+add_library(TempoUtilsTestSuite OBJECT ${TEST_CASES})
 add_dependencies(TempoUtilsTestSuite process-runner-child)
 target_compile_definitions(TempoUtilsTestSuite PRIVATE
     "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""

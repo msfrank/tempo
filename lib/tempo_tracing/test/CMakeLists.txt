@@ -21,7 +21,11 @@ set(TEST_CASES
 
 # define test suite driver
 
-add_executable(tempo_tracing_testsuite ${TEST_CASES} base_tracing_fixture.cpp base_tracing_fixture.h)
+add_executable(tempo_tracing_testsuite
+    ${TEST_CASES}
+    base_tracing_fixture.cpp base_tracing_fixture.h
+    ${TEST_MAIN_CPP}
+    )
 target_include_directories(tempo_tracing_testsuite PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
     ${CMAKE_CURRENT_BINARY_DIR}/../src

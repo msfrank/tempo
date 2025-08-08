@@ -2,6 +2,7 @@
 # define the test_main.cpp in a single place for all test suites
 set(TEST_MAIN_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp)
 
+
 #######################################################################
 #
 # add targets from subdirectories
@@ -37,4 +38,3 @@ target_link_libraries(tempo_testsuite
         TempoUtilsTestSuite
 )
 gtest_discover_tests(tempo_testsuite)
-

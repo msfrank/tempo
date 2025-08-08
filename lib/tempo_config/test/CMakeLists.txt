@@ -22,7 +22,7 @@ set(TEST_CASES
 
 # define test suite driver
 
-add_executable(tempo_config_testsuite ${TEST_CASES})
+add_executable(tempo_config_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
 target_link_libraries(tempo_config_testsuite PUBLIC
     tempo::tempo_config
     tempo::tempo_test

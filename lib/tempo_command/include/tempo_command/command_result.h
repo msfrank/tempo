@@ -78,14 +78,6 @@ namespace tempo_command {
             return CommandStatus(condition, message, traceId, spanId);
         }
     };
-
-    template<class T>
-    class CommandResult : public tempo_utils::TypedResult<T, CommandStatus> {
-    public:
-        CommandResult() : tempo_utils::TypedResult<T, CommandStatus>() {};
-        CommandResult(const T &result) : tempo_utils::TypedResult<T, CommandStatus>(result) {};
-        CommandResult(const CommandStatus &status) : tempo_utils::TypedResult<T, CommandStatus>(status) {};
-    };
 }
 
 namespace tempo_utils {

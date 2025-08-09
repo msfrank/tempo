@@ -5,7 +5,7 @@
 
 #include <absl/hash/hash.h>
 
-#include "command_result.h"
+#include <tempo_utils/result.h>
 
 namespace tempo_command {
 
@@ -17,21 +17,37 @@ namespace tempo_command {
         OPT_END,
     };
 
-    struct Token {
-        TokenType type;
-        std::string value;
+    class Token {
+    public:
+        Token();
+        Token(TokenType type, std::string_view value);
+        Token(const Token &other);
+        Token(Token &&other) noexcept;
+
+        Token& operator=(const Token &other);
+        Token& operator=(Token &&other) noexcept;
+
+        TokenType getType() const;
+        std::string getValue() const;
+
+        std::string_view valueView() const;
+
+        bool operator==(const Token &other) const;
+
+        template<typename H>
+        friend H AbslHashValue(H h, const Token &token)
+        {
+            return H::combine(std::move(h), token.m_value, token.m_type);
+        }
+
+    private:
+        TokenType m_type;
+        std::string m_value;
     };
-
-    bool operator==(const Token &lhs, const Token &rhs);
-
-    template<typename H>
-    H AbslHashValue(H h, const Token &token) {
-        return H::combine(std::move(h), token.type, token.value);
-    }
 
     typedef std::vector<Token> TokenVector;
 
-    CommandResult<TokenVector> tokenize_argv(int argc, const char **argv);
+    tempo_utils::Result<TokenVector> tokenize_argv(int argc, const char **argv);
 }
 
 #endif // TEMPO_COMMAND_COMMAND_TOKENIZER_H

@@ -85,14 +85,6 @@ namespace tempo_security {
             return ConfigStatus(condition, message, traceId, spanId);
         }
     };
-
-    template<typename T>
-    class SecurityResult : public tempo_utils::TypedResult<T,SecurityStatus> {
-    public:
-        SecurityResult() : tempo_utils::TypedResult<T, SecurityStatus>() {};
-        SecurityResult(const T &result) : tempo_utils::TypedResult<T, SecurityStatus>(result) {};
-        SecurityResult(const SecurityStatus &status) : tempo_utils::TypedResult<T, SecurityStatus>(status) {};
-    };
 }
 
 namespace tempo_utils {

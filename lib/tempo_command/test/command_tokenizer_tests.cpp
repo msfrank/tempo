@@ -16,9 +16,9 @@ TEST(CommandTokenizer, TokenizeArgument)
     auto tokens = tokenizeResult.getResult();
 
     ASSERT_EQ (1, tokens.size());
-    auto token1 = tokens.at(0);
-    ASSERT_EQ (tempo_command::TokenType::ARGUMENT, token1.type);
-    ASSERT_EQ ("arg0", token1.value);
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::ARGUMENT, token1.getType());
+    ASSERT_EQ ("arg0", token1.getValue());
 }
 
 TEST(CommandTokenizer, TokenizeShortOption)
@@ -33,9 +33,9 @@ TEST(CommandTokenizer, TokenizeShortOption)
     auto tokens = tokenizeResult.getResult();
 
     ASSERT_EQ (1, tokens.size());
-    auto token1 = tokens.at(0);
-    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token1.type);
-    ASSERT_EQ ("-v", token1.value);
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token1.getType());
+    ASSERT_EQ ("-v", token1.getValue());
 }
 
 TEST(CommandTokenizer, TokenizeRunOfShortOptions)
@@ -50,15 +50,15 @@ TEST(CommandTokenizer, TokenizeRunOfShortOptions)
     auto tokens = tokenizeResult.getResult();
 
     ASSERT_EQ (3, tokens.size());
-    auto token1 = tokens.at(0);
-    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token1.type);
-    ASSERT_EQ ("-a", token1.value);
-    auto token2 = tokens.at(1);
-    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token2.type);
-    ASSERT_EQ ("-b", token2.value);
-    auto token3 = tokens.at(2);
-    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token3.type);
-    ASSERT_EQ ("-c", token3.value);
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token1.getType());
+    ASSERT_EQ ("-a", token1.getValue());
+    auto &token2 = tokens.at(1);
+    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token2.getType());
+    ASSERT_EQ ("-b", token2.getValue());
+    auto &token3 = tokens.at(2);
+    ASSERT_EQ (tempo_command::TokenType::SHORT_OPT, token3.getType());
+    ASSERT_EQ ("-c", token3.getValue());
 }
 
 TEST(CommandTokenizer, TokenizeLongOption)
@@ -73,9 +73,9 @@ TEST(CommandTokenizer, TokenizeLongOption)
     auto tokens = tokenizeResult.getResult();
 
     ASSERT_EQ (1, tokens.size());
-    auto token1 = tokens.at(0);
-    ASSERT_EQ (tempo_command::TokenType::LONG_OPT, token1.type);
-    ASSERT_EQ ("--verbose", token1.value);
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::LONG_OPT, token1.getType());
+    ASSERT_EQ ("--verbose", token1.getValue());
 }
 
 TEST(CommandTokenizer, TokenizeSingleDashAsArgument)
@@ -90,9 +90,9 @@ TEST(CommandTokenizer, TokenizeSingleDashAsArgument)
     auto tokens = tokenizeResult.getResult();
 
     ASSERT_EQ (1, tokens.size());
-    auto token1 = tokens.at(0);
-    ASSERT_EQ (tempo_command::TokenType::ARGUMENT, token1.type);
-    ASSERT_EQ ("-", token1.value);
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::ARGUMENT, token1.getType());
+    ASSERT_EQ ("-", token1.getValue());
 }
 
 TEST(CommandTokenizer, TokenizeOptionsEnd)
@@ -107,7 +107,7 @@ TEST(CommandTokenizer, TokenizeOptionsEnd)
     auto tokens = tokenizeResult.getResult();
 
     ASSERT_EQ (1, tokens.size());
-    auto token1 = tokens.at(0);
-    ASSERT_EQ (tempo_command::TokenType::OPT_END, token1.type);
-    ASSERT_EQ ("--", token1.value);
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::OPT_END, token1.getType());
+    ASSERT_EQ ("--", token1.getValue());
 }

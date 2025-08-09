@@ -1,9 +1,10 @@
 #include <absl/strings/match.h>
 
 #include <tempo_command/command_parser.h>
+#include <tempo_command/command_result.h>
 #include <tempo_utils/log_stream.h>
 
-static tempo_command::CommandStatus
+static tempo_utils::Status
 parse_tokens(
     tempo_command::TokenVector &tokens,
     const tempo_command::GroupingVector &groupings,
@@ -13,17 +14,27 @@ parse_tokens(
 {
     absl::flat_hash_map<tempo_command::Token,int> groupingIndex;
 
-    //
-    for (int i = 0; i < static_cast<int>(groupings.size()); i++) {
+    // construct the grouping index
+    for (int i = 0; i < groupings.size(); i++) {
         const auto &grouping = groupings[i];
         for (const auto &match : grouping.matches) {
-            tempo_command::Token token = {tempo_command::TokenType::INVALID};
-            if (absl::StartsWith(match, "--") && match.size() > 2)
+            tempo_command::Token token;
+            if (absl::StartsWith(match, "--") && match.size() > 2) {
                 token = {tempo_command::TokenType::LONG_OPT, match};
-            else if (absl::StartsWith(match, "-") && match.size() == 2)
+            } else if (absl::StartsWith(match, "-") && match.size() == 2) {
                 token = {tempo_command::TokenType::SHORT_OPT, match};
-            TU_ASSERT (token.type != tempo_command::TokenType::INVALID);
-            TU_ASSERT (!groupingIndex.contains(token));
+            }
+
+            if (token.getType() == tempo_command::TokenType::INVALID)
+                return tempo_command::CommandStatus::forCondition(
+                    tempo_command::CommandCondition::kCommandInvariant,
+                    "invalid grouping token {}", match);
+
+            if (groupingIndex.contains(token))
+                return tempo_command::CommandStatus::forCondition(
+                    tempo_command::CommandCondition::kCommandInvariant,
+                    "grouping token {} is already declared", match);
+
             groupingIndex[token] = i;
         }
     }
@@ -33,7 +44,7 @@ parse_tokens(
         const auto &first = tokens.front();
 
         // perform special handling of OPT_END depending on the terminator type
-        switch (first.type) {
+        switch (first.getType()) {
             case tempo_command::TokenType::INVALID:
                 return tempo_command::CommandStatus(tempo_command::CommandCondition::kInvalidToken);
             case tempo_command::TokenType::ARGUMENT:
@@ -45,12 +56,12 @@ parse_tokens(
                 if (terminator.type == tempo_command::TerminatorType::FIRST_POSITIONAL)
                     return {};
                 while (!tokens.empty()) {
-                    const auto &value = tokens.front().value;
+                    const auto &front = tokens.front();
                     if (terminator.type == tempo_command::TerminatorType::MATCHING_TOKEN
-                        && terminator.match.type == tempo_command::TokenType::ARGUMENT
-                        && terminator.match.value == tokens.front().value)
+                        && terminator.match.getType() == tempo_command::TokenType::ARGUMENT
+                        && terminator.match.valueView() == front.valueView())
                         return {};
-                    arguments.push_back(value);
+                    arguments.push_back(front.getValue());
                     tokens.erase(tokens.cbegin());
                 }
                 return {};
@@ -64,7 +75,7 @@ parse_tokens(
 
         // if terminating on first positional argument and token is an argument, then we are done
         if (terminator.type == tempo_command::TerminatorType::FIRST_POSITIONAL
-            && first.type == tempo_command::TokenType::ARGUMENT)
+            && first.getType() == tempo_command::TokenType::ARGUMENT)
             return {};
 
         // otherwise pop the next token and continue processing
@@ -72,15 +83,15 @@ parse_tokens(
         tokens.erase(tokens.cbegin());
 
         // if token is an argument then push it onto the arguments vector and continue to next token
-        if (token.type == tempo_command::TokenType::ARGUMENT) {
-            arguments.push_back(token.value);
+        if (token.getType() == tempo_command::TokenType::ARGUMENT) {
+            arguments.push_back(token.getValue());
             continue;
         }
 
         // get the grouping for the option token
         if (!groupingIndex.contains(token))
             return tempo_command::CommandStatus::forCondition(
-                tempo_command::CommandCondition::kCommandInvariant, "unknown option {}", token.value);
+                tempo_command::CommandCondition::kCommandInvariant, "unknown option {}", token.valueView());
         const auto &grouping = groupings[groupingIndex[token]];
 
         auto &optlist = options[grouping.id];
@@ -89,7 +100,7 @@ parse_tokens(
 
             // option expects no argument token, so append empty token to optlist
             case tempo_command::GroupingType::NO_ARGUMENT: {
-                optlist.push_back({});
+                optlist.emplace_back();
                 break;
             }
 
@@ -101,11 +112,11 @@ parse_tokens(
                         "missing required value for option {}", grouping.id);
                 token = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.type != tempo_command::TokenType::ARGUMENT)
+                if (token.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidToken,
                         "missing required value for option {}", grouping.id);
-                optlist.push_back(token.value);
+                optlist.push_back(token.getValue());
                 break;
             }
 
@@ -117,22 +128,22 @@ parse_tokens(
                         "missing key for option {}", grouping.id);
                 token = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.type != tempo_command::TokenType::ARGUMENT)
+                if (token.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidToken,
                         "missing key for option {}", grouping.id);
-                optlist.push_back(token.value);
+                optlist.push_back(token.getValue());
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidToken,
                         "missing value for option {}", grouping.id);
                 token = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.type != tempo_command::TokenType::ARGUMENT)
+                if (token.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidToken,
                         "missing value for option {}", grouping.id);
-                optlist.push_back(token.value);
+                optlist.push_back(token.getValue());
                 break;
             }
 
@@ -144,17 +155,17 @@ parse_tokens(
                         "missing value for option {}", grouping.id);
                 token = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.type != tempo_command::TokenType::ARGUMENT)
+                if (token.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidToken,
                         "missing value for option {}", grouping.id);
-                optlist.push_back(token.value);
+                optlist.push_back(token.getValue());
                 while (!tokens.empty()) {
-                    if (tokens.front().type != tempo_command::TokenType::ARGUMENT)
+                    if (tokens.front().getType() != tempo_command::TokenType::ARGUMENT)
                         break;
                     token = tokens.front();
                     tokens.erase(tokens.cbegin());
-                    optlist.push_back(token.value);
+                    optlist.push_back(token.getValue());
                 }
                 break;
             }
@@ -226,7 +237,7 @@ tempo_command::parse_until_subcommand(
 
     auto token = tokens.front();
     tokens.erase(tokens.cbegin());
-    subcommand = token.value;
+    subcommand = token.getValue();
     return {};
 }
 
@@ -247,5 +258,5 @@ tempo_command::parse_until_matching_token(
     ArgumentVector &arguments,
     const Token &match)
 {
-    return parse_tokens(tokens, groupings, options, arguments, {TerminatorType::ARGUMENT_END, match});
+    return parse_tokens(tokens, groupings, options, arguments, {TerminatorType::MATCHING_TOKEN, match});
 }

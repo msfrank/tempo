@@ -77,14 +77,6 @@ namespace tempo_config {
             return ConfigStatus(condition, message, traceId, spanId);
         }
     };
-
-    template<typename T>
-    class ConfigResult : public tempo_utils::TypedResult<T, ConfigStatus> {
-    public:
-        ConfigResult() : tempo_utils::TypedResult<T, ConfigStatus>() {};
-        ConfigResult(const T &result) : tempo_utils::TypedResult<T, ConfigStatus>(result) {};
-        ConfigResult(const ConfigStatus &status) : tempo_utils::TypedResult<T, ConfigStatus>(status) {};
-    };
 }
 
 namespace tempo_utils {

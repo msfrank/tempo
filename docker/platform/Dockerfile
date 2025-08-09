@@ -24,8 +24,8 @@ RUN conan create .
 RUN conan cache save "tempo/*:*" --file tempo_cache_save.tgz
 
 # remove tempo temporary files
-RUN conan cache clean --download --source --temp --backup-sources 'tempo/*'
+RUN conan cache clean --download --temp --backup-sources 'tempo/*'
 
 # if this is not a debug build then remove tempo build files
 ENV IS_DEBUG_BUILD=$is_debug_build
-RUN if test $IS_DEBUG_BUILD == 0; then conan cache clean --build 'tempo/*'; fi
+RUN if test $IS_DEBUG_BUILD == 0; then conan cache clean --source --build 'tempo/*'; fi

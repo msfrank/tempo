@@ -111,7 +111,7 @@ run(int argc, const char *argv[])
     // parse argv array into a vector of tokens
     auto tokenizeResult = tempo_command::tokenize_argv(argc - 1, &argv[1]);
     if (tokenizeResult.isStatus())
-        display_status_and_exit(tokenizeResult.getStatus());
+        tempo_command::display_status_and_exit(tokenizeResult.getStatus());
     auto tokens = tokenizeResult.getResult();
 
     // parse remaining options and arguments

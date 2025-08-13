@@ -15,32 +15,23 @@
 
 namespace tempo_config {
 
+
     /**
+     * Convert the node into a value of type T, then wrap the value into a `Option<T>`.
      *
-     * @tparam T
+     * @tparam T The value type.
      */
     template<class T>
     class OptionTParser : public AbstractConverter<Option<T>> {
     public:
-
-        /**
-         *
-         * @param valueParser
-         */
-        OptionTParser(const AbstractConverter<T> *valueParser)
-            : m_valueParser(valueParser) {
+        explicit OptionTParser(const AbstractConverter<T> *valueParser)
+            : m_valueParser(valueParser)
+        {
+            TU_ASSERT (m_valueParser != nullptr);
         }
 
-        /**
-         *
-         * @param node
-         * @param o
-         * @return
-         */
-        tempo_utils::Status
-        convertValue(
-            const ConfigNode &node,
-            Option<T> &o) const override {
+        tempo_utils::Status convertValue(const ConfigNode &node, Option<T> &o) const override
+        {
             if (node.isNil()) {
                 o = Option<T>();
                 return {};
@@ -58,40 +49,31 @@ namespace tempo_config {
     };
 
     /**
+     * Convert the node into a std::vector<T> using the given `elementParser` to convert
+     * each individual element. The node must be a Seq node.
      *
-     * @tparam T
+     * @tparam T The element type.
      */
     template<class T>
     class SeqTParser : public AbstractConverter<std::vector<T>> {
+
     public:
-
-        /**
-         *
-         * @param elementParser
-         */
-        SeqTParser(const AbstractConverter<T> *elementParser)
-            : m_elementParser(elementParser) {
+        explicit SeqTParser(const AbstractConverter<T> *elementParser)
+            : m_elementParser(elementParser)
+        {
+            TU_ASSERT (m_elementParser != nullptr);
         }
-
-        /**
-         *
-         * @param elementParser
-         * @param seqDefault
-         */
         SeqTParser(const AbstractConverter<T> *elementParser, const std::vector<T> &seqDefault)
-            : m_elementParser(elementParser), m_default(seqDefault) {
+            : m_elementParser(elementParser),
+              m_default(seqDefault)
+        {
+            TU_ASSERT (m_elementParser != nullptr);
         }
 
-        /**
-         *
-         * @param node
-         * @param vec
-         * @return
-         */
-        tempo_utils::Status
-        convertValue(
+        tempo_utils::Status convertValue(
             const ConfigNode &node,
-            std::vector<T> &vec) const override {
+            std::vector<T> &vec) const override
+        {
             if (node.isNil() && !m_default.isEmpty()) {
                 vec = m_default.getValue();
                 return {};
@@ -118,40 +100,32 @@ namespace tempo_config {
     };
 
     /**
+     * Convert the node into a absl::flat_hash_set<T> using the given `elementParser` to convert
+     * each individual element. The node must be a Seq node. The type T must be compatible with
+     * flat_hash_set, i.e. it must be hashable and define operator==.
      *
-     * @tparam T
+     * @tparam T The element type.
      */
     template<class T>
     class SetTParser : public AbstractConverter<absl::flat_hash_set<T>> {
+
     public:
-
-        /**
-         *
-         * @param elementParser
-         */
-        SetTParser(const AbstractConverter<T> *elementParser)
-            : m_elementParser(elementParser) {
+        explicit SetTParser(const AbstractConverter<T> *elementParser)
+            : m_elementParser(elementParser)
+        {
+            TU_ASSERT (m_elementParser != nullptr);
         }
-
-        /**
-         *
-         * @param elementParser
-         * @param seqDefault
-         */
         SetTParser(const AbstractConverter<T> *elementParser, const absl::flat_hash_set<T> &seqDefault)
-            : m_elementParser(elementParser), m_default(seqDefault) {
+            : m_elementParser(elementParser),
+              m_default(seqDefault)
+        {
+            TU_ASSERT (m_elementParser != nullptr);
         }
 
-        /**
-         *
-         * @param node
-         * @param set
-         * @return
-         */
-        tempo_utils::Status
-        convertValue(
+        tempo_utils::Status convertValue(
             const ConfigNode &node,
-            absl::flat_hash_set<T> &set) const override {
+            absl::flat_hash_set<T> &set) const override
+        {
             if (node.isNil() && !m_default.isEmpty()) {
                 set = m_default.getValue();
                 return {};
@@ -177,31 +151,25 @@ namespace tempo_config {
         Option<absl::flat_hash_set<T>> m_default;
     };
 
+
     /**
+     * Convert the node into a absl::flat_hash_map<K,V> using the given `keyParser` and
+     * `valueParser` to convert each individual entry. The node must be a Map node. The type
+     * K must be compatible with flat_hash_map, i.e. it must be hashable and define operator==.
      *
-     * @tparam K
-     * @tparam V
+     * @tparam K The key type.
+     * @tparam V The value type.
      */
     template<class K, class V>
     class MapKVParser : public AbstractConverter<absl::flat_hash_map<K, V>> {
-    public:
 
-        /**
-         *
-         * @param keyParser
-         * @param valueParser
-         */
-        MapKVParser(const AbstractConverter<K> *keyParser, AbstractConverter<V> *valueParser)
+    public:
+        MapKVParser(const AbstractConverter<K> *keyParser, const AbstractConverter<V> *valueParser)
             : m_keyParser(keyParser), m_valueParser(valueParser)
         {
+            TU_ASSERT (m_keyParser != nullptr);
+            TU_ASSERT (m_valueParser != nullptr);
         }
-
-        /**
-         *
-         * @param keyParser
-         * @param valueParser
-         * @param mapDefault
-         */
         MapKVParser(
             const AbstractConverter<K> *keyParser,
             const AbstractConverter<V> *valueParser,
@@ -210,16 +178,11 @@ namespace tempo_config {
               m_valueParser(valueParser),
               m_default(mapDefault)
         {
+            TU_ASSERT (m_keyParser != nullptr);
+            TU_ASSERT (m_valueParser != nullptr);
         }
 
-        /**
-         *
-         * @param node
-         * @param map
-         * @return
-         */
-        tempo_utils::Status
-        convertValue(
+        tempo_utils::Status convertValue(
             const ConfigNode &node,
             absl::flat_hash_map<K, V> &map) const override
         {
@@ -252,6 +215,64 @@ namespace tempo_config {
         const AbstractConverter<K> *m_keyParser;
         const AbstractConverter<V> *m_valueParser;
         Option<absl::flat_hash_map<K, V>> m_default;
+    };
+
+    /**
+     * Convert the node into a value of type T, then move the value into a
+     * `std::shared_ptr<T>`. Note that the type T must be a moveable type.
+     *
+     * @tparam T The value type.
+     */
+    template<typename T>
+    class SharedPtrTParser : public AbstractConverter<std::shared_ptr<T>> {
+    public:
+        explicit SharedPtrTParser(const AbstractConverter<T> *valueParser)
+            : m_valueParser(valueParser)
+        {
+            TU_ASSERT (m_valueParser != nullptr);
+        };
+
+        tempo_utils::Status convertValue(
+            const ConfigNode &node,
+            std::shared_ptr<T> &sharedValue) const override
+        {
+            T value;
+            TU_RETURN_IF_NOT_OK (m_valueParser->convertValue(node, value));
+            sharedValue = std::make_shared<T>(std::move(value));
+            return {};
+        }
+
+    private:
+        const AbstractConverter<T> *m_valueParser;
+    };
+
+    /**
+     * Convert the node into a value of type T, then move the value into a
+     * `std::shared_ptr<const T>`. Note that the type T must be a moveable type.
+     *
+     * @tparam T The value type.
+     */
+    template<typename T>
+    class SharedPtrConstTParser : public AbstractConverter<std::shared_ptr<const T>> {
+    public:
+        explicit SharedPtrConstTParser(const AbstractConverter<T> *valueParser)
+            : m_valueParser(valueParser)
+        {
+            TU_ASSERT (m_valueParser != nullptr);
+        };
+
+        tempo_utils::Status convertValue(
+            const ConfigNode &node,
+            std::shared_ptr<const T> &sharedValue) const override
+        {
+            T value;
+            TU_RETURN_IF_NOT_OK (m_valueParser->convertValue(node, value));
+            sharedValue = std::make_shared<const T>(std::move(value));
+            return {};
+        }
+
+    private:
+        const AbstractConverter<T> *m_valueParser;
     };
 }
 

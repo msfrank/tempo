@@ -1,3 +1,6 @@
+#include "tempo_config/config_builder.h"
+#include "tempo_test/tempo_test.h"
+
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
 
@@ -100,4 +103,32 @@ TEST(ContainerConversions, TestParseMapOfStringToSeqOfInt)
         std::pair<std::string,std::vector<int>>{"two", {1, 2}},
         std::pair<std::string,std::vector<int>>{"three", {1, 2, 3}},
     }));
+}
+
+TEST(ContainerConversions, TestParseSharedPtrT)
+{
+    tempo_config::StringParser stringParser;
+    tempo_config::SharedPtrTParser sharedPtrParser(&stringParser);
+
+    std::shared_ptr<std::string> result;
+    auto status = tempo_config::parse_config(result, sharedPtrParser,
+        tempo_config::valueNode("hello, world!"));
+
+    ASSERT_THAT (status, tempo_test::IsOk());
+    ASSERT_THAT (result, ::testing::NotNull());
+    ASSERT_EQ ("hello, world!", *result);
+}
+
+TEST(ContainerConversions, TestParseSharedPtrConstT)
+{
+    tempo_config::StringParser stringParser;
+    tempo_config::SharedPtrConstTParser sharedPtrConstParser(&stringParser);
+
+    std::shared_ptr<const std::string> result;
+    auto status = tempo_config::parse_config(result, sharedPtrConstParser,
+        tempo_config::valueNode("hello, world!"));
+
+    ASSERT_THAT (status, tempo_test::IsOk());
+    ASSERT_THAT (result, ::testing::NotNull());
+    ASSERT_EQ ("hello, world!", *result);
 }

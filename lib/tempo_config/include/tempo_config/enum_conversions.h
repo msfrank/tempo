@@ -51,10 +51,12 @@ namespace tempo_config {
             const ConfigNode &node,
             T &e) const override
         {
-            if (node.isNil() && !m_default.isEmpty()) {
+            if (node.isNil()) {
+                if (m_default.isEmpty())
+                    return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                        "missing required enum value");
                 e = m_default.getValue();
-                return tempo_config::ConfigStatus::forCondition(ConfigCondition::kMissingValue,
-                    "missing required enum value");
+                return {};
             }
             if (node.getNodeType() != ConfigNodeType::kValue)
                 return ConfigStatus::forCondition(ConfigCondition::kWrongType,

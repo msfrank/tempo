@@ -74,7 +74,10 @@ namespace tempo_config {
             const ConfigNode &node,
             std::vector<T> &vec) const override
         {
-            if (node.isNil() && !m_default.isEmpty()) {
+            if (node.isNil()) {
+                if (m_default.isEmpty())
+                    return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                        "missing required sequence value");
                 vec = m_default.getValue();
                 return {};
             }
@@ -126,7 +129,10 @@ namespace tempo_config {
             const ConfigNode &node,
             absl::flat_hash_set<T> &set) const override
         {
-            if (node.isNil() && !m_default.isEmpty()) {
+            if (node.isNil()) {
+                if (m_default.isEmpty())
+                    return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                        "missing required set value");
                 set = m_default.getValue();
                 return {};
             }
@@ -186,7 +192,10 @@ namespace tempo_config {
             const ConfigNode &node,
             absl::flat_hash_map<K, V> &map) const override
         {
-            if (node.isNil() && !m_default.isEmpty()) {
+            if (node.isNil()) {
+                if (m_default.isEmpty())
+                    return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                        "missing required map value");
                 map = m_default.getValue();
                 return {};
             }

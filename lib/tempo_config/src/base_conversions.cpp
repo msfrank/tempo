@@ -20,8 +20,12 @@ tempo_config::BooleanParser::BooleanParser(bool booleanDefault)
 tempo_utils::Status
 tempo_config::BooleanParser::convertValue(const ConfigNode &node, bool &b) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required boolean value");
         SET_VALUE_AND_RETURN_OK(b, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -51,8 +55,12 @@ tempo_config::IntegerParser::IntegerParser(int integerDefault)
 tempo_utils::Status
 tempo_config::IntegerParser::convertValue(const ConfigNode &node, int &i) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required integer value");
         SET_VALUE_AND_RETURN_OK(i, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -80,8 +88,12 @@ tempo_config::LongParser::LongParser(int64_t longDefault)
 tempo_utils::Status
 tempo_config::LongParser::convertValue(const ConfigNode &node, tu_int64 &i64) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required integer value");
         SET_VALUE_AND_RETURN_OK(i64, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -109,8 +121,12 @@ tempo_config::FloatParser::FloatParser(double floatDefault)
 tempo_utils::Status
 tempo_config::FloatParser::convertValue(const ConfigNode &node, double &dbl) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required floag value");
         SET_VALUE_AND_RETURN_OK(dbl, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -138,8 +154,12 @@ tempo_config::StringParser::StringParser(const std::string &stringDefault)
 tempo_utils::Status
 tempo_config::StringParser::convertValue(const ConfigNode &node, std::string &str) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required string value");
         SET_VALUE_AND_RETURN_OK(str, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -160,8 +180,12 @@ tempo_config::PathParser::PathParser(const std::filesystem::path &pathDefault)
 tempo_utils::Status
 tempo_config::PathParser::convertValue(const ConfigNode &node, std::filesystem::path &path) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required path value");
         SET_VALUE_AND_RETURN_OK(path, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -188,8 +212,12 @@ tempo_config::UrlParser::UrlParser(const tempo_utils::Url &urlDefault)
 tempo_utils::Status
 tempo_config::UrlParser::convertValue(const ConfigNode &node, tempo_utils::Url &url) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required url value");
         SET_VALUE_AND_RETURN_OK(url, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -216,8 +244,12 @@ tempo_config::UrlPathParser::UrlPathParser(const tempo_utils::UrlPath &pathDefau
 tempo_utils::Status
 tempo_config::UrlPathParser::convertValue(const ConfigNode &node, tempo_utils::UrlPath &path) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required url path value");
         SET_VALUE_AND_RETURN_OK(path, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -244,8 +276,12 @@ tempo_config::ConfigStringParser::ConfigStringParser(const ConfigNode &configDef
 tempo_utils::Status
 tempo_config::ConfigStringParser::convertValue(const ConfigNode &node, ConfigNode &n) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required config string value");
         SET_VALUE_AND_RETURN_OK(n, m_default.getValue());
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,
@@ -271,8 +307,12 @@ tempo_config::ConfigFileParser::ConfigFileParser(const ConfigNode &configDefault
 tempo_utils::Status
 tempo_config::ConfigFileParser::convertValue(const ConfigNode &node, ConfigFile &f) const
 {
-    if (node.isNil() && !m_default.isEmpty())
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required config file value");
         SET_VALUE_AND_RETURN_OK(f, ConfigFile({}, m_default.getValue()));
+    }
 
     if (node.getNodeType() != ConfigNodeType::kValue)
         return ConfigStatus::forCondition(ConfigCondition::kWrongType,

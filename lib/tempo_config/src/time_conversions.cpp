@@ -16,7 +16,10 @@ tempo_config::TimeParser::TimeParser(std::string_view timeFormat, const absl::Ti
 tempo_utils::Status
 tempo_config::TimeParser::convertValue(const ConfigNode &node, absl::Time &time) const
 {
-    if (node.isNil() && !m_default.isEmpty()) {
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required time value");
         time = m_default.getValue();
         return {};
     }
@@ -45,7 +48,10 @@ tempo_config::DurationParser::DurationParser(const absl::Duration &durationDefau
 tempo_utils::Status
 tempo_config::DurationParser::convertValue(const ConfigNode &node, absl::Duration &duration) const
 {
-    if (node.isNil() && !m_default.isEmpty()) {
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required duration value");
         duration = m_default.getValue();
         return {};
     }
@@ -74,7 +80,10 @@ tempo_config::TimeZoneParser::TimeZoneParser(const absl::TimeZone &tzDefault)
 tempo_utils::Status
 tempo_config::TimeZoneParser::convertValue(const ConfigNode &node, absl::TimeZone &tz) const
 {
-    if (node.isNil() && !m_default.isEmpty()) {
+    if (node.isNil()) {
+        if (m_default.isEmpty())
+            return ConfigStatus::forCondition(ConfigCondition::kMissingValue,
+                "missing required timezone value");
         tz = m_default.getValue();
         return {};
     }

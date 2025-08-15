@@ -46,10 +46,6 @@ namespace tempo_config {
         static tempo_utils::Result<std::shared_ptr<WorkspaceConfig>> load(
             const std::filesystem::path &workspaceConfigFilePath,
             const WorkspaceConfigOptions &options);
-        static tempo_utils::Result<std::shared_ptr<WorkspaceConfig>> find(
-            std::string_view workspaceConfigFileName,
-            const std::filesystem::path &searchPathStart,
-            const WorkspaceConfigOptions &options);
 
         std::filesystem::path getWorkspaceRoot() const;
 
@@ -69,6 +65,10 @@ namespace tempo_config {
             const ConfigMap &toolConfig,
             const ConfigMap &vendorConfig);
     };
+
+    tempo_utils::Result<std::filesystem::path> find_workspace_config(
+        const std::filesystem::path &searchPathStart,
+        std::string_view workspaceConfigFileNameOverride = {});
 }
 
 #endif // TEMPO_CONFIG_WORKSPACE_CONFIG_H

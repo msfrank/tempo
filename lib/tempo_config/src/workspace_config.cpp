@@ -165,18 +165,20 @@ tempo_config::WorkspaceConfig::load(
 }
 
 /**
+ * Find a workspace config file by starting at `searchPathStart` and recursively searching
+ * parent directories for a file named 'workspace.config' until either the file is found or
+ * the root directory is reached. If the file is found then the absolute path to the file is
+ * returned, otherwise FileNotFound status is returned. If `workspaceConfigFileNameOverride`
+ * is specified then it will be used as the workspace config file name instead of the default.
  *
- * @param searchPathStart
- * @param toolPath
- * @param userHomeDirectoryOverride
- * @param distributionRootDirectoryOverride
- * @return
+ * @param searchPathStart The file path to start the search from.
+ * @param workspaceConfigFileNameOverride The file name to search for.
+ * @return An absolute path to the file, otherwise `Status` if the search failed.
  */
-tempo_utils::Result<std::shared_ptr<tempo_config::WorkspaceConfig>>
-tempo_config::WorkspaceConfig::find(
-    std::string_view workspaceConfigFileName,
+tempo_utils::Result<std::filesystem::path>
+tempo_config::find_workspace_config(
     const std::filesystem::path &searchPathStart,
-    const WorkspaceConfigOptions &options)
+    std::string_view workspaceConfigFileNameOverride)
 {
     // the initial search path must exist and be a directory
     if (!std::filesystem::exists(searchPathStart))
@@ -189,6 +191,9 @@ tempo_config::WorkspaceConfig::find(
     if (!std::filesystem::is_directory(path)) {
         path = path.parent_path();
     }
+
+    std::string workspaceConfigFileName = workspaceConfigFileNameOverride.empty()?
+        kDefaultWorkspaceConfigFileName : std::string(workspaceConfigFileNameOverride);
 
     // check each parent directory for a file called "workspace.config". if the file is found then we have
     // determined the workspace root. otherwise if no file is found then workspace detection is failed.
@@ -208,5 +213,5 @@ tempo_config::WorkspaceConfig::find(
             tempo_utils::FileCondition::kFileNotFound,
             "workspace config not found");
 
-    return load(workspaceConfigFilePath, options);
+    return workspaceConfigFilePath;
 }

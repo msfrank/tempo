@@ -21,7 +21,7 @@ void
 tempo_command::display_help_and_exit(
     const std::vector<std::string> &commandPath,
     const std::string &commandDescription,
-    const std::vector<Command> &commands,
+    const std::vector<Subcommand> &subcommands,
     const std::vector<Grouping> &commandGroupings,
     const std::vector<Mapping> &optMappings,
     const std::vector<Mapping> &argMappings,
@@ -62,10 +62,10 @@ tempo_command::display_help_and_exit(
     int firstColumnWidth = 0;
 
     // construct vector of command description rows
-    for (const auto &cmd : commands) {
+    for (const auto &subcommand : subcommands) {
         std::pair<std::string,std::string> line;
-        line.first = cmd.name;
-        line.second = cmd.description;
+        line.first = subcommand.name;
+        line.second = subcommand.description;
         cmdLines.push_back(line);
         firstColumnWidth = std::max(firstColumnWidth, static_cast<int>(line.first.size()));
     }
@@ -124,7 +124,7 @@ tempo_command::display_help_and_exit(
     }
 
     // print subcommands on the usage line if any are specified
-    if (!commands.empty())
+    if (!subcommands.empty())
         std::cout << " COMMAND";
 
     // print each argument on the usage line if any are specified
@@ -175,7 +175,7 @@ tempo_command::display_help_and_exit(
     }
 
     // print the list of subcommands if there are any
-    if (!commands.empty()) {
+    if (!subcommands.empty()) {
         std::cout << std::endl;
         std::cout << "Commands:" << std::endl;
         for (const auto &line : cmdLines) {

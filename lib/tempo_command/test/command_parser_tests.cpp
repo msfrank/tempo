@@ -141,3 +141,35 @@ TEST(CommandParser, ParseCompletelyLongOption)
 
     ASSERT_EQ (0, arguments.size());
 }
+
+TEST(CommandParser, ParseUntilSubcommand)
+{
+    const char *argv[] = {
+        "--verbose",
+        "subcommand",
+        nullptr,
+    };
+
+    auto tokenizeResult = tempo_command::tokenize_argv(2, argv);
+    ASSERT_TRUE (tokenizeResult.isResult());
+    auto tokens = tokenizeResult.getResult();
+
+    std::vector<tempo_command::Subcommand> subcommands = {
+        { "subcommand" , "description of subcommand"},
+    };
+    std::vector<tempo_command::Grouping> groupings = {
+        {"verbose", {"-v", "--verbose"}, tempo_command::GroupingType::NO_ARGUMENT},
+    };
+
+    tempo_command::OptionsHash options;
+    int selected;
+
+    auto status = tempo_command::parse_until_subcommand(tokens, subcommands, groupings, selected, options);
+    ASSERT_TRUE (status.isOk());
+
+    ASSERT_EQ (1, options.size());
+    auto verbose = options.at("verbose");
+    ASSERT_EQ (1, verbose.size());
+
+    ASSERT_EQ (0, selected);
+}

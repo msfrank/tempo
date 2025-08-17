@@ -11,11 +11,8 @@
 
 namespace tempo_command {
 
-    typedef tempo_utils::Status (*CommandFunc)(const std::filesystem::path &, const std::filesystem::path &, TokenVector &);
-
-    struct Command {
+    struct Subcommand {
         std::string name;
-        CommandFunc func;
         std::string description;
     };
 
@@ -50,6 +47,7 @@ namespace tempo_command {
     typedef std::vector<Grouping> GroupingVector;
     typedef absl::flat_hash_map<std::string,std::vector<std::string>> OptionsHash;
     typedef std::vector<std::string> ArgumentVector;
+    typedef std::vector<Subcommand> SubcommandVector;
 
     tempo_utils::Status
     parse_completely(
@@ -61,9 +59,9 @@ namespace tempo_command {
     tempo_utils::Status
     parse_until_subcommand(
         TokenVector &tokens,
-        const std::vector<Command> &commands,
+        const std::vector<Subcommand> &subcommands,
         const GroupingVector &groupings,
-        std::string &subcommand,
+        int &selected,
         OptionsHash &options);
 
     tempo_utils::Status

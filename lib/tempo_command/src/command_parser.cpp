@@ -223,11 +223,20 @@ tempo_command::parse_completely(
 tempo_utils::Status
 tempo_command::parse_until_subcommand(
     TokenVector &tokens,
-    const std::vector<Command> &commands,
+    const std::vector<Subcommand> &subcommands,
     const GroupingVector &groupings,
-    std::string &subcommand,
+    int &selected,
     OptionsHash &options)
 {
+    absl::flat_hash_map<std::string,int> subcommandsIndex;
+    for (int i = 0; i < subcommands.size(); i++) {
+        const auto &subcommand = subcommands.at(i);
+        if (subcommandsIndex.contains(subcommand.name))
+            return CommandStatus::forCondition(CommandCondition::kCommandInvariant,
+                "sub-command {} is already declared", subcommand.name);
+        subcommandsIndex[subcommand.name] = i;
+    }
+
     ArgumentVector arguments;
     auto status = parse_tokens(tokens, groupings, options, arguments, {TerminatorType::FIRST_POSITIONAL});
     if (status.notOk())
@@ -236,8 +245,14 @@ tempo_command::parse_until_subcommand(
         return CommandStatus::forCondition(CommandCondition::kUnexpectedTokenEnd);
 
     auto token = tokens.front();
+    auto entry = subcommandsIndex.find(token.valueView());
+    if (entry == subcommandsIndex.cend())
+        return CommandStatus::forCondition(CommandCondition::kCommandInvariant,
+            "unknown sub-command {}", token.valueView());
+
     tokens.erase(tokens.cbegin());
-    subcommand = token.getValue();
+    selected = entry->second;
+
     return {};
 }
 

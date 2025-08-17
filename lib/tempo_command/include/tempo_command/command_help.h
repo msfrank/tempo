@@ -21,7 +21,7 @@ namespace tempo_command {
     void display_help_and_exit(
         const std::vector<std::string> &commandPath,
         const std::string &commandDescription,
-        const std::vector<Command> &commands,
+        const std::vector<Subcommand> &subcommands,
         const std::vector<Grouping> &commandGroupings,
         const std::vector<Mapping> &optMappings,
         const std::vector<Mapping> &argMappings,

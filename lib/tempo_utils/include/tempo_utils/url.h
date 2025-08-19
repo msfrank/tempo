@@ -68,6 +68,7 @@ namespace tempo_utils {
         Url traversePath(const UrlPath &path) const;
 
         Url resolve(const Url &other) const;
+        Url resolve(const UrlPath &other) const;
 
         UrlOrigin toOrigin() const;
         UrlAuthority toAuthority() const;

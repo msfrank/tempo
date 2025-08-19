@@ -353,6 +353,26 @@ tempo_utils::Url::resolve(const Url &other) const
     return fromString(dest.c_str());
 }
 
+tempo_utils::Url
+tempo_utils::Url::resolve(const UrlPath &other) const
+{
+    if (!isAbsolute())
+        return {};
+    if (!other.isValid())
+        return *this;
+
+    auto parsePathResult = boost::urls::parse_uri_reference(other.toString());
+    if (parsePathResult.has_error())
+        return {};
+    auto path = *parsePathResult;
+
+    boost::url dest;
+    auto result = boost::urls::resolve(m_priv->url, path, dest);
+    if (result.has_error())
+        return {};
+    return fromString(dest.c_str());
+}
+
 tempo_utils::UrlOrigin
 tempo_utils::Url::toOrigin() const
 {

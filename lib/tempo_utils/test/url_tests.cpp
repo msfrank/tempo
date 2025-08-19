@@ -283,6 +283,38 @@ TEST(Url, TestTraverseRelativeUrl)
     ASSERT_EQ (url.toString(), "/foo/bar/baz");
 }
 
+TEST(Url, TestResolveWithAbsoluteUrl)
+{
+    auto baseUrl = tempo_utils::Url::fromString("https://foo.com/test");
+    auto url = baseUrl.resolve(tempo_utils::Url::fromString("https://baz.com/test"));
+
+    ASSERT_EQ (url.toString(), "https://baz.com/test");
+}
+
+TEST(Url, TestResolveWithRelativeUrl)
+{
+    auto baseUrl = tempo_utils::Url::fromString("https://test.com/foo/bar");
+    auto url = baseUrl.resolve(tempo_utils::Url::fromString("/baz"));
+
+    ASSERT_EQ (url.toString(), "https://test.com/baz");
+}
+
+TEST(Url, TestResolveWithAbsoluteUrlPath)
+{
+    auto baseUrl = tempo_utils::Url::fromString("https://test.com/foo/bar");
+    auto url = baseUrl.resolve(tempo_utils::UrlPath::fromString("/baz"));
+
+    ASSERT_EQ (url.toString(), "https://test.com/baz");
+}
+
+TEST(Url, TestResolveWithRelativeUrlPath)
+{
+    auto baseUrl = tempo_utils::Url::fromString("https://test.com/foo/bar");
+    auto url = baseUrl.resolve(tempo_utils::UrlPath::fromString("./baz"));
+
+    ASSERT_EQ (url.toString(), "https://test.com/foo/baz");
+}
+
 TEST(Url, TestUpdateUrlScheme)
 {
     auto urlNoScheme = tempo_utils::Url::fromString("//localhost/foo");

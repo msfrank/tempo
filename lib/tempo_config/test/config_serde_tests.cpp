@@ -1,4 +1,8 @@
 
+#include "tempo_config/config_builder.h"
+#include "tempo_test/tempo_test.h"
+#include "tempo_utils/file_utilities.h"
+
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
 
@@ -124,4 +128,40 @@ TEST_F(ConfigSerde, ReadConfigTreeDirectory)
                 })},
         }),
         readConfigTreeResult.getResult());
+}
+
+TEST_F(ConfigSerde, WriteConfigString)
+{
+    auto outputRoot = tempo_config::startMap()
+        .put("one", tempo_config::valueNode("1"))
+        .put("two", tempo_config::valueNode("2"))
+        .put("three", tempo_config::valueNode("3"))
+    .buildNode();
+
+    std::string output;
+    tempo_config::write_config_string(outputRoot, output);
+    TU_CONSOLE_OUT << output;
+
+    tempo_config::ConfigNode inputRoot;
+    TU_ASSIGN_OR_RAISE (inputRoot, tempo_config::read_config_string(output));
+
+    ASSERT_EQ (outputRoot, inputRoot);
+}
+
+TEST_F(ConfigSerde, WriteConfigFile)
+{
+    auto outputRoot = tempo_config::startMap()
+        .put("one", tempo_config::valueNode("1"))
+        .put("two", tempo_config::valueNode("2"))
+        .put("three", tempo_config::valueNode("3"))
+    .buildNode();
+
+    auto path = rootDirectory / tempo_utils::generate_name("XXXXXXXX.json");
+    auto status = tempo_config::write_config_file(outputRoot, path);
+    ASSERT_THAT (status, tempo_test::IsOk());
+
+    tempo_config::ConfigNode inputRoot;
+    TU_ASSIGN_OR_RAISE (inputRoot, tempo_config::read_config_file(path));
+
+    ASSERT_EQ (outputRoot, inputRoot);
 }

@@ -23,9 +23,15 @@ namespace tempo_config {
         const std::filesystem::path &directory,
         std::string_view extension = {});
 
-    tempo_utils::Status write_config_string(const ConfigNode &root, std::string &bytes);
+    tempo_utils::Status write_config_string(
+        const ConfigNode &root,
+        std::string &bytes,
+        int indent = 4);
 
-    tempo_utils::Status write_config_file(const ConfigNode &root, const std::filesystem::path &path);
+    tempo_utils::Status write_config_file(
+        const ConfigNode &root,
+        const std::filesystem::path &path,
+        int indent = 4);
 }
 
 #endif // TEMPO_CONFIG_CONFIG_UTILS_H

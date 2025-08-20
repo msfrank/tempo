@@ -1,7 +1,7 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <rapidjson/prettywriter.h>
 
 #include <tempo_config/config_result.h>
 #include <tempo_config/config_utils.h>
@@ -250,10 +250,11 @@ convert_variant_to_rapidjson_value(
  *
  * @param root The ConfigNode to write.
  * @param bytes The destination string used to store the serialized ConfigNode.
+ * @param indent The indent level. If negative then the JSON is written in compact mode.
  * @return A `tempo_utils::Status` containing the status of the operation.
  */
 tempo_utils::Status
-tempo_config::write_config_string(const tempo_config::ConfigNode &root, std::string &bytes)
+tempo_config::write_config_string(const ConfigNode &root, std::string &bytes, int indent)
 {
     rapidjson::Document doc;
     auto &allocator = doc.GetAllocator();
@@ -261,8 +262,14 @@ tempo_config::write_config_string(const tempo_config::ConfigNode &root, std::str
 
     // serialize doc to buffer
     rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
+    if (indent >= 0) {
+        rapidjson::PrettyWriter writer(buffer);
+        writer.SetIndent(' ', indent);
+        doc.Accept(writer);
+    } else {
+        rapidjson::Writer writer(buffer);
+        doc.Accept(writer);
+    }
 
     // write the buffer to the supplied string
     bytes = std::string(buffer.GetString(), buffer.GetSize());
@@ -276,13 +283,17 @@ tempo_config::write_config_string(const tempo_config::ConfigNode &root, std::str
  *
  * @param root The ConfigNode to write.
  * @param path The destination file used to store the serialized ConfigNode.
+ * @param indent The indent level. If negative then the JSON is written in compact mode.
  * @return A `tempo_utils::Status` containing the status of the operation.
  */
 tempo_utils::Status
-tempo_config::write_config_file(const tempo_config::ConfigNode &root, const std::filesystem::path &path)
+tempo_config::write_config_file(
+    const ConfigNode &root,
+    const std::filesystem::path &path,
+    int indent)
 {
     std::string bytes;
-    auto status = write_config_string(root, bytes);
+    auto status = write_config_string(root, bytes, indent);
     if (status.notOk())
         return status;
     tempo_utils::FileWriter fileWriter(path, bytes, tempo_utils::FileWriterMode::CREATE_OR_OVERWRITE);

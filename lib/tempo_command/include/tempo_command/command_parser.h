@@ -32,18 +32,6 @@ namespace tempo_command {
         GroupingType type;
     };
 
-    enum class TerminatorType {
-        INVALID,
-        ARGUMENT_END,
-        FIRST_POSITIONAL,
-        MATCHING_TOKEN,
-    };
-
-    struct Terminator {
-        TerminatorType type;
-        Token match;
-    };
-
     typedef std::vector<Grouping> GroupingVector;
     typedef absl::flat_hash_map<std::string,std::vector<std::string>> OptionsHash;
     typedef std::vector<std::string> ArgumentVector;

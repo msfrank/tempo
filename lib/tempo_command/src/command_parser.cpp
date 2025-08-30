@@ -4,13 +4,25 @@
 #include <tempo_command/command_result.h>
 #include <tempo_utils/log_stream.h>
 
+enum class TerminatorType {
+    INVALID,
+    ARGUMENT_END,
+    FIRST_POSITIONAL,
+    MATCHING_TOKEN,
+};
+
+struct Terminator {
+    TerminatorType type;
+    tempo_command::Token match;
+};
+
 static tempo_utils::Status
 parse_tokens(
     tempo_command::TokenVector &tokens,
     const tempo_command::GroupingVector &groupings,
     tempo_command::OptionsHash &options,
     tempo_command::ArgumentVector &arguments,
-    const tempo_command::Terminator &terminator)
+    const Terminator &terminator)
 {
     absl::flat_hash_map<tempo_command::Token,int> groupingIndex;
 
@@ -53,11 +65,11 @@ parse_tokens(
                 break;
             case tempo_command::TokenType::OPT_END: {
                 tokens.pop_back();  // discard the OPT_END token
-                if (terminator.type == tempo_command::TerminatorType::FIRST_POSITIONAL)
+                if (terminator.type == TerminatorType::FIRST_POSITIONAL)
                     return {};
                 while (!tokens.empty()) {
                     const auto &front = tokens.front();
-                    if (terminator.type == tempo_command::TerminatorType::MATCHING_TOKEN
+                    if (terminator.type == TerminatorType::MATCHING_TOKEN
                         && terminator.match.getType() == tempo_command::TokenType::ARGUMENT
                         && terminator.match.valueView() == front.valueView())
                         return {};
@@ -69,12 +81,12 @@ parse_tokens(
         }
 
         // if terminating on matching token and current token matches the terminator, then we are done
-        if (terminator.type == tempo_command::TerminatorType::MATCHING_TOKEN
+        if (terminator.type == TerminatorType::MATCHING_TOKEN
             && first == terminator.match)
             return {};
 
         // if terminating on first positional argument and token is an argument, then we are done
-        if (terminator.type == tempo_command::TerminatorType::FIRST_POSITIONAL
+        if (terminator.type == TerminatorType::FIRST_POSITIONAL
             && first.getType() == tempo_command::TokenType::ARGUMENT)
             return {};
 

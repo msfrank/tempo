@@ -11,21 +11,11 @@
 
 namespace tempo_utils {
 
-    /**
-     * @brief Stream a char* to the LogMessage.
-     * @param message The receiver of the string
-     * @param str The char* string to send to the receiver
-     * @return The receiver
-     */
     LogMessage&& operator<<(LogMessage &&message, const char *str);
 
-    /**
-     * @brief Stream a std::string to the LogMessage.
-     * @param message The receiver of the string
-     * @param str The std::string object to send to the receiver
-     * @return The receiver
-     */
     LogMessage&& operator<<(LogMessage &&message, const std::string &str);
+
+    LogMessage&& operator<<(LogMessage &&message, std::string_view view);
 
     LogMessage&& operator<<(LogMessage &&message, const void *p);
 
@@ -40,10 +30,6 @@ namespace tempo_utils {
     LogMessage&& operator<<(LogMessage &&message, tu_int64 i64);
 
     LogMessage&& operator<<(LogMessage &&message, tu_uint64 u64);
-
-    //LogMessage&& operator<<(LogMessage &&message, size_t st);
-
-    //LogMessage&& operator<<(LogMessage &&message, ssize_t sst);
 
     LogMessage&& operator<<(LogMessage &&message, float flt);
 

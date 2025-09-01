@@ -15,8 +15,8 @@ namespace tempo_tracing {
 
     public:
         TempoSpanset();
-        TempoSpanset(std::shared_ptr<const tempo_utils::ImmutableBytes> immutableBytes);
-        TempoSpanset(std::span<const tu_uint8> unownedBytes);
+        explicit TempoSpanset(std::shared_ptr<const tempo_utils::ImmutableBytes> immutableBytes);
+        explicit TempoSpanset(std::span<const tu_uint8> unownedBytes);
         TempoSpanset(const TempoSpanset &other);
 
         bool isValid() const;

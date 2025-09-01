@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <span>
 
+#include "immutable_bytes.h"
+#include "integer_types.h"
 #include "status.h"
 
 namespace tempo_utils {

@@ -66,7 +66,8 @@ target_link_libraries(tempo_security
     PUBLIC
     tempo::tempo_utils
     absl::flat_hash_map
-    openssl::openssl
+    OpenSSL::SSL
+    OpenSSL::Crypto
     )
 
 # install targets

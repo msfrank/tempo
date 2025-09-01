@@ -55,7 +55,7 @@ class Tempo(ConanFile):
         'gtest/1.14.0@timbre',
         'hdrhistogram/0.9.6@timbre',
         'jemalloc/5.3.0@timbre',
-        'openssl/3.2.0@timbre',
+        'openssl/3.5.2@timbre',
         'rapidjson/20250205.1@timbre',
         'utfcpp/4.0.6@timbre',
         )

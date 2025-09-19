@@ -3,7 +3,7 @@ parser grammar ConfigParser;
 options { tokenVocab = ConfigLexer; }
 
 
-root                : node ;
+root                : node EOF ;
 
 node                : object
                     | array

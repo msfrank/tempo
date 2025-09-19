@@ -47,12 +47,12 @@ class Tempo(ConanFile):
     requires = (
         # requirements from timbre
         'absl/20250127.1@timbre',
-        'antlr/4.9.3@timbre',
+        'antlr/4.13.2@timbre',
         'boost/1.88.0@timbre',
         'croaring/1.1.5@timbre',
-        'fmt/9.1.0@timbre',
-        'flatbuffers/23.5.26@timbre',
-        'gtest/1.14.0@timbre',
+        'fmt/12.0.0@timbre',
+        'flatbuffers/25.2.10@timbre',
+        'gtest/1.17.0@timbre',
         'hdrhistogram/0.9.6@timbre',
         'jemalloc/5.3.0@timbre',
         'openssl/3.5.2@timbre',

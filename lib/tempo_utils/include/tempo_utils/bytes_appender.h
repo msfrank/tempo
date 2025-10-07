@@ -21,6 +21,7 @@ namespace tempo_utils {
         void appendU64(tu_uint64 u64);
         void appendBytes(std::span<const tu_uint8> bytes);
         void appendBytes(std::string_view str);
+        void appendBytes(const BytesAppender &appender);
 
         const tu_uint8 *getData() const;
         tu_uint32 getSize() const;

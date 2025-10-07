@@ -82,3 +82,20 @@ TEST(BytesAppender, TestReadAndWriteStdStringView)
     ASSERT_EQ (0x02, (tu_uint8) data[1]);
     ASSERT_EQ (0x03, (tu_uint8) data[2]);
 }
+
+TEST(BytesAppender, TestReadAndWriteAppender)
+{
+    tempo_utils::BytesAppender appender;
+    tempo_utils::BytesAppender src;
+    src.appendU8(0x01);
+    src.appendU8(0x02);
+    src.appendU8(0x03);
+    appender.appendBytes(src);
+    auto bytes = appender.finish();
+    ASSERT_TRUE (bytes != nullptr);
+    ASSERT_EQ (3, bytes->getSize());
+    auto *data = bytes->getData();
+    ASSERT_EQ (0x01, (tu_uint8) data[0]);
+    ASSERT_EQ (0x02, (tu_uint8) data[1]);
+    ASSERT_EQ (0x03, (tu_uint8) data[2]);
+}

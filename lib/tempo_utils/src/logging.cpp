@@ -3,16 +3,20 @@
 #include <iostream>
 #include <mutex>
 
+#include <tempo_utils/internal/circular_log_buffer.h>
 #include <tempo_utils/logging.h>
 #include <tempo_utils/log_sink.h>
 
 // serialize logging through a global lock
 static std::timed_mutex globalLock;
+
 static tempo_utils::LoggingConfiguration currentConfiguration = {
     tempo_utils::SeverityFilter::kDefault,
     false,
 };
+static std::unique_ptr<tempo_utils::internal::CircularLogBuffer> initialBuffer;
 static std::unique_ptr<tempo_utils::AbstractLogSink> currentSink;
+static bool loggingFinished = false;
 
 /**
  * Initialize logging with the given configuration and sink.
@@ -30,6 +34,14 @@ tempo_utils::init_logging(
 {
     std::lock_guard lock(globalLock);
     currentConfiguration = config;
+    if (currentSink) {
+        currentSink.reset();
+    }
+    if (initialBuffer) {
+        initialBuffer->flushTo(logSink.get());
+        initialBuffer.reset();
+    }
+    loggingFinished = false;
     currentSink = std::move(logSink);
     return true;
 }
@@ -72,9 +84,11 @@ tempo_utils::get_logging_configuration()
  *   if initialization has already run, then this function does nothing and returns true.
  */
 bool
-tempo_utils::cleanup_logging()
+tempo_utils::cleanup_logging(bool finished)
 {
+    std::lock_guard lock(globalLock);
     currentSink.reset();
+    loggingFinished = finished;
     return true;
 }
 
@@ -112,10 +126,17 @@ tempo_utils::write_log(
     if (!sink_lock.owns_lock())
         return false;
 
-    // if init_logging() was not called yet then create a default sink
     if (!currentSink) [[unlikely]] {
-        currentSink = std::make_unique<DefaultLogSink>();
-        currentSink->openSink();
+        // if logging is finished then there is nothing to do
+        if (loggingFinished)
+            return true;
+        // create the initial buffer if it does not exist
+        if (initialBuffer == nullptr) {
+            initialBuffer = std::make_unique<internal::CircularLogBuffer>(128);
+        }
+        // buffer the message
+        initialBuffer->bufferLog(ts, severity, filePath, lineNr, message);
+        return true;
     }
 
     switch (currentConfiguration.severityFilter) {

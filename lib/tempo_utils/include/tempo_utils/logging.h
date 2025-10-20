@@ -85,7 +85,7 @@ namespace tempo_utils {
         int lineNr,
         std::string_view message);
 
-    bool cleanup_logging();
+    bool cleanup_logging(bool finished = true);
 
     bool write_console(LogSeverity severity, std::string_view message);
 }

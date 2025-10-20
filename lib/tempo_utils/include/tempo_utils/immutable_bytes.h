@@ -17,6 +17,11 @@ namespace tempo_utils {
         {
             return std::span(getData(), getSize());
         }
+
+        std::string_view getStringView() const
+        {
+            return std::string_view((const char *) getData(), getSize());
+        }
     };
 }
 

@@ -49,7 +49,6 @@ namespace tempo_utils {
         std::FILE *m_sink;
     };
 
-
 }
 
 #endif // TEMPO_UTILS_LOG_SINK_H

@@ -26,6 +26,8 @@ namespace tempo_utils {
         int getArgc() const;
         char **getArgv() const;
 
+        std::string toString() const;
+
     private:
         std::filesystem::path m_exe;
         int m_argc;
@@ -45,6 +47,8 @@ namespace tempo_utils {
         void appendArg(std::string_view arg);
         void appendArg(std::string_view option, std::string_view value);
         ProcessInvoker toInvoker() const;
+
+        std::string toString() const;
 
     private:
         std::filesystem::path m_exe;

@@ -60,6 +60,19 @@ tempo_utils::ProcessBuilder::toInvoker() const
     return ProcessInvoker(m_exe, m_args);
 }
 
+std::string
+tempo_utils::ProcessBuilder::toString() const
+{
+    std::string s(m_exe);
+    s.push_back('[');
+    for (const auto &arg : m_args) {
+        s.push_back(' ');
+        s.append(arg);
+    }
+    s.push_back(']');
+    return s;
+}
+
 tempo_utils::ProcessInvoker::ProcessInvoker()
 {
     m_argv = (char **) malloc(sizeof(char *));
@@ -147,6 +160,19 @@ char **
 tempo_utils::ProcessInvoker::getArgv() const
 {
     return m_argv;
+}
+
+std::string
+tempo_utils::ProcessInvoker::toString() const
+{
+    std::string s(m_exe);
+    s.push_back('[');
+    for (int i = 0; i < m_argc; i++) {
+        s.push_back(' ');
+        s.append(m_argv[i]);
+    }
+    s.push_back(']');
+    return s;
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(

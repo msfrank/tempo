@@ -1,5 +1,6 @@
 
 #include <absl/strings/str_cat.h>
+#include <boost/circular_buffer.hpp>
 
 #include <tempo_utils/log_sink.h>
 

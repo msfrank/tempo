@@ -2,6 +2,9 @@ enable_testing()
 
 include(GoogleTest)
 
+add_executable(logging-child logging_child.cpp)
+target_link_libraries(logging-child tempo::tempo_utils)
+
 add_executable(process-runner-child process_runner_child.cpp)
 target_link_libraries(process-runner-child tempo::tempo_utils)
 
@@ -39,8 +42,9 @@ target_link_libraries(tempo_utils_testsuite PUBLIC
     gtest::gtest
     utfcpp::utfcpp
     )
-add_dependencies(tempo_utils_testsuite process-runner-child)
+add_dependencies(tempo_utils_testsuite logging-child process-runner-child)
 target_compile_definitions(tempo_utils_testsuite PRIVATE
+    "LOGGING_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/logging-child\""
     "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""
     )
 gtest_discover_tests(tempo_utils_testsuite)
@@ -48,8 +52,9 @@ gtest_discover_tests(tempo_utils_testsuite)
 # define test suite static library
 
 add_library(TempoUtilsTestSuite OBJECT ${TEST_CASES})
-add_dependencies(TempoUtilsTestSuite process-runner-child)
+add_dependencies(TempoUtilsTestSuite logging-child process-runner-child)
 target_compile_definitions(TempoUtilsTestSuite PRIVATE
+    "LOGGING_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/logging-child\""
     "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""
     )
 target_link_libraries(TempoUtilsTestSuite PUBLIC

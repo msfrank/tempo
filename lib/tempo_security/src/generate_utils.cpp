@@ -175,7 +175,7 @@ tempo_security::generate_ca_key_pair(
     ASN1_INTEGER_set(X509_get_serialNumber(ctx.crt), serial);
 
     // set validity of certificate
-    X509_gmtime_adj(X509_get_notBefore(ctx.crt), 0);
+    X509_gmtime_adj(X509_get_notBefore(ctx.crt), -30);
     X509_gmtime_adj(X509_get_notAfter(ctx.crt), static_cast<long>(validity.count()));
 
     // Set the DN of the request

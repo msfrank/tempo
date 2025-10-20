@@ -105,6 +105,8 @@ target_sources(tempo_utils
     src/user_home.cpp
     src/uuid.cpp
 
+    include/tempo_utils/internal/circular_log_buffer.h
+    src/internal/circular_log_buffer.cpp
     include/tempo_utils/internal/url_data.h
     src/internal/url_data.cpp
 )

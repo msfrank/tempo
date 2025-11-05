@@ -207,7 +207,7 @@ tempo_security::generate_ca_key_pair(
     X509_set_pubkey(ctx.crt, ctx.key);
 
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.ca_key, EVP_sha256()) == 0)
+    if (X509_sign(ctx.crt, ctx.ca_key, nullptr) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 
@@ -272,7 +272,7 @@ tempo_security::generate_self_signed_ca_key_pair(
     ASN1_INTEGER_set(X509_get_serialNumber(ctx.crt), serial);
 
     // set validity of certificate
-    X509_gmtime_adj(X509_get_notBefore(ctx.crt), 0);
+    X509_gmtime_adj(X509_get_notBefore(ctx.crt), -30);
     X509_gmtime_adj(X509_get_notAfter(ctx.crt), static_cast<long>(validity.count()));
 
     // Set the DN of the request
@@ -305,7 +305,7 @@ tempo_security::generate_self_signed_ca_key_pair(
     X509_set_pubkey(ctx.crt, ctx.key);
 
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.key, EVP_sha256()) == 0)
+    if (X509_sign(ctx.crt, ctx.key, nullptr) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 
@@ -431,7 +431,7 @@ tempo_security::generate_key_pair(
     X509_set_issuer_name(ctx.crt, X509_get_subject_name(ctx.ca_crt));
 
     // set validity of certificate
-    X509_gmtime_adj(X509_get_notBefore(ctx.crt), 0);
+    X509_gmtime_adj(X509_get_notBefore(ctx.crt), -30);
     X509_gmtime_adj(X509_get_notAfter(ctx.crt), static_cast<long>(validity.count()));
 
     // use the subject name from the csr without performing any validation
@@ -443,7 +443,7 @@ tempo_security::generate_key_pair(
     EVP_PKEY_free(req_pubkey);
 
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.ca_key, EVP_sha256()) == 0)
+    if (X509_sign(ctx.crt, ctx.ca_key, nullptr) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 
@@ -507,7 +507,7 @@ tempo_security::generate_self_signed_key_pair(
     ASN1_INTEGER_set(X509_get_serialNumber(ctx.crt), serial);
 
     // set validity of certificate
-    X509_gmtime_adj(X509_get_notBefore(ctx.crt), 0);
+    X509_gmtime_adj(X509_get_notBefore(ctx.crt), -30);
     X509_gmtime_adj(X509_get_notAfter(ctx.crt), static_cast<long>(validity.count()));
 
     // Set the DN of the request
@@ -529,7 +529,7 @@ tempo_security::generate_self_signed_key_pair(
     X509_set_pubkey(ctx.crt, ctx.key);
 
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.key, EVP_sha256()) == 0)
+    if (X509_sign(ctx.crt, ctx.key, nullptr) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 

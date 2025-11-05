@@ -7,6 +7,7 @@ namespace tempo_security {
         INVALID,
         RSA,
         ECC,
+        ED25519
     };
     constexpr int kRSAKeyBits = 2048;
     constexpr int kRSAPublicExponent = 65537;

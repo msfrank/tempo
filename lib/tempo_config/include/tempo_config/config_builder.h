@@ -9,6 +9,50 @@ namespace tempo_config {
 
     ConfigNode valueNode(std::string_view value);
 
+    inline ConfigNode valueCat(const absl::AlphaNum &value)
+    {
+        auto v = absl::StrCat(value);
+        return ConfigValue(std::move(v));
+    }
+
+    inline ConfigNode valueCat(const absl::AlphaNum &v1, const absl::AlphaNum &v2)
+    {
+        auto v = absl::StrCat(v1, v2);
+        return ConfigValue(std::move(v));
+    }
+
+    inline ConfigNode valueCat(
+        const absl::AlphaNum &v1,
+        const absl::AlphaNum &v2,
+        const absl::AlphaNum &v3)
+    {
+        auto v = absl::StrCat(v1, v2, v3);
+        return ConfigValue(std::move(v));
+    }
+
+    inline ConfigNode valueCat(
+        const absl::AlphaNum &v1,
+        const absl::AlphaNum &v2,
+        const absl::AlphaNum &v3,
+        const absl::AlphaNum &v4)
+    {
+        auto v = absl::StrCat(v1, v2, v3, v4);
+        return ConfigValue(std::move(v));
+    }
+
+    template<typename ...Args>
+    ConfigNode valueCat(
+        const absl::AlphaNum &v1,
+        const absl::AlphaNum &v2,
+        const absl::AlphaNum &v3,
+        const absl::AlphaNum &v4,
+        const absl::AlphaNum &v5,
+        const Args&... args)
+    {
+        auto v = absl::StrCat(v1, v2, v3, v4, args...);
+        return ConfigValue(std::move(v));
+    }
+
     class ConfigSeqBuilder {
     public:
         ConfigSeqBuilder();

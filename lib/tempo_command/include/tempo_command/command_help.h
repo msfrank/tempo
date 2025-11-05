@@ -9,14 +9,11 @@ namespace tempo_command {
 
     struct Default {
         std::string id;
-        Option<std::string> value;
         std::string description;
         std::string meta;
     };
 
     typedef std::vector<Default> DefaultsVector;
-
-    CommandConfig command_config_from_defaults(const std::vector<Default> &configDefaults);
 
     void display_help_and_exit(
         const std::vector<std::string> &commandPath,

@@ -37,11 +37,13 @@ tempo_utils::init_logging(
     if (currentSink) {
         currentSink.reset();
     }
+    loggingFinished = false;
+    if (!logSink->openSink())
+        return false;
     if (initialBuffer) {
         initialBuffer->flushTo(logSink.get());
         initialBuffer.reset();
     }
-    loggingFinished = false;
     currentSink = std::move(logSink);
     return true;
 }

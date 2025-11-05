@@ -15,6 +15,7 @@ set(TEST_CASES
     container_conversions_tests.cpp
     extend_map_tests.cpp
     merge_map_tests.cpp
+    number_conversions_tests.cpp
     program_config_tests.cpp
     time_conversion_tests.cpp
     workspace_config_tests.cpp

@@ -18,6 +18,7 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/enum_conversions.h
     include/tempo_config/extend_map.h
     include/tempo_config/merge_map.h
+    include/tempo_config/number_conversions.h
     include/tempo_config/parse_config.h
     include/tempo_config/program_config.h
     include/tempo_config/time_conversions.h

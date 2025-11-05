@@ -65,9 +65,11 @@ tempo_utils::ProcessBuilder::toString() const
 {
     std::string s(m_exe);
     s.push_back('[');
-    for (const auto &arg : m_args) {
+    auto it = m_args.cbegin();
+    s.append(*it++);
+    for (; it != m_args.cend(); it++) {
         s.push_back(' ');
-        s.append(arg);
+        s.append(*it);
     }
     s.push_back(']');
     return s;
@@ -167,9 +169,12 @@ tempo_utils::ProcessInvoker::toString() const
 {
     std::string s(m_exe);
     s.push_back('[');
-    for (int i = 0; i < m_argc; i++) {
-        s.push_back(' ');
-        s.append(m_argv[i]);
+    if (m_argc > 0) {
+        s.append(m_argv[0]);
+        for (int i = 1; i < m_argc; i++) {
+            s.push_back(' ');
+            s.append(m_argv[i]);
+        }
     }
     s.push_back(']');
     return s;

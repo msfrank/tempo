@@ -4,17 +4,6 @@
 
 #include <tempo_command/command_help.h>
 
-tempo_command::CommandConfig
-tempo_command::command_config_from_defaults(const std::vector<Default> &configDefaults)
-{
-    CommandConfig commandConfig;
-    for (const auto &configDefault : configDefaults) {
-        if (!configDefault.value.isEmpty())
-            commandConfig[configDefault.id] = tempo_config::ConfigValue(configDefault.value.getValue());
-    }
-    return commandConfig;
-}
-
 #define COLUMN_MARGIN   4
 
 void

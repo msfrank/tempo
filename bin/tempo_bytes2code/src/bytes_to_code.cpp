@@ -40,13 +40,13 @@ bytes_to_code(int argc, const char *argv[])
     tempo_config::BooleanParser silentParser(false);
 
     std::vector<tempo_command::Default> cmdDefaults = {
-        {"includeGuard", {}, "define a preprocessor variable to use as an include guard", "GUARD"},
-        {"cppNamespace", {}, "declare the data and size variables with a namespace", "NAMESPACE"},
-        {"verbose", verboseParser.getDefault(), "Display verbose output (specify twice for even more verbose output)"},
-        {"quiet", quietParser.getDefault(), "Display warnings and errors only (specify twice for errors only)"},
-        {"silent", silentParser.getDefault(), "Suppress all output"},
-        {"inputDataFile", {}, "Path to the input data file", "FILE"},
-        {"outputHeaderPath", {}, "Path to the output header file", "PATH"},
+        {"includeGuard", "define a preprocessor variable to use as an include guard", "GUARD"},
+        {"cppNamespace", "declare the data and size variables with a namespace", "NAMESPACE"},
+        {"verbose", "Display verbose output (specify twice for even more verbose output)"},
+        {"quiet", "Display warnings and errors only (specify twice for errors only)"},
+        {"silent", "Suppress all output"},
+        {"inputDataFile", "Path to the input data file", "FILE"},
+        {"outputHeaderPath", "Path to the output header file", "PATH"},
     };
 
     const std::vector<tempo_command::Grouping> cmdGroupings = {
@@ -98,8 +98,7 @@ bytes_to_code(int argc, const char *argv[])
         }
     }
 
-    // initialize the global config from defaults
-    auto cmdConfig = command_config_from_defaults(cmdDefaults);
+    tempo_command::CommandConfig cmdConfig;
 
     // convert options to config
     TU_RETURN_IF_NOT_OK (convert_options(cmdOptions, optMappings, cmdConfig));

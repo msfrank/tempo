@@ -43,8 +43,8 @@ run(int argc, const char *argv[])
     tempo_config::IntegerParser validitySecondsParser(60*60*24*365);
     tempo_config::IntegerParser serialNumberParser;
     tempo_config::IntegerParser pathlenParser(-1);
-    tempo_config::BooleanParser isCAParser;
-    tempo_config::BooleanParser isSelfSignedParser;
+    tempo_config::BooleanParser isCAParser(false);
+    tempo_config::BooleanParser isSelfSignedParser(false);
 
     tempo_config::EnumTParser<KeyType> keyTypeParser({
         {"ECC", KeyType::ECC},
@@ -52,19 +52,19 @@ run(int argc, const char *argv[])
     });
 
     std::vector<tempo_command::Default> defaults = {
-        {"keyType", {}, "private key type", "TYPE"},
-        {"outputDirectory", Option(std::filesystem::current_path().string()), "the output directory", "DIR"},
-        {"signingCertificate", {}, "signing certificate file", "FILE"},
-        {"signingPrivateKey", {}, "signing private key file", "FILE"},
-        {"fileName", {}, "the keypair file name prefix", "NAME"},
-        {"organization", {}, "the subject organization name", "NAME"},
-        {"organizationalUnit", {}, "the subject organizational unit name", "NAME"},
-        {"commonName", {}, "the subject common name", "NAME"},
-        {"validitySeconds", {}, "the duration in which the certificate is valid", "SECONDS"},
-        {"serialNumber", {}, "the certificate serial number", "SERIAL"},
-        {"pathlen", {}, "the path length constraint on the CA certificate", "LENGTH"},
-        {"isCA", Option(std::string("false")), "the certificate should be a CA", {}},
-        {"isSelfSigned", Option(std::string("false")), "the certificate should be self-signed", {}},
+        {"keyType", "private key type", "TYPE"},
+        {"outputDirectory", "the output directory", "DIR"},
+        {"signingCertificate", "signing certificate file", "FILE"},
+        {"signingPrivateKey", "signing private key file", "FILE"},
+        {"fileName", "the keypair file name prefix", "NAME"},
+        {"organization", "the subject organization name", "NAME"},
+        {"organizationalUnit", "the subject organizational unit name", "NAME"},
+        {"commonName", "the subject common name", "NAME"},
+        {"validitySeconds", "the duration in which the certificate is valid", "SECONDS"},
+        {"serialNumber", "the certificate serial number", "SERIAL"},
+        {"pathlen", "the path length constraint on the CA certificate", "LENGTH"},
+        {"isCA", "the certificate should be a CA"},
+        {"isSelfSigned", "the certificate should be self-signed"},
     };
 
     std::vector<tempo_command::Grouping> groupings = {
@@ -105,8 +105,7 @@ run(int argc, const char *argv[])
 
     tempo_command::OptionsHash options;
     tempo_command::ArgumentVector arguments;
-
-    tempo_command::CommandConfig config = command_config_from_defaults(defaults);
+    tempo_command::CommandConfig config;
 
     // parse argv array into a vector of tokens
     auto tokenizeResult = tempo_command::tokenize_argv(argc - 1, &argv[1]);

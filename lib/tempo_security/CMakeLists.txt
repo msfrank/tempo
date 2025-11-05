@@ -10,8 +10,11 @@ set(TEMPO_SECURITY_INCLUDES
     include/tempo_security/abstract_private_key_generator.h
     include/tempo_security/certificate_key_pair.h
     include/tempo_security/csr_key_pair.h
+    include/tempo_security/digest_utils.h
     include/tempo_security/ecc_key.h
     include/tempo_security/ecc_private_key_generator.h
+    include/tempo_security/ed25519_key.h
+    include/tempo_security/ed25519_private_key_generator.h
     include/tempo_security/generate_utils.h
     include/tempo_security/rsa_key.h
     include/tempo_security/rsa_private_key_generator.h
@@ -29,8 +32,11 @@ target_sources(tempo_security
     PRIVATE
     src/certificate_key_pair.cpp
     src/csr_key_pair.cpp
+    src/digest_utils.cpp
     src/ecc_key.cpp
     src/ecc_private_key_generator.cpp
+    src/ed25519_private_key_generator.cpp
+    src/ed25519_key.cpp
     src/generate_utils.cpp
     src/rsa_key.cpp
     src/rsa_private_key_generator.cpp
@@ -40,7 +46,7 @@ target_sources(tempo_security
     src/x509_certificate.cpp
     src/x509_certificate_signing_request.cpp
     src/x509_store.cpp
-)
+    )
 
 # set the library version
 set_target_properties(tempo_security PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")

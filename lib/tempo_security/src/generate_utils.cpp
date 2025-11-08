@@ -114,9 +114,10 @@ struct GenerateCAKeyPairCtx {
 };
 
 tempo_utils::Result<tempo_security::CertificateKeyPair>
-tempo_security::generate_ca_key_pair(
+tempo_security::GenerateUtils::generate_ca_key_pair(
     const CertificateKeyPair &caKeyPair,
     const AbstractPrivateKeyGenerator &keygen,
+    DigestId digestId,
     std::string_view organization,
     std::string_view organizationalUnit,
     std::string_view commonName,
@@ -206,8 +207,10 @@ tempo_security::generate_ca_key_pair(
     // set the public key
     X509_set_pubkey(ctx.crt, ctx.key);
 
+    auto *md = get_digest(digestId);
+
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.ca_key, nullptr) == 0)
+    if (X509_sign(ctx.crt, ctx.ca_key, md) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 
@@ -242,8 +245,9 @@ struct GenerateSelfSignedCAKeyPairCtx {
 };
 
 tempo_utils::Result<tempo_security::CertificateKeyPair>
-tempo_security::generate_self_signed_ca_key_pair(
+tempo_security::GenerateUtils::generate_self_signed_ca_key_pair(
     const AbstractPrivateKeyGenerator &keygen,
+    DigestId digestId,
     std::string_view organization,
     std::string_view organizationalUnit,
     std::string_view commonName,
@@ -304,8 +308,10 @@ tempo_security::generate_self_signed_ca_key_pair(
     // set the public key
     X509_set_pubkey(ctx.crt, ctx.key);
 
+    auto *md = get_digest(digestId);
+
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.key, nullptr) == 0)
+    if (X509_sign(ctx.crt, ctx.key, md) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 
@@ -349,9 +355,10 @@ struct GenerateKeyPairCtx {
 };
 
 tempo_utils::Result<tempo_security::CertificateKeyPair>
-tempo_security::generate_key_pair(
+tempo_security::GenerateUtils::generate_key_pair(
     const CertificateKeyPair &caKeyPair,
     const AbstractPrivateKeyGenerator &keygen,
+    DigestId digestId,
     std::string_view organization,
     std::string_view organizationalUnit,
     std::string_view commonName,
@@ -413,8 +420,10 @@ tempo_security::generate_key_pair(
     X509_NAME_add_entry_by_txt(dn, "CN", MBSTRING_ASC,
         (const unsigned char*) commonName.data(), commonName.length(), -1, 0);
 
+    auto *md = get_digest(digestId);
+
     // Self-sign the request to prove that we possess the key
-    if (!X509_REQ_sign(ctx.req, ctx.key, EVP_sha256()))
+    if (!X509_REQ_sign(ctx.req, ctx.key, md))
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate signing request");
 
@@ -478,8 +487,9 @@ struct GenerateSelfSignedKeyPairCtx {
 };
 
 tempo_utils::Result<tempo_security::CertificateKeyPair>
-tempo_security::generate_self_signed_key_pair(
+tempo_security::GenerateUtils::generate_self_signed_key_pair(
     const AbstractPrivateKeyGenerator &keygen,
+    DigestId digestId,
     std::string_view organization,
     std::string_view organizationalUnit,
     std::string_view commonName,
@@ -528,8 +538,10 @@ tempo_security::generate_self_signed_key_pair(
     // set the public key
     X509_set_pubkey(ctx.crt, ctx.key);
 
+    auto *md = get_digest(digestId);
+
     // sign the certificate with the CA private key
-    if (X509_sign(ctx.crt, ctx.key, nullptr) == 0)
+    if (X509_sign(ctx.crt, ctx.key, md) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate");
 
@@ -564,8 +576,9 @@ struct GenerateCSRKeyPairCtx {
 };
 
 tempo_utils::Result<tempo_security::CSRKeyPair>
-tempo_security::generate_csr_key_pair(
+tempo_security::GenerateUtils::generate_csr_key_pair(
     const AbstractPrivateKeyGenerator &keygen,
+    DigestId digestId,
     std::string_view organization,
     std::string_view organizationalUnit,
     std::string_view commonName,
@@ -596,8 +609,10 @@ tempo_security::generate_csr_key_pair(
     // set the public key
     X509_REQ_set_pubkey(ctx.req, ctx.key);
 
+    auto *md = get_digest(digestId);
+
     // self sign the request
-    if (X509_REQ_sign(ctx.req, ctx.key, EVP_sha256()) == 0)
+    if (X509_REQ_sign(ctx.req, ctx.key, md) == 0)
         return SecurityStatus::forCondition(SecurityCondition::kSigningFailure,
             "failed to sign certificate signing request");
 

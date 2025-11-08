@@ -15,8 +15,6 @@ namespace tempo_security {
     public:
         ~X509Certificate();
 
-        bool isValid() const;
-
         long getVersion() const;
         long getSerialNumber() const;
         std::string getOrganization() const;
@@ -39,9 +37,11 @@ namespace tempo_security {
     private:
         X509 *m_x509;
 
-        X509Certificate();
         explicit X509Certificate(X509 *x509);
+        X509 *getCertificate() const;
 
+        friend class CertificateKeyPair;
+        friend class DigestUtils;
         friend class X509Store;
     };
 

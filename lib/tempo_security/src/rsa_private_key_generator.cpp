@@ -3,7 +3,6 @@
 #include <openssl/x509.h>
 
 #include <tempo_security/rsa_private_key_generator.h>
-#include "tempo_security/rsa_key.h"
 
 tempo_security::RSAPrivateKeyGenerator::RSAPrivateKeyGenerator(int keyBits, int publicExponent)
     : m_keyBits(keyBits),
@@ -14,7 +13,7 @@ tempo_security::RSAPrivateKeyGenerator::RSAPrivateKeyGenerator(int keyBits, int 
 tempo_security::KeyType
 tempo_security::RSAPrivateKeyGenerator::getKeyType() const
 {
-    return KeyType::RSA;
+    return KeyType::Rsa;
 }
 
 EVP_PKEY *
@@ -47,11 +46,4 @@ err:
     if (e)
         BN_free(e);
     return nullptr;
-}
-
-bool
-tempo_security::RSAPrivateKeyGenerator::isValidPrivateKey(const std::filesystem::path &pemPrivateKeyFile) const
-{
-    RSAKey key(pemPrivateKeyFile);
-    return key.isValid();
 }

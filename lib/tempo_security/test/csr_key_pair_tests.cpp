@@ -1,16 +1,20 @@
+#include "tempo_security/ed25519_private_key_generator.h"
+#include "tempo_security/private_key.h"
+
 #include <gtest/gtest.h>
 
 #include <tempo_utils/file_utilities.h>
 
 #include <tempo_security/generate_utils.h>
-#include <tempo_security/ecc_private_key_generator.h>
+#include <tempo_security/ecdsa_private_key_generator.h>
 #include <tempo_security/rsa_private_key_generator.h>
 #include <tempo_security/security_types.h>
 #include <tempo_security/x509_certificate_signing_request.h>
 #include <tempo_security/x509_store.h>
 
 static tempo_security::RSAPrivateKeyGenerator rsaKeygen(tempo_security::kRSAKeyBits, tempo_security::kRSAPublicExponent);
-static tempo_security::ECCPrivateKeyGenerator eccKeygen(NID_X9_62_prime256v1);
+static tempo_security::EcdsaPrivateKeyGenerator eccKeygen(tempo_security::CurveId::Prime256v1);
+static tempo_security::Ed25519PrivateKeyGenerator ed25519Keygen;
 
 class CSRKeyPair : public testing::TestWithParam<const tempo_security::AbstractPrivateKeyGenerator *> {
 
@@ -18,8 +22,9 @@ public:
     void SetUp() override
     {
         auto *keygen = GetParam();
-        m_caKeyPair = tempo_security::generate_self_signed_ca_key_pair(
+        m_caKeyPair = tempo_security::GenerateUtils::generate_self_signed_ca_key_pair(
             *keygen,
+            tempo_security::DigestId::None,
             "test_O",
             "test_OU",
             "caKeyPair",
@@ -44,13 +49,15 @@ private:
     tempo_security::CertificateKeyPair m_caKeyPair;
 };
 
-INSTANTIATE_TEST_SUITE_P(PrivateKeyGenerators, CSRKeyPair, testing::Values(&rsaKeygen, &eccKeygen),
+INSTANTIATE_TEST_SUITE_P(PrivateKeyGenerators, CSRKeyPair, testing::Values(&rsaKeygen, &eccKeygen, &ed25519Keygen),
     [](const auto &info) {
         switch (info.param->getKeyType()) {
-            case tempo_security::KeyType::RSA:
-                return "RSA";
-            case tempo_security::KeyType::ECC:
-                return "ECC";
+            case tempo_security::KeyType::Rsa:
+                return "Rsa";
+            case tempo_security::KeyType::Ecdsa:
+                return "Ecdsa";
+            case tempo_security::KeyType::Ed25519:
+                return "Ed25519";
             default:
                 return "???";
         }
@@ -59,8 +66,9 @@ INSTANTIATE_TEST_SUITE_P(PrivateKeyGenerators, CSRKeyPair, testing::Values(&rsaK
 TEST_P(CSRKeyPair, TestGenerateCSRKeyPair)
 {
     auto *keygen = GetParam();
-    auto generateCsrResult = tempo_security::generate_csr_key_pair(
+    auto generateCsrResult = tempo_security::GenerateUtils::generate_csr_key_pair(
         *keygen,
+        tempo_security::DigestId::None,
         "test_O",
         "test_OU",
         "csrKeyPair",
@@ -73,12 +81,13 @@ TEST_P(CSRKeyPair, TestGenerateCSRKeyPair)
     ASSERT_TRUE (readRequestResult.isResult());
     auto req = readRequestResult.getResult();
 
-    ASSERT_TRUE (req->isValid());
     ASSERT_EQ ("test_O", req->getOrganization());
     ASSERT_EQ ("test_OU", req->getOrganizationalUnit());
     ASSERT_EQ ("csrKeyPair", req->getCommonName());
 
-    ASSERT_TRUE (keygen->isValidPrivateKey(csrKeyPair.getPemPrivateKeyFile()));
+    auto readPrivateKeyResult = tempo_security::PrivateKey::readFile(
+        csrKeyPair.getPemPrivateKeyFile());
+    ASSERT_TRUE (readPrivateKeyResult.isResult());
 
     ASSERT_TRUE (std::filesystem::remove(csrKeyPair.getPemPrivateKeyFile()));
     ASSERT_TRUE (std::filesystem::remove(csrKeyPair.getPemRequestFile()));
@@ -87,8 +96,9 @@ TEST_P(CSRKeyPair, TestGenerateCSRKeyPair)
 TEST_P(CSRKeyPair, TestSignCertificateFromCSR)
 {
     auto *keygen = GetParam();
-    auto generateCsrResult = tempo_security::generate_csr_key_pair(
+    auto generateCsrResult = tempo_security::GenerateUtils::generate_csr_key_pair(
         *keygen,
+        tempo_security::DigestId::None,
         "test_O",
         "test_OU",
         "csrKeyPair",
@@ -100,6 +110,7 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSR)
     auto generateCertificateResult = tempo_security::generate_certificate_from_csr(
         csrKeyPair.getPemRequestFile(),
         getCAKeyPair(),
+        tempo_security::DigestId::None,
         1,
         std::chrono::seconds{60},
         std::filesystem::current_path(),
@@ -111,10 +122,13 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSR)
     ASSERT_TRUE (readFileResult.isResult());
     auto cert = readFileResult.getResult();
 
-    ASSERT_TRUE (cert->isValid());
     ASSERT_EQ ("test_O", cert->getOrganization());
     ASSERT_EQ ("test_OU", cert->getOrganizationalUnit());
     ASSERT_EQ ("csrKeyPair", cert->getCommonName());
+
+    auto readPrivateKeyResult = tempo_security::PrivateKey::readFile(
+        csrKeyPair.getPemPrivateKeyFile());
+    ASSERT_TRUE (readPrivateKeyResult.isResult());
 
     tempo_security::X509StoreOptions options;
     auto loadStoreResult = tempo_security::X509Store::loadTrustedCerts(options, {getCAKeyPair().getPemCertificateFile()});
@@ -131,8 +145,9 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSR)
 TEST_P(CSRKeyPair, TestSignCertificateFromCSRFailsOnValidation)
 {
     auto *keygen = GetParam();
-    auto generateCsrResult = tempo_security::generate_csr_key_pair(
+    auto generateCsrResult = tempo_security::GenerateUtils::generate_csr_key_pair(
         *keygen,
+        tempo_security::DigestId::None,
         "test_O",
         "test_OU",
         "csrKeyPair",
@@ -144,6 +159,7 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSRFailsOnValidation)
     auto generateCertificateResult = tempo_security::generate_certificate_from_csr(
         csrKeyPair.getPemRequestFile(),
         getCAKeyPair(),
+        tempo_security::DigestId::None,
         1,
         std::chrono::seconds{60},
         std::filesystem::current_path(),
@@ -158,8 +174,9 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSRFailsOnValidation)
 TEST_P(CSRKeyPair, TestSignCertificateFromCSRPassesParams)
 {
     auto *keygen = GetParam();
-    auto generateCsrResult = tempo_security::generate_csr_key_pair(
+    auto generateCsrResult = tempo_security::GenerateUtils::generate_csr_key_pair(
         *keygen,
+        tempo_security::DigestId::None,
         "test_O",
         "test_OU",
         "csrKeyPair",
@@ -175,6 +192,7 @@ TEST_P(CSRKeyPair, TestSignCertificateFromCSRPassesParams)
     auto generateCertificateResult = tempo_security::generate_certificate_from_csr(
         csrKeyPair.getPemRequestFile(),
         getCAKeyPair(),
+        tempo_security::DigestId::None,
         1,
         std::chrono::seconds{60},
         std::filesystem::current_path(),

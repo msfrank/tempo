@@ -3,22 +3,17 @@
 
 #include <tempo_utils/result.h>
 
-namespace tempo_security {
+#include "private_key.h"
+#include "security_types.h"
+#include "x509_certificate.h"
 
-    enum class DigestId {
-        None,
-        SHA256,
-        SHA384,
-        SHA512,
-        SHA3_256,
-        SHA3_384,
-        SHA3_512,
-    };
+namespace tempo_security {
 
     class Digest {
     public:
         Digest() = default;
-        Digest(std::vector<tu_uint8> &&data);
+        explicit Digest(std::vector<tu_uint8> &&data);
+        explicit Digest(std::span<const tu_uint8> data);
         Digest(const Digest &other);
 
         bool isValid() const;
@@ -31,17 +26,29 @@ namespace tempo_security {
         std::shared_ptr<std::vector<tu_uint8>> m_data;
     };
 
-    tempo_utils::Result<Digest> generate_signed_message_digest(
+    class DigestUtils {
+    public:
+
+    static tempo_utils::Result<Digest> generate_signed_message_digest(
+        std::span<const tu_uint8> data,
+        std::shared_ptr<PrivateKey> privateKey,
+        DigestId digestId);
+
+    static tempo_utils::Result<Digest> generate_signed_message_digest(
         std::span<const tu_uint8> data,
         const std::filesystem::path &pemPrivateKeyFile,
         DigestId digestId);
 
-    tempo_utils::Result<bool> verify_signed_message_digest(
+    static tempo_utils::Result<bool> verify_signed_message_digest(
         std::span<const tu_uint8> data,
         const Digest &digest,
-        const std::filesystem::path &pemCertificateFile,
-        DigestId digestId);
+        std::shared_ptr<X509Certificate> certificate);
 
+    static tempo_utils::Result<bool> verify_signed_message_digest(
+        std::span<const tu_uint8> data,
+        const Digest &digest,
+        const std::filesystem::path &pemCertificateFile);
+    };
 }
 
 #endif // TEMPO_SECURITY_DIGEST_UTILS_H

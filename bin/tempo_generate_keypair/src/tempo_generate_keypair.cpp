@@ -2,7 +2,7 @@
 #include <tempo_command/command_help.h>
 #include <tempo_command/command_parser.h>
 #include <tempo_security/certificate_key_pair.h>
-#include <tempo_security/ecc_private_key_generator.h>
+#include <tempo_security/ecdsa_private_key_generator.h>
 #include <tempo_security/generate_utils.h>
 #include <tempo_security/rsa_private_key_generator.h>
 #include <tempo_config/base_conversions.h>
@@ -17,8 +17,8 @@ create_key_generator(KeyType keyType)
 {
     switch (keyType) {
         case KeyType::ECC: {
-            tempo_security::ECCurveId curveId = tempo_security::ECCurveId::Prime256v1;
-            return std::make_unique<tempo_security::ECCPrivateKeyGenerator>(curveId);
+            tempo_security::CurveId curveId = tempo_security::CurveId::Prime256v1;
+            return std::make_unique<tempo_security::EcdsaPrivateKeyGenerator>(curveId);
         }
         case KeyType::RSA: {
             int keyBits = tempo_security::kRSAKeyBits;
@@ -51,8 +51,19 @@ run(int argc, const char *argv[])
         {"RSA", KeyType::RSA},
     });
 
+    tempo_config::EnumTParser<tempo_security::DigestId> digestIdParser({
+        {"None", tempo_security::DigestId::None},
+        {"SHA256", tempo_security::DigestId::SHA256},
+        {"SHA384", tempo_security::DigestId::SHA384},
+        {"SHA512", tempo_security::DigestId::SHA512},
+        {"SHA3_256", tempo_security::DigestId::SHA3_256},
+        {"SHA3_384", tempo_security::DigestId::SHA3_384},
+        {"SHA3_512", tempo_security::DigestId::SHA3_512},
+    }, tempo_security::DigestId::None);
+
     std::vector<tempo_command::Default> defaults = {
         {"keyType", "private key type", "TYPE"},
+        {"digestId", "message digest id", "ID"},
         {"outputDirectory", "the output directory", "DIR"},
         {"signingCertificate", "signing certificate file", "FILE"},
         {"signingPrivateKey", "signing private key file", "FILE"},
@@ -69,6 +80,7 @@ run(int argc, const char *argv[])
 
     std::vector<tempo_command::Grouping> groupings = {
         {"keyType", {"-t", "--key-type"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
+        {"digestId", {"--digest-id"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"outputDirectory", {"-o", "--output-directory"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"signingCertificate", {"--signing-certificate"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
         {"signingPrivateKey", {"--signing-private-key"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
@@ -87,6 +99,7 @@ run(int argc, const char *argv[])
 
     std::vector<tempo_command::Mapping> optMappings = {
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "keyType"},
+        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "digestId"},
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "outputDirectory"},
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "signingCertificate"},
         {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "signingPrivateKey"},
@@ -145,6 +158,11 @@ run(int argc, const char *argv[])
     KeyType keyType;
     TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(keyType, keyTypeParser,
         config, "keyType"));
+
+    // determine the digest id
+    tempo_security::DigestId digestId;
+    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(digestId, digestIdParser,
+        config, "digestId"));
 
     // determine the output directory
     std::filesystem::path outputDirectory;
@@ -212,8 +230,9 @@ run(int argc, const char *argv[])
     //
     if (isCA) {
         if (isSelfSigned) {
-            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_self_signed_ca_key_pair(
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::GenerateUtils::generate_self_signed_ca_key_pair(
                 *keygen,
+                digestId,
                 organization,
                 organizationalUnit,
                 commonName,
@@ -226,9 +245,10 @@ run(int argc, const char *argv[])
             tempo_security::CertificateKeyPair caKeyPair;
             TU_ASSIGN_OR_RETURN (caKeyPair, tempo_security::CertificateKeyPair::load(
                 signingPrivateKeyFile, signingCertificateFile));
-            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_ca_key_pair(
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::GenerateUtils::generate_ca_key_pair(
                 caKeyPair,
                 *keygen,
+                digestId,
                 organization,
                 organizationalUnit,
                 commonName,
@@ -241,8 +261,9 @@ run(int argc, const char *argv[])
     }
     else {
         if (isSelfSigned) {
-            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_self_signed_key_pair(
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::GenerateUtils::generate_self_signed_key_pair(
                 *keygen,
+                digestId,
                 organization,
                 organizationalUnit,
                 commonName,
@@ -254,9 +275,10 @@ run(int argc, const char *argv[])
             tempo_security::CertificateKeyPair caKeyPair;
             TU_ASSIGN_OR_RETURN (caKeyPair, tempo_security::CertificateKeyPair::load(
                 signingPrivateKeyFile, signingCertificateFile));
-            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::generate_key_pair(
+            TU_ASSIGN_OR_RETURN (keyPair, tempo_security::GenerateUtils::generate_key_pair(
                 caKeyPair,
                 *keygen,
+                digestId,
                 organization,
                 organizationalUnit,
                 commonName,

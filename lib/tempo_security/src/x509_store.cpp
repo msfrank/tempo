@@ -41,11 +41,6 @@ tempo_utils::Status
 tempo_security::X509Store::verifyCertificate(std::shared_ptr<X509Certificate> x509Certificate) const
 {
     TU_ASSERT (x509Certificate != nullptr);
-
-    if (!x509Certificate->isValid())
-        return SecurityStatus::forCondition(SecurityCondition::kInvalidCertificate,
-            "certificate is invalid");
-
     X509 *x509 = x509Certificate->m_x509;
 
     tempo_utils::Status status(tempo_utils::StatusCode::kInternal);

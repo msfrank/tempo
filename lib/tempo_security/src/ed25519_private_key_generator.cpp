@@ -4,7 +4,6 @@
 #include <openssl/obj_mac.h>
 #include <openssl/x509.h>
 
-#include <tempo_security/ed25519_key.h>
 #include <tempo_security/ed25519_private_key_generator.h>
 #include <tempo_utils/log_message.h>
 
@@ -15,7 +14,7 @@ tempo_security::Ed25519PrivateKeyGenerator::Ed25519PrivateKeyGenerator()
 tempo_security::KeyType
 tempo_security::Ed25519PrivateKeyGenerator::getKeyType() const
 {
-    return KeyType::ED25519;
+    return KeyType::Ed25519;
 }
 
 EVP_PKEY *
@@ -41,12 +40,4 @@ err:
     if (pctx)
         EVP_PKEY_CTX_free(pctx);
     return nullptr;
-}
-
-bool
-tempo_security::Ed25519PrivateKeyGenerator::isValidPrivateKey(
-    const std::filesystem::path &pemPrivateKeyFile) const
-{
-    Ed25519Key key(pemPrivateKeyFile);
-    return key.isValid();
 }

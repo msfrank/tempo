@@ -13,57 +13,66 @@
 
 namespace tempo_security {
 
-    tempo_utils::Result<CertificateKeyPair> generate_ca_key_pair(
-        const CertificateKeyPair &caKeyPair,
-        const AbstractPrivateKeyGenerator &keygen,
-        std::string_view organization,
-        std::string_view organizationalUnit,
-        std::string_view commonName,
-        int serial,
-        std::chrono::seconds validity,
-        int pathlen,
-        const std::filesystem::path &keyPairDestDirectory,
-        std::string_view keyPairFilenameStem);
+    class GenerateUtils {
+    public:
 
-    tempo_utils::Result<CertificateKeyPair> generate_self_signed_ca_key_pair(
-        const AbstractPrivateKeyGenerator &keygen,
-        std::string_view organization,
-        std::string_view organizationalUnit,
-        std::string_view commonName,
-        int serial,
-        std::chrono::seconds validity,
-        int pathlen,
-        const std::filesystem::path &keyPairDestDirectory,
-        std::string_view keyPairFilenameStem);
+        static tempo_utils::Result<CertificateKeyPair> generate_ca_key_pair(
+            const CertificateKeyPair &caKeyPair,
+            const AbstractPrivateKeyGenerator &keygen,
+            DigestId digestId,
+            std::string_view organization,
+            std::string_view organizationalUnit,
+            std::string_view commonName,
+            int serial,
+            std::chrono::seconds validity,
+            int pathlen,
+            const std::filesystem::path &keyPairDestDirectory,
+            std::string_view keyPairFilenameStem);
 
-    tempo_utils::Result<CertificateKeyPair> generate_key_pair(
-        const CertificateKeyPair &caKeyPair,
-        const AbstractPrivateKeyGenerator &keygen,
-        std::string_view organization,
-        std::string_view organizationalUnit,
-        std::string_view commonName,
-        int serial,
-        std::chrono::seconds validity,
-        const std::filesystem::path &keyPairDestDirectory,
-        std::string_view keyPairFilenameStem);
+        static tempo_utils::Result<CertificateKeyPair> generate_self_signed_ca_key_pair(
+            const AbstractPrivateKeyGenerator &keygen,
+            DigestId digestId,
+            std::string_view organization,
+            std::string_view organizationalUnit,
+            std::string_view commonName,
+            int serial,
+            std::chrono::seconds validity,
+            int pathlen,
+            const std::filesystem::path &keyPairDestDirectory,
+            std::string_view keyPairFilenameStem);
 
-    tempo_utils::Result<CertificateKeyPair> generate_self_signed_key_pair(
-        const AbstractPrivateKeyGenerator &keygen,
-        std::string_view organization,
-        std::string_view organizationalUnit,
-        std::string_view commonName,
-        int serial,
-        std::chrono::seconds validity,
-        const std::filesystem::path &keyPairDestDirectory,
-        std::string_view keyPairFilenameStem);
+        static tempo_utils::Result<CertificateKeyPair> generate_key_pair(
+            const CertificateKeyPair &caKeyPair,
+            const AbstractPrivateKeyGenerator &keygen,
+            DigestId digestId,
+            std::string_view organization,
+            std::string_view organizationalUnit,
+            std::string_view commonName,
+            int serial,
+            std::chrono::seconds validity,
+            const std::filesystem::path &keyPairDestDirectory,
+            std::string_view keyPairFilenameStem);
 
-    tempo_utils::Result<CSRKeyPair> generate_csr_key_pair(
-        const AbstractPrivateKeyGenerator &keygen,
-        std::string_view organization,
-        std::string_view organizationalUnit,
-        std::string_view commonName,
-        const std::filesystem::path &keyPairDestDirectory,
-        std::string_view keyPairFilenameStem);
+        static tempo_utils::Result<CertificateKeyPair> generate_self_signed_key_pair(
+            const AbstractPrivateKeyGenerator &keygen,
+            DigestId digestId,
+            std::string_view organization,
+            std::string_view organizationalUnit,
+            std::string_view commonName,
+            int serial,
+            std::chrono::seconds validity,
+            const std::filesystem::path &keyPairDestDirectory,
+            std::string_view keyPairFilenameStem);
+
+        static tempo_utils::Result<CSRKeyPair> generate_csr_key_pair(
+            const AbstractPrivateKeyGenerator &keygen,
+            DigestId digestId,
+            std::string_view organization,
+            std::string_view organizationalUnit,
+            std::string_view commonName,
+            const std::filesystem::path &keyPairDestDirectory,
+            std::string_view keyPairFilenameStem);
+    };
 };
 
 #endif // TEMPO_SECURITY_GENERATE_UTILS_H

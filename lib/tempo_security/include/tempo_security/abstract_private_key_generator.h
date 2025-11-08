@@ -25,13 +25,6 @@ namespace tempo_security {
          * @return
          */
         virtual EVP_PKEY *generatePrivateKey() const = 0;
-
-        /**
-         *
-         * @param pemPrivateKeyFile
-         * @return
-         */
-        virtual bool isValidPrivateKey(const std::filesystem::path &pemPrivateKeyFile) const = 0;
     };
 }
 

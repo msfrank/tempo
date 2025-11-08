@@ -12,9 +12,6 @@ namespace tempo_security {
 
         KeyType getKeyType() const override;
         EVP_PKEY *generatePrivateKey() const override;
-        bool isValidPrivateKey(const std::filesystem::path &pemPrivateKeyFile) const override;
-
-    private:
     };
 }
 

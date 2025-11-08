@@ -9,11 +9,6 @@
 #include <tempo_utils/log_stream.h>
 #include <tempo_utils/posix_result.h>
 
-tempo_security::X509Certificate::X509Certificate()
-    : m_x509(nullptr)
-{
-}
-
 tempo_security::X509Certificate::X509Certificate(X509 *x509)
     : m_x509(x509)
 {
@@ -25,25 +20,21 @@ tempo_security::X509Certificate::~X509Certificate()
     X509_free(m_x509);
 }
 
-bool
-tempo_security::X509Certificate::isValid() const
+X509 *
+tempo_security::X509Certificate::getCertificate() const
 {
-    return m_x509 != nullptr;
+    return m_x509;
 }
 
 long
 tempo_security::X509Certificate::getVersion() const
 {
-    if (!isValid())
-        return -1;
     return X509_get_version(m_x509);
 }
 
 long
 tempo_security::X509Certificate::getSerialNumber() const
 {
-    if (!isValid())
-        return -1;
     auto *serial = X509_get_serialNumber(m_x509);
     return ASN1_INTEGER_get(serial);
 }
@@ -51,8 +42,6 @@ tempo_security::X509Certificate::getSerialNumber() const
 std::string
 tempo_security::X509Certificate::getOrganization() const
 {
-    if (!isValid())
-        return {};
     auto *dn = X509_get_subject_name(m_x509);
 
     std::string organization;
@@ -82,8 +71,6 @@ tempo_security::X509Certificate::getOrganization() const
 std::string
 tempo_security::X509Certificate::getOrganizationalUnit() const
 {
-    if (!isValid())
-        return {};
     auto *dn = X509_get_subject_name(m_x509);
 
     std::string organizationalUnit;
@@ -113,8 +100,6 @@ tempo_security::X509Certificate::getOrganizationalUnit() const
 std::string
 tempo_security::X509Certificate::getCommonName() const
 {
-    if (!isValid())
-        return {};
     auto *dn = X509_get_subject_name(m_x509);
 
     std::string commonName;
@@ -144,8 +129,6 @@ tempo_security::X509Certificate::getCommonName() const
 std::chrono::time_point<std::chrono::system_clock>
 tempo_security::X509Certificate::getNotValidBefore() const
 {
-    if (!isValid())
-        return {};
     auto *notBefore = X509_get_notBefore(m_x509);
     struct tm tm;
     ASN1_TIME_to_tm(notBefore, &tm);
@@ -155,8 +138,6 @@ tempo_security::X509Certificate::getNotValidBefore() const
 std::chrono::time_point<std::chrono::system_clock>
 tempo_security::X509Certificate::getNotValidAfter() const
 {
-    if (!isValid())
-        return {};
     auto *notBefore = X509_get_notBefore(m_x509);
     struct tm tm;
     ASN1_TIME_to_tm(notBefore, &tm);
@@ -166,9 +147,6 @@ tempo_security::X509Certificate::getNotValidAfter() const
 bool
 tempo_security::X509Certificate::isCertificateAuthority() const
 {
-    if (!isValid())
-        return {};
-
     int critical = 0;
     auto *ret = X509_get_ext_d2i(m_x509, NID_basic_constraints, &critical, nullptr);
     if (ret == nullptr)

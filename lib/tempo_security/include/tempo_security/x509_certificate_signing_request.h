@@ -17,7 +17,6 @@ namespace tempo_security {
     public:
         ~X509CertificateSigningRequest();
 
-        bool isValid() const;
         std::string getOrganization() const;
         std::string getOrganizationalUnit() const;
         std::string getCommonName() const;
@@ -31,8 +30,10 @@ namespace tempo_security {
     private:
         X509_REQ *m_req;
 
-        X509CertificateSigningRequest();
         explicit X509CertificateSigningRequest(X509_REQ *req);
+        X509_REQ *getCertificateSigningRequest() const;
+
+        friend class CSRKeyPair;
     };
 
     struct CSRValidationParams {
@@ -47,6 +48,7 @@ namespace tempo_security {
     tempo_utils::Result<std::string> generate_certificate_from_csr(
         std::string_view pemRequestBytes,
         const CertificateKeyPair &caKeyPair,
+        DigestId digestId,
         int serial,
         std::chrono::seconds validity,
         CSRValidatorFunc validator = nullptr);
@@ -54,6 +56,7 @@ namespace tempo_security {
     tempo_utils::Result<std::filesystem::path> generate_certificate_from_csr(
         const std::filesystem::path &pemRequestFile,
         const CertificateKeyPair &caKeyPair,
+        DigestId digestId,
         int serial,
         std::chrono::seconds validity,
         const std::filesystem::path &certificateDestDirectory,

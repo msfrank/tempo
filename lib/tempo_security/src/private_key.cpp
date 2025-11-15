@@ -39,6 +39,18 @@ tempo_security::PrivateKey::getPrivateKey() const
 }
 
 std::string
+tempo_security::PrivateKey::toPem() const
+{
+    auto *bio = BIO_new(BIO_s_mem());
+    PEM_write_bio_PrivateKey(bio, m_pkey, nullptr, nullptr, 0, nullptr, nullptr);
+    char *data;
+    auto len = BIO_get_mem_data(bio, &data);
+    std::string s(data, len);
+    BIO_free(bio);
+    return s;
+}
+
+std::string
 tempo_security::PrivateKey::toString() const
 {
     auto *bio = BIO_new(BIO_s_mem());

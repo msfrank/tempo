@@ -1,4 +1,3 @@
-#include "tempo_security/ed25519_private_key_generator.h"
 
 #include <gtest/gtest.h>
 
@@ -8,12 +7,13 @@
 
 #include <tempo_security/certificate_key_pair.h>
 #include <tempo_security/ecdsa_private_key_generator.h>
+#include <tempo_security/ed25519_private_key_generator.h>
 #include <tempo_security/generate_utils.h>
 #include <tempo_security/rsa_private_key_generator.h>
 #include <tempo_security/x509_certificate.h>
 
 static tempo_security::RSAPrivateKeyGenerator rsaKeygen(tempo_security::kRSAKeyBits, tempo_security::kRSAPublicExponent);
-static tempo_security::EcdsaPrivateKeyGenerator eccKeygen(NID_X9_62_prime256v1);
+static tempo_security::EcdsaPrivateKeyGenerator eccKeygen(tempo_security::CurveId::Prime256v1);
 static tempo_security::Ed25519PrivateKeyGenerator ed25519Keygen;
 
 class X509Certificate : public testing::TestWithParam<const tempo_security::AbstractPrivateKeyGenerator *> {
@@ -78,6 +78,21 @@ TEST_P(X509Certificate, TestReadCertificate)
     TU_CONSOLE_OUT << cert->toString();
 }
 
+TEST_P(X509Certificate, TestCertificateToPem)
+{
+    auto keypair = getKeyPair();
+
+    tempo_utils::FileReader certificateReader(keypair.getPemCertificateFile());
+    ASSERT_TRUE (certificateReader.isValid());
+    auto certificateBytes = certificateReader.getBytes();
+
+    auto fromStringResult = tempo_security::X509Certificate::fromString(certificateBytes->getStringView());
+    ASSERT_TRUE (fromStringResult.isResult());
+    auto cert = fromStringResult.getResult();
+
+    ASSERT_EQ (certificateBytes->getStringView(), cert->toPem());
+}
+
 class X509CACertificate : public testing::TestWithParam<const tempo_security::AbstractPrivateKeyGenerator *>{
 
 public:
@@ -125,7 +140,7 @@ INSTANTIATE_TEST_SUITE_P(PrivateKeyGenerators, X509CACertificate, testing::Value
         }
     });
 
-TEST_P(X509CACertificate, TestReadCACertificate)
+TEST_P(X509CACertificate, TestReadCertificate)
 {
     auto keypair = getKeyPair();
 
@@ -142,4 +157,19 @@ TEST_P(X509CACertificate, TestReadCACertificate)
     ASSERT_EQ (cert->getCommonName(), std::string("caKeyPair"));
     ASSERT_TRUE (cert->isCertificateAuthority());
     TU_CONSOLE_OUT << cert->toString();
+}
+
+TEST_P(X509CACertificate, TestCertificateToPem)
+{
+    auto keypair = getKeyPair();
+
+    tempo_utils::FileReader certificateReader(keypair.getPemCertificateFile());
+    ASSERT_TRUE (certificateReader.isValid());
+    auto certificateBytes = certificateReader.getBytes();
+
+    auto fromStringResult = tempo_security::X509Certificate::fromString(certificateBytes->getStringView());
+    ASSERT_TRUE (fromStringResult.isResult());
+    auto cert = fromStringResult.getResult();
+
+    ASSERT_EQ (certificateBytes->getStringView(), cert->toPem());
 }

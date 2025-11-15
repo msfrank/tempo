@@ -3,6 +3,7 @@
 
 #include <openssl/evp.h>
 
+#include <tempo_utils/immutable_bytes.h>
 #include <tempo_utils/result.h>
 
 #include "security_types.h"
@@ -15,6 +16,7 @@ namespace tempo_security {
 
         KeyType getKeyType() const;
 
+        std::string toPem() const;
         std::string toString() const;
 
         static tempo_utils::Result<std::shared_ptr<PrivateKey>> readFile(

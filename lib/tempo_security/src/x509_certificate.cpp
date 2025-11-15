@@ -156,6 +156,18 @@ tempo_security::X509Certificate::isCertificateAuthority() const
 }
 
 std::string
+tempo_security::X509Certificate::toPem() const
+{
+    auto *bio = BIO_new(BIO_s_mem());
+    PEM_write_bio_X509(bio, m_x509);
+    char *data;
+    auto len = BIO_get_mem_data(bio, &data);
+    std::string s(data, len);
+    BIO_free(bio);
+    return s;
+}
+
+std::string
 tempo_security::X509Certificate::toString() const
 {
     auto *bio = BIO_new(BIO_s_mem());

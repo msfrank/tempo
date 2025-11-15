@@ -24,6 +24,7 @@ namespace tempo_security {
         std::chrono::time_point<std::chrono::system_clock> getNotValidAfter() const;
         bool isCertificateAuthority() const;
 
+        std::string toPem() const;
         std::string toString() const;
 
         bool operator==(const X509Certificate &other) const;

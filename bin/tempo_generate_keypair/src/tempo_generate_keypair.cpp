@@ -1,4 +1,6 @@
 
+#include "tempo_security/ed25519_private_key_generator.h"
+
 #include <tempo_command/command_help.h>
 #include <tempo_command/command_parser.h>
 #include <tempo_security/certificate_key_pair.h>
@@ -10,17 +12,20 @@
 #include <tempo_utils/log_stream.h>
 #include <tempo_utils/url.h>
 
-enum class KeyType { ECC, RSA, };
+enum class KeyType { Ecdsa, Ed25519, Rsa, };
 
 static std::unique_ptr<tempo_security::AbstractPrivateKeyGenerator>
 create_key_generator(KeyType keyType)
 {
     switch (keyType) {
-        case KeyType::ECC: {
+        case KeyType::Ecdsa: {
             tempo_security::CurveId curveId = tempo_security::CurveId::Prime256v1;
             return std::make_unique<tempo_security::EcdsaPrivateKeyGenerator>(curveId);
         }
-        case KeyType::RSA: {
+        case KeyType::Ed25519: {
+            return std::make_unique<tempo_security::Ed25519PrivateKeyGenerator>();
+        }
+        case KeyType::Rsa: {
             int keyBits = tempo_security::kRSAKeyBits;
             int publicExponent = tempo_security::kRSAPublicExponent;
             return std::make_unique<tempo_security::RSAPrivateKeyGenerator>(keyBits, publicExponent);
@@ -47,18 +52,19 @@ run(int argc, const char *argv[])
     tempo_config::BooleanParser isSelfSignedParser(false);
 
     tempo_config::EnumTParser<KeyType> keyTypeParser({
-        {"ECC", KeyType::ECC},
-        {"RSA", KeyType::RSA},
+        {"ecdsa", KeyType::Ecdsa},
+        {"ed25519", KeyType::Ed25519},
+        {"rsa", KeyType::Rsa},
     });
 
     tempo_config::EnumTParser<tempo_security::DigestId> digestIdParser({
-        {"None", tempo_security::DigestId::None},
-        {"SHA256", tempo_security::DigestId::SHA256},
-        {"SHA384", tempo_security::DigestId::SHA384},
-        {"SHA512", tempo_security::DigestId::SHA512},
-        {"SHA3_256", tempo_security::DigestId::SHA3_256},
-        {"SHA3_384", tempo_security::DigestId::SHA3_384},
-        {"SHA3_512", tempo_security::DigestId::SHA3_512},
+        {"none", tempo_security::DigestId::None},
+        {"sha256", tempo_security::DigestId::SHA256},
+        {"sha384", tempo_security::DigestId::SHA384},
+        {"sha512", tempo_security::DigestId::SHA512},
+        {"sha3_256", tempo_security::DigestId::SHA3_256},
+        {"sha3_384", tempo_security::DigestId::SHA3_384},
+        {"sha3_512", tempo_security::DigestId::SHA3_512},
     }, tempo_security::DigestId::None);
 
     std::vector<tempo_command::Default> defaults = {

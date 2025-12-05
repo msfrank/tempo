@@ -32,3 +32,5 @@ jobs:
       build_runner: ${{ matrix.platform.build_runner }}
       conan_profile: ${{ matrix.platform.conan_profile }}
       install_dependencies_script: ${{ matrix.platform.install_dependencies_script }}
+
+    name: "Build ${{ matrix.platform.conan_profile }}"

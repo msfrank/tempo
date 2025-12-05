@@ -2,6 +2,7 @@
 #define TEMPO_UTILS_IMMUTABLE_BYTES_H
 
 #include <span>
+#include <string_view>
 
 #include "integer_types.h"
 

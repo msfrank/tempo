@@ -66,4 +66,4 @@ jobs:
 
       - name: Upload package
         run: |
-          conan upload --profile ${{ inputs.conan_profile }} --remote conan.s10y.co -c 'tempo/*:*'
+          conan upload --remote conan.s10y.co -c 'tempo/*:*'

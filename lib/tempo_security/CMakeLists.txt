@@ -45,7 +45,7 @@ target_sources(tempo_security
     )
 
 # set the library version
-set_target_properties(tempo_security PROPERTIES VERSION "${FULL_VERSION}" SOVERSION "${MAJOR_VERSION}")
+set_target_properties(tempo_security PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 
 # set the RPATH if on OS X
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

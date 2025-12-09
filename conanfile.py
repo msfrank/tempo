@@ -39,15 +39,6 @@ class Tempo(ConanFile):
 
     exports = ('meta/*')
 
-    exports_sources = (
-        'CMakeLists.txt',
-        'bin/*',
-        'cmake/*',
-        'docker/*',
-        'lib/*',
-        'meta/*',
-        )
-
     requires = (
         # requirements from timbre
         'absl/20250127.1@timbre',
@@ -63,6 +54,14 @@ class Tempo(ConanFile):
         'rapidjson/20250205.1@timbre',
         'utfcpp/4.0.6@timbre',
         )
+
+    def export_sources(self):
+        copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
+        copy(self, "*", join(self.recipe_folder, 'bin'), join(self.export_sources_folder, 'bin'))
+        copy(self, "*", join(self.recipe_folder, 'cmake'), join(self.export_sources_folder, 'cmake'))
+        copy(self, "*", join(self.recipe_folder, 'docker'), join(self.export_sources_folder, 'docker'))
+        copy(self, "*", join(self.recipe_folder, 'lib'), join(self.export_sources_folder, 'lib'))
+        copy(self, "*", join(self.recipe_folder, 'meta'), join(self.export_sources_folder, 'meta'))
 
     def _get_meta(self, key):
         return load(self, join(self.recipe_folder, "meta", key))

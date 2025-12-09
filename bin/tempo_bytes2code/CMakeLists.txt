@@ -15,8 +15,9 @@ target_link_libraries(bytes2code_serializer
 
 add_executable(tempo-bytes2code src/bytes_to_code.cpp)
 
-# set the binary version
-set_target_properties(tempo-bytes2code PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
+# add program to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo-bytes2code")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
 
 set_target_properties(tempo-bytes2code PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${TEMPO_BUILD_BIN_DIR}

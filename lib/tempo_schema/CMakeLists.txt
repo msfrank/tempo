@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_schema SHARED)
 add_library(tempo::tempo_schema ALIAS tempo_schema)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_schema")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_SCHEMA_INCLUDES
     include/tempo_schema/abstract_attr_parser.h
     include/tempo_schema/abstract_attr_writer.h

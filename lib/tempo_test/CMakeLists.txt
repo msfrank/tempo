@@ -3,6 +3,10 @@
 add_library(tempo_test SHARED)
 add_library(tempo::tempo_test ALIAS tempo_test)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_test")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_TEST_INCLUDES
     include/tempo_test/result_matchers.h
     include/tempo_test/spanset_matchers.h

@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_security SHARED)
 add_library(tempo::tempo_security ALIAS tempo_security)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_security")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_SECURITY_INCLUDES
     include/tempo_security/abstract_private_key_generator.h
     include/tempo_security/certificate_key_pair.h

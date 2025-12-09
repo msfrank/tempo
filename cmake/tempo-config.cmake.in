@@ -4,4 +4,11 @@ if (NOT TARGET tempo::tempo_utils)
   include(${CMAKE_CURRENT_LIST_DIR}/tempo-targets.cmake)
 endif ()
 
+# targets which are included in the runtime
+set(TEMPO_RUNTIME_TARGETS "@TEMPO_RUNTIME_TARGETS@")
+
+# targets which are included in the development kit
+set(TEMPO_DEVKIT_TARGETS "@TEMPO_DEVKIT_TARGETS@")
+
+# should be last
 check_required_components(tempo)

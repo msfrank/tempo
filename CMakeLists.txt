@@ -243,9 +243,14 @@ set(TEMPO_BUILD_LIB_DIR             "${TEMPO_BUILD_OUTPUT_ROOT}/${CMAKE_INSTALL_
 #
 #######################################################################
 
+set(TEMPO_RUNTIME_TARGETS CACHE INTERNAL "runtime targets")
+set(TEMPO_DEVKIT_TARGETS CACHE INTERNAL "devkit targets")
+
 add_subdirectory(bin)
 add_subdirectory(lib)
 
+message(STATUS "runtime targets: ${TEMPO_RUNTIME_TARGETS}")
+message(STATUS "devkit targets: ${TEMPO_DEVKIT_TARGETS}")
 
 #######################################################################
 #

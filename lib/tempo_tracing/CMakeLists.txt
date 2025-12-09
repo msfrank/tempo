@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_tracing SHARED)
 add_library(tempo::tempo_tracing ALIAS tempo_tracing)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_tracing")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_TRACING_INCLUDES
     include/tempo_tracing/base_scope.h
     include/tempo_tracing/current_scope.h

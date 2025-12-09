@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_command SHARED)
 add_library(tempo::tempo_command ALIAS tempo_command)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_command")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_COMMAND_INCLUDES
     include/tempo_command/command_config.h
     include/tempo_command/command_help.h

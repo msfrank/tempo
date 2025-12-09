@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_utils SHARED)
 add_library(tempo::tempo_utils ALIAS tempo_utils)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_utils")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/bytes_appender.h
     include/tempo_utils/bytes_iterator.h

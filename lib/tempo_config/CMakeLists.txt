@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_config SHARED)
 add_library(tempo::tempo_config ALIAS tempo_config)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_config")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/abstract_converter.h
     include/tempo_config/base_conversions.h

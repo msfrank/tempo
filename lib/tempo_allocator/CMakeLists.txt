@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC OFF)
 add_library(tempo_allocator SHARED)
 add_library(tempo::tempo_allocator ALIAS tempo_allocator)
 
+# add library to list of devkit targets
+list(APPEND TEMPO_DEVKIT_TARGETS "tempo_allocator")
+set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
+
 set(TEMPO_ALLOCATOR_INCLUDES
     include/tempo_allocator/allocator_types.h
     include/tempo_allocator/arena_pool.h

@@ -52,3 +52,25 @@ TEST(MemoryBytes, TestCopyStdStringView)
     ASSERT_EQ (2, data[1]);
     ASSERT_EQ (3, data[2]);
 }
+
+TEST(MemoryBytes, TestGetSpan)
+{
+    auto bytes = tempo_utils::MemoryBytes::copy({1, 2, 3});
+    ASSERT_TRUE (bytes != nullptr);
+    auto span = bytes->getSpan();
+    ASSERT_EQ (3, span.size());
+    ASSERT_EQ (1, span[0]);
+    ASSERT_EQ (2, span[1]);
+    ASSERT_EQ (3, span[2]);
+}
+
+TEST(MemoryBytes, TestGetStringView)
+{
+    auto bytes = tempo_utils::MemoryBytes::copy({'a', 'b', 'c'});
+    ASSERT_TRUE (bytes != nullptr);
+    auto sv = bytes->getStringView();
+    ASSERT_EQ (3, sv.size());
+    ASSERT_EQ ('a', sv[0]);
+    ASSERT_EQ ('b', sv[1]);
+    ASSERT_EQ ('c', sv[2]);
+}

@@ -77,6 +77,7 @@ jobs:
 
       - name: Upload package to integ remote
         run: |
+          conan remote enable integ
           conan upload -cc core:non_interactive=True --remote integ -c '${{ steps.get-parameters.outputs.package-ref }}'
 
       - name: Remove outdated revisions

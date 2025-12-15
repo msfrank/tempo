@@ -72,7 +72,7 @@ jobs:
       - name: Download package from build remote
         run: |
           conan remote enable build
-          conan download -cc core:non_interactive=True --remote build -c '${{ steps.get-parameters.outputs.package-ref }}'
+          conan download -cc core:non_interactive=True --remote build '${{ steps.get-parameters.outputs.package-ref }}'
           
 
       - name: Upload package to integ remote

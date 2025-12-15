@@ -62,7 +62,7 @@ jobs:
       - name: Get recipe parameters
         id: get-parameters
         run: |
-          RECIPE=$(conan inspect -cc core:non_interactive=True --profile ${{ inputs.conan_profile }} -f json .)
+          RECIPE=$(conan inspect --profile ${{ inputs.conan_profile }} -f json .)
           NAME=$(echo $RECIPE | jq -Mr '.name')
           VERSION=$(echo $RECIPE | jq -Mr '.version')
           echo "package-name=$NAME" >> "$GITHUB_OUTPUT"

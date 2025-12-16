@@ -27,7 +27,7 @@ env:
 jobs:
 
   build-package:
-    name: Build Tempo package
+    name: Promote Tempo package
     runs-on: ${{ inputs.build_runner }}
 
     steps:

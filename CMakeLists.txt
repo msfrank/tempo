@@ -160,7 +160,9 @@ find_package(antlr REQUIRED)
 find_package(flatbuffers REQUIRED)
 
 # find required Openssl dependency
-find_package(OpenSSL REQUIRED CONFIG)
+find_package(openssl REQUIRED)
+set(OpenSSL_DIR ${openssl_DIR})
+find_package(OpenSSL REQUIRED)
 
 # find required Utfcpp dependency
 find_package(utfcpp REQUIRED)

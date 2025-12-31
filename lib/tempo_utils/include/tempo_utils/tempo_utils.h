@@ -9,7 +9,6 @@
 namespace tempo_utils {}
 
 #include "compressed_bitmap.h"
-#include "process_runner.h"
 #include "date_time.h"
 #include "directory_maker.h"
 #include "either_template.h"
@@ -31,9 +30,10 @@ namespace tempo_utils {}
 #include "log_stream.h"
 #include "logging.h"
 #include "option_template.h"
-#include "path_template.h"
 #include "posix_result.h"
 #include "process_builder.h"
+#include "process_runner.h"
+#include "program_location.h"
 #include "result.h"
 #include "status.h"
 #include "tempdir_maker.h"

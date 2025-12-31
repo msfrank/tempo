@@ -8,6 +8,9 @@ target_link_libraries(logging-child tempo::tempo_utils)
 add_executable(process-runner-child process_runner_child.cpp)
 target_link_libraries(process-runner-child tempo::tempo_utils)
 
+add_executable(program-location-child program_location_child.cpp)
+target_link_libraries(program-location-child tempo::tempo_utils)
+
 # define unit tests
 
 set(TEST_CASES
@@ -22,6 +25,7 @@ set(TEST_CASES
     memory_mapped_bytes_tests.cpp
     prehashed_value_tests.cpp
     process_runner_tests.cpp
+    program_location_tests.cpp
     slice_tests.cpp
     status_tests.cpp
     tempdir_maker_tests.cpp
@@ -42,20 +46,22 @@ target_link_libraries(tempo_utils_testsuite PUBLIC
     gtest::gtest
     utfcpp::utfcpp
     )
-add_dependencies(tempo_utils_testsuite logging-child process-runner-child)
+add_dependencies(tempo_utils_testsuite logging-child process-runner-child program-location-child)
 target_compile_definitions(tempo_utils_testsuite PRIVATE
     "LOGGING_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/logging-child\""
     "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""
+    "PROGRAM_LOCATION_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/program-location-child\""
     )
 gtest_discover_tests(tempo_utils_testsuite)
 
 # define test suite static library
 
 add_library(TempoUtilsTestSuite OBJECT ${TEST_CASES})
-add_dependencies(TempoUtilsTestSuite logging-child process-runner-child)
+add_dependencies(TempoUtilsTestSuite logging-child process-runner-child program-location-child)
 target_compile_definitions(TempoUtilsTestSuite PRIVATE
     "LOGGING_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/logging-child\""
     "PROCESS_RUNNER_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/process-runner-child\""
+    "PROGRAM_LOCATION_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/program-location-child\""
     )
 target_link_libraries(TempoUtilsTestSuite PUBLIC
     tempo::tempo_utils

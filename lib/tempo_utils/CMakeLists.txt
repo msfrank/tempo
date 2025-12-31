@@ -14,7 +14,6 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/bytes_appender.h
     include/tempo_utils/bytes_iterator.h
     include/tempo_utils/compressed_bitmap.h
-    include/tempo_utils/process_runner.h
     include/tempo_utils/date_time.h
     include/tempo_utils/directory_maker.h
     include/tempo_utils/either_template.h
@@ -42,11 +41,12 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/memory_bytes.h
     include/tempo_utils/memory_mapped_bytes.h
     include/tempo_utils/option_template.h
-    include/tempo_utils/path_template.h
     include/tempo_utils/platform.h
     include/tempo_utils/posix_result.h
     include/tempo_utils/prehashed_value.h
     include/tempo_utils/process_builder.h
+    include/tempo_utils/process_runner.h
+    include/tempo_utils/program_location.h
     include/tempo_utils/result.h
     include/tempo_utils/slice.h
     include/tempo_utils/status.h
@@ -70,7 +70,6 @@ target_sources(tempo_utils
     src/bytes_appender.cpp
     src/bytes_iterator.cpp
     src/compressed_bitmap.cpp
-    src/process_runner.cpp
     src/date_time.cpp
     src/directory_maker.cpp
     src/big_endian.cpp
@@ -96,6 +95,8 @@ target_sources(tempo_utils
     src/platform.cpp
     src/posix_result.cpp
     src/process_builder.cpp
+    src/process_runner.cpp
+    src/program_location.cpp
     src/slice.cpp
     src/status.cpp
     src/tempdir_maker.cpp

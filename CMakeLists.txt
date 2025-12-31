@@ -151,7 +151,7 @@ endif()
 find_package(absl REQUIRED)
 
 # find required Boost dependencies
-find_package(Boost REQUIRED COMPONENTS headers url)
+find_package(Boost REQUIRED COMPONENTS filesystem headers url)
 
 # find required Antlr dependency
 find_package(antlr REQUIRED)

@@ -154,6 +154,7 @@ target_link_libraries(tempo_utils
     absl::time_zone
     fmt::fmt
     PRIVATE
+    Boost::filesystem
     Boost::headers
     Boost::url
     croaring::croaring

@@ -7,6 +7,7 @@ include(GoogleTest)
 set(TEST_CASES
     attr_value_tests.cpp
     bool_attr_serde_tests.cpp
+    path_serde_tests.cpp
     )
 
 # define test suite driver

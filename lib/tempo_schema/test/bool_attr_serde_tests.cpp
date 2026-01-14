@@ -9,9 +9,9 @@
 #include "mock_attr_parser.h"
 #include "mock_attr_writer.h"
 
-tempo_schema::SchemaNs ns("test");
-tempo_schema::SchemaId id(1);
-tempo_schema::SchemaProperty prop(&ns, id.getId(), "Prop", tempo_schema::PropertyType::kBool);
+static tempo_schema::SchemaNs ns("test");
+static tempo_schema::SchemaId id(1);
+static tempo_schema::SchemaProperty prop(&ns, id.getId(), "Prop", tempo_schema::PropertyType::kBool);
 
 TEST(BoolAttr, WriteAttr) {
     tempo_schema::BoolAttr boolAttr(&prop);

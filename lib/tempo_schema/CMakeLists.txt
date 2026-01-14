@@ -17,6 +17,7 @@ set(TEMPO_SCHEMA_INCLUDES
     include/tempo_schema/attr.h
     include/tempo_schema/attr_serde.h
     include/tempo_schema/dcmi_elements_schema.h
+    include/tempo_schema/path_serde.h
     include/tempo_schema/schema.h
     include/tempo_schema/schema_identifier.h
     include/tempo_schema/schema_namespace.h
@@ -32,6 +33,7 @@ target_sources(tempo_schema
     PRIVATE
     src/attr.cpp
     src/attr_serde.cpp
+    src/path_serde.cpp
     src/schema_result.cpp
     src/url_serde.cpp
     src/vocabulary_cache.cpp

@@ -78,6 +78,26 @@ TEST(CommandTokenizer, TokenizeLongOption)
     ASSERT_EQ ("--verbose", token1.getValue());
 }
 
+TEST(CommandTokenizer, TokenizeLongOptionWithValue)
+{
+    const char *argv[] = {
+        "--path=/foo/bar/baz",
+        nullptr,
+    };
+
+    auto tokenizeResult = tempo_command::tokenize_argv(1, argv);
+    ASSERT_TRUE (tokenizeResult.isResult());
+    auto tokens = tokenizeResult.getResult();
+
+    ASSERT_EQ (2, tokens.size());
+    auto &token1 = tokens.at(0);
+    ASSERT_EQ (tempo_command::TokenType::LONG_OPT, token1.getType());
+    ASSERT_EQ ("--path", token1.getValue());
+    auto &token2 = tokens.at(1);
+    ASSERT_EQ (tempo_command::TokenType::ARGUMENT, token2.getType());
+    ASSERT_EQ ("/foo/bar/baz", token2.getValue());
+}
+
 TEST(CommandTokenizer, TokenizeSingleDashAsArgument)
 {
     const char *argv[] = {

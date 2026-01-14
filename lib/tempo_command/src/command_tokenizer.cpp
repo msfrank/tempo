@@ -89,10 +89,19 @@ tempo_command::tokenize_argv(int argc, const char **argv)
 
         std::string token(arg);
         if (absl::StartsWith(token, "--")) {
-            if (token.size() == 2)
+            if (token.size() == 2) {
                 tokens.emplace_back(TokenType::OPT_END, token);
-            else
-                tokens.emplace_back(TokenType::LONG_OPT, token);
+            } else {
+                auto index = token.find('=');
+                if (index != std::string_view::npos) {
+                    std::string optName(token.data(), index);
+                    std::string optVal(token.data() + index + 1, token.size() - index - 1);
+                    tokens.emplace_back(TokenType::LONG_OPT, optName);
+                    tokens.emplace_back(TokenType::ARGUMENT, optVal);
+                } else {
+                    tokens.emplace_back(TokenType::LONG_OPT, token);
+                }
+            }
         } else if (absl::StartsWith(token, "-")) {
             if (token.size() == 1) {
                 tokens.emplace_back(TokenType::ARGUMENT, token);

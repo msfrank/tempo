@@ -14,7 +14,9 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/abstract_converter.h
     include/tempo_config/base_conversions.h
     include/tempo_config/config_builder.h
+    include/tempo_config/config_editor.h
     include/tempo_config/config_parser.h
+    include/tempo_config/config_path.h
     include/tempo_config/config_result.h
     include/tempo_config/config_utils.h
     include/tempo_config/config_types.h
@@ -24,9 +26,7 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/merge_map.h
     include/tempo_config/number_conversions.h
     include/tempo_config/parse_config.h
-    include/tempo_config/program_config.h
     include/tempo_config/time_conversions.h
-    include/tempo_config/workspace_config.h
     )
 set_target_properties(tempo_config PROPERTIES PUBLIC_HEADER "${TEMPO_CONFIG_INCLUDES}")
 
@@ -63,16 +63,16 @@ target_sources(tempo_config
     PRIVATE
     src/base_conversions.cpp
     src/config_builder.cpp
+    src/config_editor.cpp
     src/config_parser.cpp
+    src/config_path.cpp
     src/config_result.cpp
     src/config_utils.cpp
     src/config_types.cpp
     src/extend_map.cpp
     src/merge_map.cpp
     src/parse_directories.cpp
-    src/program_config.cpp
     src/time_conversions.cpp
-    src/workspace_config.cpp
 
     include/tempo_config/internal/abstract_json_node.h
     include/tempo_config/internal/config_listener.h
@@ -81,6 +81,8 @@ target_sources(tempo_config
     src/internal/json_array.cpp
     include/tempo_config/internal/json_object.h
     src/internal/json_object.cpp
+    include/tempo_config/internal/json_piece.h
+    src/internal/json_piece.cpp
     include/tempo_config/internal/json_value.h
     src/internal/json_value.cpp
     include/tempo_config/internal/tracing_error_listener.h

@@ -25,7 +25,7 @@ tempo_config::ConfigParser::parseString(
     if (utf8.empty())
         return ConfigStatus::forCondition(ConfigCondition::kMissingValue, "empty config string");
 
-    antlr4::ANTLRInputStream input(utf8.data(), (size_t) utf8.size());
+    antlr4::ANTLRInputStream input(utf8.data(), utf8.size());
     tcf1::ConfigLexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
     tcf1::ConfigParser parser(&tokens);

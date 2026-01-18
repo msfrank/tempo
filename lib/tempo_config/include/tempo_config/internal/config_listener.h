@@ -17,7 +17,9 @@ namespace tempo_config::internal {
     class ConfigListener : public tcf1::ConfigParserBaseListener {
 
     public:
-        ConfigListener(std::shared_ptr<ConfigSource> source, std::shared_ptr<tempo_tracing::TraceContext> context);
+        ConfigListener(
+            std::shared_ptr<ConfigSource> source,
+            std::shared_ptr<tempo_tracing::TraceContext> context);
 
         std::shared_ptr<ConfigSource> getSource() const;
 

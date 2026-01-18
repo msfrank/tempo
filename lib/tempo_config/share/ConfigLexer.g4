@@ -1,6 +1,6 @@
 lexer grammar ConfigLexer;
 
-channels { COMMENTS }
+channels { COMMENTS, WHITESPACE }
 
 // comment styles
 
@@ -118,7 +118,4 @@ Identifier                  : IdentifierStart IdentifierChar* ;
 
 /** other definitions */
 
-EXPRWS                      : [ \t\r\n]+ -> skip ;  // skip whitespace
-
-mode COMMENT;
-CommentLine             : ( ~[\r\n]+ )? '\r'? '\n' -> popMode ;      // match characters until after the newline
+EXPRWS                      : [ \t\r\n]+ -> channel(WHITESPACE) ;

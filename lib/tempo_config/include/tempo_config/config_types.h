@@ -107,7 +107,7 @@ namespace tempo_config {
 
         std::string toString() const;
 
-        int compare(const tempo_config::ConfigNode &other) const;
+        int compare(const ConfigNode &other) const;
 
         void hash(absl::HashState state) const;
 

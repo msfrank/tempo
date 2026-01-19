@@ -9,7 +9,6 @@ namespace tempo_config {
 
     enum class ConfigPathPartType {
         Invalid,
-        Root,
         Index,
         Key,
     };
@@ -21,9 +20,10 @@ namespace tempo_config {
         explicit ConfigPathPart(std::string_view key);
         ConfigPathPart(const ConfigPathPart &other);
 
+        bool isValid() const;
         ConfigPathPartType getType() const;
-        int getIndex();
-        std::string getKey();
+        int getIndex() const;
+        std::string getKey() const;
 
     private:
         struct Priv {
@@ -34,7 +34,6 @@ namespace tempo_config {
         std::shared_ptr<Priv> m_priv;
 
         ConfigPathPart(std::shared_ptr<Priv> priv);
-        static ConfigPathPart root();
 
         friend class ConfigPath;
     };
@@ -44,11 +43,13 @@ namespace tempo_config {
         ConfigPath();
         ConfigPath(const ConfigPath &other);
 
-        bool isValid() const;
+        bool isRoot() const;
+
+        std::vector<ConfigPathPart>::const_iterator partsBegin() const;
+        std::vector<ConfigPathPart>::const_iterator partsEnd() const;
+        int numParts() const;
 
         ConfigPath traverse(const ConfigPathPart &part) const;
-
-        static ConfigPath root();
 
     private:
         struct Priv {

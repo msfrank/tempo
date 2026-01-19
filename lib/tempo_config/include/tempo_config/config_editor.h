@@ -4,8 +4,11 @@
 #include <string>
 #include <stack>
 
-#include "tempo_utils/result.h"
-#include "tempo_utils/status.h"
+#include <tempo_utils/result.h>
+#include <tempo_utils/status.h>
+
+#include "config_path.h"
+#include "config_types.h"
 
 namespace tempo_config {
 
@@ -26,6 +29,8 @@ namespace tempo_config {
 
         tempo_utils::Status parse(std::string_view utf8);
 
+        tempo_utils::Status replaceNode(const ConfigPath &path, const ConfigNode &node);
+        tempo_utils::Status removeNode(const ConfigPath &path);
 
         void reset();
 

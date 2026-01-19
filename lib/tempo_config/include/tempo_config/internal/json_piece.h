@@ -9,7 +9,12 @@ namespace tempo_config::internal {
         Literal,
         Array,
         Object,
-        Operator,
+        Element,
+        Member,
+        Comma,
+        Colon,
+        BracketClose,
+        CurlyClose,
         Comment,
         Whitespace,
     };
@@ -27,58 +32,91 @@ namespace tempo_config::internal {
         std::string value;
         JsonPiece *prev;
         JsonPiece *next;
+        JsonPiece *last;
+        JsonPiece *parent;
         JsonPiece(PieceType type, Token token, std::string_view value);
         virtual ~JsonPiece() = default;
-        virtual tempo_utils::Status append(JsonPiece *piece) = 0;
+        virtual tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) = 0;
+    };
+
+    JsonPiece *
+    append_piece(
+        std::unique_ptr<JsonPiece> &&piece,
+        JsonPiece **head,
+        JsonPiece **tail);
+
+    struct OperatorPiece : JsonPiece {
+        OperatorPiece(PieceType type, Token token, std::string_view value);
+    };
+
+    struct CommaPiece : OperatorPiece {
+        CommaPiece(Token token);
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+    };
+
+    struct ColonPiece : OperatorPiece {
+        ColonPiece(Token token);
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+    };
+
+    struct BracketClosePiece : OperatorPiece {
+        BracketClosePiece(Token token);
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+    };
+
+    struct CurlyClosePiece : OperatorPiece {
+        CurlyClosePiece(Token token);
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
     };
 
     struct LiteralPiece : JsonPiece {
         LiteralPiece(Token token, std::string value);
-        tempo_utils::Status append(JsonPiece *piece) override;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+    };
+
+    struct ElementPiece : JsonPiece {
+        ElementPiece(Token token);
+        JsonPiece *element;
+        int index;
+        enum class Expect { Value, Comma, Done } expect;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+        tempo_utils::Status finish(const std::unique_ptr<JsonPiece> &piece);
     };
 
     struct ArrayPiece : JsonPiece {
         ArrayPiece(Token token);
-        std::vector<JsonPiece *> elements;
+        std::vector<ElementPiece *> elements;
+        std::vector<CommaPiece *> separators;
+        ElementPiece *pending;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+    };
 
-        enum class Expect
-        {
-            Element,
-            Comma,
-        } expect;
-
-        tempo_utils::Status append(JsonPiece *piece) override;
+    struct MemberPiece : JsonPiece {
+        MemberPiece(Token token);
+        LiteralPiece *key;
+        JsonPiece *value;
+        int index;
+        enum class Expect { Key, Colon, Value, Comma, Done } expect;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
+        tempo_utils::Status finish(const std::unique_ptr<JsonPiece> &piece);
     };
 
     struct ObjectPiece : JsonPiece {
         ObjectPiece(Token token);
-        absl::flat_hash_map<std::string, JsonPiece *> members;
-        std::string key;
-
-        enum class Expect
-        {
-            Key,
-            Colon,
-            Value,
-            Comma,
-        } expect;
-
-        tempo_utils::Status append(JsonPiece *piece) override;
-    };
-
-    struct OperatorPiece : JsonPiece {
-        OperatorPiece(Token token);
-        tempo_utils::Status append(JsonPiece *piece) override;
+        absl::flat_hash_map<std::string, MemberPiece *> members;
+        std::vector<CommaPiece *> separators;
+        MemberPiece *pending;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
     };
 
     struct CommentPiece : JsonPiece {
         CommentPiece(Token token, std::string value);
-        tempo_utils::Status append(JsonPiece *piece) override;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
     };
 
     struct WhitespacePiece : JsonPiece {
         WhitespacePiece(Token token, std::string value);
-        tempo_utils::Status append(JsonPiece *piece) override;
+        tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, JsonPiece **head, JsonPiece **tail) override;
     };
 }
 

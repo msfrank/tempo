@@ -41,6 +41,7 @@ namespace tempo_config {
     class ConfigPath {
     public:
         ConfigPath();
+        ConfigPath(std::vector<ConfigPathPart> &&parts);
         ConfigPath(const ConfigPath &other);
 
         bool isRoot() const;
@@ -50,6 +51,7 @@ namespace tempo_config {
         int numParts() const;
 
         ConfigPath traverse(const ConfigPathPart &part) const;
+        ConfigPath parent() const;
 
     private:
         struct Priv {

@@ -43,10 +43,10 @@ tempo_config::internal::PieceStore::parse(
 
         auto text = t->getText();
 
-        TU_CONSOLE_ERR << "token channel=" << token.channel
-            << " type=" << token.type
-            << " offset=" << token.offset
-            << " span=" << token.span
+        TU_CONSOLE_ERR << "token channel=" << (int) token.channel
+            << " type=" << (int) token.type
+            << " offset=" << (int) token.offset
+            << " span=" << (int) token.span
             << " text='" << text << "'";
 
         auto curr = stack.top();
@@ -207,6 +207,98 @@ tempo_config::internal::PieceStore::insert(const ConfigNode &node, JsonPiece *ro
         return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
             "unexpected parser stack state after parsing");
     return {};
+}
+
+tempo_config::internal::JsonPiece *
+tempo_config::internal::PieceStore::findParent(const ConfigPath &path, ConfigPathPart &last)
+{
+    if (path.isRoot())
+        return nullptr;
+
+    std::vector parts(path.partsBegin(), path.partsEnd());
+    last = parts.back();
+    parts.pop_back();
+
+    JsonPiece *currPtr = m_root->root;
+
+    for (const auto &part : parts) {
+        if (currPtr == nullptr)
+            return nullptr;
+        switch (part.getType()) {
+            case ConfigPathPartType::Index:
+                {
+                    if (currPtr->type != PieceType::Array)
+                        return nullptr;
+                    auto *arrayPtr = static_cast<ArrayPiece *>(currPtr);
+                    auto index = part.getIndex();
+                    if (index < 0 || arrayPtr->elements.size() <= index)
+                        return nullptr;
+                    auto *elementPtr = arrayPtr->elements.at(index);
+                    currPtr = elementPtr->element;
+                    break;
+                }
+            case ConfigPathPartType::Key:
+                {
+                    if (currPtr->type != PieceType::Object)
+                        return nullptr;
+                    auto *objectPtr = static_cast<ObjectPiece *>(currPtr);
+                    auto key = part.getKey();
+                    auto entry = objectPtr->keyIndex.find(key);
+                    if (entry == objectPtr->keyIndex.cend())
+                        return nullptr;
+                    auto index = entry->second;
+                    if (index < 0 || objectPtr->members.size() <= index)
+                        return nullptr;
+                    auto *memberPtr = objectPtr->members.at(index);
+                    currPtr = memberPtr->value;
+                    break;
+                }
+            default:
+                return nullptr;
+        }
+    }
+
+    return currPtr;
+}
+
+tempo_config::internal::JsonPiece *
+tempo_config::internal::PieceStore::find(const ConfigPath &path)
+{
+    ConfigPathPart lastPart;
+    auto *parentPtr = findParent(path.parent(), lastPart);
+    if (parentPtr == nullptr)
+        return nullptr;
+
+    switch (lastPart.getType()) {
+        case ConfigPathPartType::Index:
+            {
+                if (parentPtr->type != PieceType::Array)
+                    return nullptr;
+                auto *arrayPtr = static_cast<ArrayPiece *>(parentPtr);
+                auto index = lastPart.getIndex();
+                if (index < 0 || arrayPtr->elements.size() <= index)
+                    return nullptr;
+                auto *elementPtr = arrayPtr->elements.at(index);
+                return elementPtr->element;
+            }
+        case ConfigPathPartType::Key:
+            {
+                if (parentPtr->type != PieceType::Object)
+                    return nullptr;
+                auto *objectPtr = static_cast<ObjectPiece *>(parentPtr);
+                auto key = lastPart.getKey();
+                auto entry = objectPtr->keyIndex.find(key);
+                if (entry == objectPtr->keyIndex.cend())
+                    return nullptr;
+                auto index = entry->second;
+                if (index < 0 || objectPtr->members.size() <= index)
+                    return nullptr;
+                auto *memberPtr = objectPtr->members.at(index);
+                return memberPtr->value;
+            }
+        default:
+            return nullptr;
+    }
 }
 
 void

@@ -189,3 +189,37 @@ TEST_F(ConfigEditor, InsertNodeAtTheEndOfTheObject)
     auto expected = std::string(R"({"foo": "1","bar":"2"})");
     ASSERT_EQ (expected, output);
 }
+
+TEST_F(ConfigEditor, ReplaceNodeInArray)
+{
+    tempo_config::ConfigEditor editor;
+
+    auto input = std::string(R"(["foo", "bar", "baz"])");
+    ASSERT_THAT (editor.parse(input), tempo_test::IsOk());
+
+    tempo_config::ConfigPath root;
+    ASSERT_THAT (editor.replaceNode(root.traverse(0), tempo_config::valueNode("qux")), tempo_test::IsOk());
+
+    auto output = editor.toString();
+    TU_CONSOLE_OUT << output;
+
+    auto expected = std::string(R"(["qux", "bar", "baz"])");
+    ASSERT_EQ (expected, output);
+}
+
+TEST_F(ConfigEditor, ReplaceNodeInObject)
+{
+    tempo_config::ConfigEditor editor;
+
+    auto input = std::string(R"({"foo": "1"})");
+    ASSERT_THAT (editor.parse(input), tempo_test::IsOk());
+
+    tempo_config::ConfigPath root;
+    ASSERT_THAT (editor.replaceNode(root.traverse("foo"), tempo_config::valueNode("5")), tempo_test::IsOk());
+
+    auto output = editor.toString();
+    TU_CONSOLE_OUT << output;
+
+    auto expected = std::string(R"({"foo":"5"})");
+    ASSERT_EQ (expected, output);
+}

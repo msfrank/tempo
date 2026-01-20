@@ -2,6 +2,25 @@
 
 #include "ConfigLexer.h"
 
+tempo_config::internal::Token::Token()
+    : type(0), channel(0), offset(0), span(0), synthesized(true)
+{
+}
+
+tempo_config::internal::Token::Token(size_t type, size_t channel, size_t offset, size_t span)
+    : type(type), channel(channel), offset(offset), span(span), synthesized(false)
+{
+}
+
+tempo_config::internal::Token::Token(const Token &other)
+    : type(other.type),
+      channel(other.channel),
+      offset(other.offset),
+      span(other.span),
+      synthesized(other.synthesized)
+{
+}
+
 tempo_config::internal::JsonPiece::JsonPiece(PieceType type, Token token, std::string_view value)
     : type(type),
       token(token),
@@ -577,6 +596,11 @@ tempo_config::internal::ObjectPiece::remove(std::string_view key)
     auto *removedPtr = *it;
     delete removedPtr;
     members.erase(it);
+    for (auto &p : keyIndex) {
+        if (p.second > index) {
+            --p.second;
+        }
+    }
     return {};
 }
 

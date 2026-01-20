@@ -66,6 +66,11 @@ tempo_config::ConfigPath::ConfigPath()
 {
 }
 
+tempo_config::ConfigPath::ConfigPath(std::vector<ConfigPathPart> &&parts)
+    : m_priv(std::make_shared<Priv>())
+{
+    m_priv->parts = std::move(parts);
+}
 
 tempo_config::ConfigPath::ConfigPath(std::shared_ptr<Priv> priv)
     : m_priv(std::move(priv))
@@ -110,4 +115,13 @@ tempo_config::ConfigPath::traverse(const ConfigPathPart &part) const
     priv->parts.insert(priv->parts.cbegin(), m_priv->parts.cbegin(), m_priv->parts.cend());
     priv->parts.push_back(part);
     return ConfigPath(priv);
+}
+
+tempo_config::ConfigPath
+tempo_config::ConfigPath::parent() const
+{
+    if (isRoot())
+        return *this;
+    std::vector parts(m_priv->parts.cbegin(), m_priv->parts.cend() - 1);
+    return ConfigPath(std::move(parts));
 }

@@ -23,10 +23,14 @@ namespace tempo_config::internal {
     };
 
     struct Token {
-        int type;
-        int channel;
-        int offset;
-        int span;
+        size_t type;
+        size_t channel;
+        size_t offset;
+        size_t span;
+        bool synthesized;
+        Token();
+        Token(size_t type, size_t channel, size_t offset, size_t span);
+        Token(const Token &other);
     };
 
     struct JsonPiece {

@@ -85,6 +85,8 @@ target_sources(tempo_config
     src/internal/json_piece.cpp
     include/tempo_config/internal/json_value.h
     src/internal/json_value.cpp
+    include/tempo_config/internal/piece_store.h
+    src/internal/piece_store.cpp
     include/tempo_config/internal/tracing_error_listener.h
     src/internal/tracing_error_listener.cpp
 

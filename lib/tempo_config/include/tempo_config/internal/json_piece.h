@@ -42,6 +42,7 @@ namespace tempo_config::internal {
         virtual ~JsonPiece() = default;
         virtual tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack);
         virtual tempo_utils::Status print(std::string &out);
+        virtual bool isMultiLine() const;
     };
 
     struct RootPiece : JsonPiece {
@@ -53,6 +54,7 @@ namespace tempo_config::internal {
         ~RootPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 
     struct CommaPiece : JsonPiece {
@@ -96,6 +98,7 @@ namespace tempo_config::internal {
         ~ElementPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 
     struct ArrayPiece : JsonPiece {
@@ -108,6 +111,7 @@ namespace tempo_config::internal {
         tempo_utils::Status remove(int index);
         tempo_utils::Status finish(const std::unique_ptr<JsonPiece> &piece, std::stack<JsonPiece *> &stack);
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 
     struct MemberPiece : JsonPiece {
@@ -123,6 +127,7 @@ namespace tempo_config::internal {
         ~MemberPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 
     struct ObjectPiece : JsonPiece {
@@ -136,16 +141,19 @@ namespace tempo_config::internal {
         tempo_utils::Status remove(std::string_view key);
         tempo_utils::Status finish(const std::unique_ptr<JsonPiece> &piece, std::stack<JsonPiece *> &stack);
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 
     struct CommentPiece : JsonPiece {
         CommentPiece(Token token, std::string value);
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 
     struct WhitespacePiece : JsonPiece {
         WhitespacePiece(Token token, std::string value);
         tempo_utils::Status print(std::string &out) override;
+        bool isMultiLine() const override;
     };
 }
 

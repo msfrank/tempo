@@ -41,6 +41,12 @@ tempo_config::internal::JsonPiece::print(std::string &out)
     return {};
 }
 
+bool
+tempo_config::internal::JsonPiece::isMultiLine() const
+{
+    return false;
+}
+
 tempo_config::internal::RootPiece::RootPiece()
     : JsonPiece(PieceType::Root, {}, ""),
       root(nullptr),
@@ -111,6 +117,22 @@ tempo_config::internal::RootPiece::print(std::string &out)
         TU_RETURN_IF_NOT_OK (piece->print(out));
     }
     return {};
+}
+
+bool
+tempo_config::internal::RootPiece::isMultiLine() const
+{
+    for (auto *piece : before) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    if (root != nullptr && root->isMultiLine())
+        return true;
+    for (auto *piece : after) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    return false;
 }
 
 tempo_config::internal::CommaPiece::CommaPiece(Token token)
@@ -249,6 +271,22 @@ tempo_config::internal::ElementPiece::print(std::string &out)
     return {};
 }
 
+bool
+tempo_config::internal::ElementPiece::isMultiLine() const
+{
+    for (auto *piece : before) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    if (element != nullptr && element->isMultiLine())
+        return true;
+    for (auto *piece : after) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    return false;
+}
+
 tempo_config::internal::ArrayPiece::ArrayPiece(Token token)
     : JsonPiece(PieceType::Array, token, "["),
       pending(nullptr)
@@ -369,6 +407,16 @@ tempo_config::internal::ArrayPiece::print(std::string &out)
     }
     absl::StrAppend(&out, "]");
     return {};
+}
+
+bool
+tempo_config::internal::ArrayPiece::isMultiLine() const
+{
+    for (const auto *element : elements) {
+        if (element->isMultiLine())
+            return true;
+    }
+    return false;
 }
 
 tempo_config::internal::MemberPiece::MemberPiece(Token token)
@@ -505,6 +553,32 @@ tempo_config::internal::MemberPiece::print(std::string &out)
         TU_RETURN_IF_NOT_OK (piece->print(out));
     }
     return {};
+}
+
+bool
+tempo_config::internal::MemberPiece::isMultiLine() const
+{
+    for (auto *piece : before) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    if (key != nullptr && key->isMultiLine())
+        return true;
+    for (auto *piece : afterKey) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    for (auto *piece : beforeValue) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    if (value != nullptr && value->isMultiLine())
+        return true;
+    for (auto *piece : after) {
+        if (piece->isMultiLine())
+            return true;
+    }
+    return false;
 }
 
 tempo_config::internal::ObjectPiece::ObjectPiece(Token token)
@@ -645,6 +719,16 @@ tempo_config::internal::ObjectPiece::print(std::string &out)
     return {};
 }
 
+bool
+tempo_config::internal::ObjectPiece::isMultiLine() const
+{
+    for (const auto *member : members) {
+        if (member->isMultiLine())
+            return true;
+    }
+    return false;
+}
+
 tempo_config::internal::CommentPiece::CommentPiece(Token token, std::string value)
     : JsonPiece(PieceType::Comment, token, value)
 {
@@ -657,6 +741,12 @@ tempo_config::internal::CommentPiece::print(std::string &out)
     return {};
 }
 
+bool
+tempo_config::internal::CommentPiece::isMultiLine() const
+{
+    return value.find('\n') != std::string::npos;
+}
+
 tempo_config::internal::WhitespacePiece::WhitespacePiece(Token token, std::string value)
     : JsonPiece(PieceType::Whitespace, token, value)
 {
@@ -667,4 +757,10 @@ tempo_config::internal::WhitespacePiece::print(std::string &out)
 {
     absl::StrAppend(&out, value);
     return {};
+}
+
+bool
+tempo_config::internal::WhitespacePiece::isMultiLine() const
+{
+    return value.find('\n') != std::string::npos;
 }

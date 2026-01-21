@@ -17,6 +17,7 @@ set(TEST_CASES
     extend_map_tests.cpp
     merge_map_tests.cpp
     number_conversions_tests.cpp
+    piece_printer_tests.cpp
     time_conversion_tests.cpp
     )
 
@@ -26,6 +27,7 @@ add_executable(tempo_config_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
 target_link_libraries(tempo_config_testsuite PUBLIC
     tempo::tempo_config
     tempo::tempo_test
+    antlr::antlr
     gtest::gtest
     )
 gtest_discover_tests(tempo_config_testsuite)
@@ -36,5 +38,6 @@ add_library(TempoConfigTestSuite OBJECT ${TEST_CASES})
 target_link_libraries(TempoConfigTestSuite PUBLIC
     tempo::tempo_config
     tempo::tempo_test
+    antlr::antlr
     gtest::gtest
     )

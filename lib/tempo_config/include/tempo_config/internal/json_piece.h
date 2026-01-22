@@ -1,6 +1,8 @@
 #ifndef TEMPO_CONFIG_INTERNAL_JSON_PIECE_H
 #define TEMPO_CONFIG_INTERNAL_JSON_PIECE_H
 
+#include <stack>
+
 #include <tempo_config/config_result.h>
 
 namespace tempo_config::internal {

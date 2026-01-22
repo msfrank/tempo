@@ -15,7 +15,9 @@ TEST_F(ConfigEditor, ParseInputAndWriteOutput)
     auto input = std::string(R"({"foo": /* comment */ "1"})");
     ASSERT_THAT (editor.parse(input), tempo_test::IsOk());
 
-    auto output = editor.toString();
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
+
     TU_CONSOLE_OUT << output;
     ASSERT_EQ (input, output);
 }
@@ -30,8 +32,8 @@ TEST_F(ConfigEditor, RemoveFirstArrayElement)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.removeNode(root.traverse(0)), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"(["bar","baz"])");
     ASSERT_EQ (expected, output);
@@ -47,8 +49,8 @@ TEST_F(ConfigEditor, RemoveMiddleArrayElement)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.removeNode(root.traverse(1)), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"(["foo","baz"])");
     ASSERT_EQ (expected, output);
@@ -64,8 +66,8 @@ TEST_F(ConfigEditor, RemoveLastArrayElement)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.removeNode(root.traverse(2)), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"(["foo","bar"])");
     ASSERT_EQ (expected, output);
@@ -81,8 +83,8 @@ TEST_F(ConfigEditor, RemoveFirstObjectMember)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.removeNode(root.traverse("foo")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"({ "bar": "2", "baz": "3"})");
     ASSERT_EQ (expected, output);
@@ -98,8 +100,8 @@ TEST_F(ConfigEditor, RemoveMiddleObjectMember)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.removeNode(root.traverse("bar")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"({"foo": "1", "baz": "3"})");
     ASSERT_EQ (expected, output);
@@ -115,8 +117,8 @@ TEST_F(ConfigEditor, RemoveLastObjectMember)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.removeNode(root.traverse("baz")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"({"foo": "1", "bar": "2"})");
     ASSERT_EQ (expected, output);
@@ -132,8 +134,8 @@ TEST_F(ConfigEditor, InsertNodeAtArrayStart)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.insertNode(root.traverse(0), tempo_config::valueNode("qux")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"(["qux","bar","baz"])");
     ASSERT_EQ (expected, output);
@@ -149,8 +151,8 @@ TEST_F(ConfigEditor, InsertNodeBeforeLastArrayElement)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.insertNode(root.traverse(1), tempo_config::valueNode("qux")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"(["bar","qux","baz"])");
     ASSERT_EQ (expected, output);
@@ -166,8 +168,8 @@ TEST_F(ConfigEditor, InsertNodeInEmptyObject)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.insertNode(root.traverse("foo"), tempo_config::valueNode("1")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"({"foo":"1"})");
     ASSERT_EQ (expected, output);
@@ -183,8 +185,8 @@ TEST_F(ConfigEditor, InsertNodeAtTheEndOfTheObject)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.insertNode(root.traverse("bar"), tempo_config::valueNode("2")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"({"foo": "1","bar":"2"})");
     ASSERT_EQ (expected, output);
@@ -200,8 +202,8 @@ TEST_F(ConfigEditor, ReplaceNodeInArray)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.replaceNode(root.traverse(0), tempo_config::valueNode("qux")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"(["qux", "bar", "baz"])");
     ASSERT_EQ (expected, output);
@@ -217,8 +219,8 @@ TEST_F(ConfigEditor, ReplaceNodeInObject)
     tempo_config::ConfigPath root;
     ASSERT_THAT (editor.replaceNode(root.traverse("foo"), tempo_config::valueNode("5")), tempo_test::IsOk());
 
-    auto output = editor.toString();
-    TU_CONSOLE_OUT << output;
+    std::string output;
+    ASSERT_THAT (editor.writeJson(output), tempo_test::IsOk());
 
     auto expected = std::string(R"({"foo":"5"})");
     ASSERT_EQ (expected, output);

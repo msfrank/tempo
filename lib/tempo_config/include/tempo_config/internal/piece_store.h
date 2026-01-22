@@ -11,6 +11,7 @@
 
 #include "../config_path.h"
 #include "../config_types.h"
+#include "json_piece.h"
 
 namespace tempo_config::internal {
 
@@ -29,7 +30,7 @@ namespace tempo_config::internal {
 
         void reset();
 
-        tempo_utils::Status writeJson(std::string &out) const;
+        tempo_utils::Status writeJson(std::string &out, const PrinterOptions &options = {}) const;
 
     private:
         std::unique_ptr<RootPiece> m_root;

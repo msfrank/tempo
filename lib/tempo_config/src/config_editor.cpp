@@ -125,15 +125,7 @@ tempo_config::ConfigEditor::replaceNode(const ConfigPath &path, const ConfigNode
 }
 
 tempo_utils::Status
-tempo_config::ConfigEditor::writeJson(std::string &out) const
+tempo_config::ConfigEditor::writeJson(std::string &out, const PrinterOptions &options) const
 {
-    return m_store->writeJson(out);
-}
-
-std::string
-tempo_config::ConfigEditor::toString() const
-{
-    std::string out;
-    m_store->writeJson(out);
-    return out;
+    return m_store->writeJson(out, options);
 }

@@ -8,6 +8,7 @@
 #include <tempo_utils/log_console.h>
 
 #include "ConfigLexer.h"
+#include "tempo_config/internal/piece_printer.h"
 
 tempo_config::internal::PieceStore::PieceStore()
 {
@@ -33,17 +34,17 @@ tempo_config::internal::PieceStore::parse(
         auto *t = tokens.get(i);
         TU_ASSERT (t != nullptr);
 
-        Token token;
-        token.type = t->getType();
-        if (token.type == -1)
+        auto type = t->getType();
+        if (type == -1)
             break;
-        token.channel = t->getChannel();
-        token.offset = t->getStartIndex();
-        token.span = (t->getStopIndex() + 1) - token.offset;
+        auto channel = t->getChannel();
+        auto offset = t->getStartIndex();
+        auto span = (t->getStopIndex() + 1) - offset;
+        Token token(type, channel, offset, span);
 
         auto text = t->getText();
 
-        TU_CONSOLE_ERR << "token channel=" << (int) token.channel
+        TU_LOG_V << "token channel=" << (int) token.channel
             << " type=" << (int) token.type
             << " offset=" << (int) token.offset
             << " span=" << (int) token.span
@@ -308,9 +309,9 @@ tempo_config::internal::PieceStore::reset()
 }
 
 tempo_utils::Status
-tempo_config::internal::PieceStore::writeJson(std::string &out) const
+tempo_config::internal::PieceStore::writeJson(std::string &out, const PrinterOptions &options) const
 {
     if (m_root == nullptr)
         return {};
-    return m_root->print(out);
+    return print_root(options, m_root.get(), out);
 }

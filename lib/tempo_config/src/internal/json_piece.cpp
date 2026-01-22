@@ -35,12 +35,6 @@ tempo_config::internal::JsonPiece::append(std::unique_ptr<JsonPiece>&& piece, st
         "append not implemented for JSON piece");
 }
 
-tempo_utils::Status
-tempo_config::internal::JsonPiece::print(std::string &out)
-{
-    return {};
-}
-
 bool
 tempo_config::internal::JsonPiece::isMultiLine() const
 {
@@ -104,21 +98,6 @@ tempo_config::internal::RootPiece::append(std::unique_ptr<JsonPiece>&& piece, st
     }
 }
 
-tempo_utils::Status
-tempo_config::internal::RootPiece::print(std::string &out)
-{
-    for (auto *piece : before) {
-        TU_RETURN_IF_NOT_OK (piece->print(out));
-    }
-    if (root != nullptr) {
-        TU_RETURN_IF_NOT_OK (root->print(out));
-    }
-    for (auto *piece : after) {
-        TU_RETURN_IF_NOT_OK (piece->print(out));
-    }
-    return {};
-}
-
 bool
 tempo_config::internal::RootPiece::isMultiLine() const
 {
@@ -160,35 +139,14 @@ tempo_config::internal::KeywordPiece::KeywordPiece(Token token, std::string valu
 {
 }
 
-tempo_utils::Status
-tempo_config::internal::KeywordPiece::print(std::string &out)
-{
-    absl::StrAppend(&out, value);
-    return {};
-}
-
 tempo_config::internal::NumberPiece::NumberPiece(Token token, std::string value)
     : JsonPiece(PieceType::Number, token, value)
 {
 }
 
-tempo_utils::Status
-tempo_config::internal::NumberPiece::print(std::string &out)
-{
-    absl::StrAppend(&out, value);
-    return {};
-}
-
 tempo_config::internal::StringPiece::StringPiece(Token token, std::string value)
     : JsonPiece(PieceType::String, token, value)
 {
-}
-
-tempo_utils::Status
-tempo_config::internal::StringPiece::print(std::string &out)
-{
-    absl::StrAppend(&out, value);
-    return {};
 }
 
 std::string
@@ -254,21 +212,6 @@ tempo_config::internal::ElementPiece::append(std::unique_ptr<JsonPiece>&& piece,
             return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
                 "invalid lexer token");
     }
-}
-
-tempo_utils::Status
-tempo_config::internal::ElementPiece::print(std::string &out)
-{
-    for (auto *piece : before) {
-        TU_RETURN_IF_NOT_OK (piece->print(out));
-    }
-    if (element != nullptr) {
-        TU_RETURN_IF_NOT_OK (element->print(out));
-    }
-    for (auto *piece : after) {
-        TU_RETURN_IF_NOT_OK (piece->print(out));
-    }
-    return {};
 }
 
 bool
@@ -345,10 +288,6 @@ tempo_config::internal::ArrayPiece::insert(int index, bool after)
 
     // allocate the element piece
     Token token;
-    token.type = -1;
-    token.channel = -1;
-    token.offset = -1;
-    token.span = -1;
     auto element = std::make_unique<ElementPiece>(token);
 
     // initialize iterator to the insert point
@@ -378,6 +317,11 @@ tempo_utils::Status
 tempo_config::internal::ArrayPiece::finish(const std::unique_ptr<JsonPiece>& piece, std::stack<JsonPiece*>& stack)
 {
     if (pending != nullptr) {
+        if (pending->expect == ElementPiece::Expect::Value) {
+            afterElements = std::move(pending->before);
+        } else {
+            afterElements = std::move(pending->after);
+        }
         elements.push_back(pending);
         pending = nullptr;
     }
@@ -385,27 +329,6 @@ tempo_config::internal::ArrayPiece::finish(const std::unique_ptr<JsonPiece>& pie
         return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
             "stack is empty");
     stack.pop();
-    return {};
-}
-
-tempo_utils::Status
-tempo_config::internal::ArrayPiece::print(std::string &out)
-{
-    absl::StrAppend(&out, "[");
-    auto it = elements.cbegin();
-    if (it != elements.cend()) {
-        TU_RETURN_IF_NOT_OK ((*it)->print(out));
-        ++it;
-    }
-    for (; it != elements.cend(); ++it) {
-        absl::StrAppend(&out, ",");
-        TU_RETURN_IF_NOT_OK ((*it)->print(out));
-    }
-    if (pending != nullptr) {
-        absl::StrAppend(&out, ",");
-        TU_RETURN_IF_NOT_OK (pending->print(out));
-    }
-    absl::StrAppend(&out, "]");
     return {};
 }
 
@@ -529,32 +452,6 @@ tempo_config::internal::MemberPiece::append(std::unique_ptr<JsonPiece>&& piece, 
     }
 }
 
-tempo_utils::Status
-tempo_config::internal::MemberPiece::print(std::string &out)
-{
-    for (auto *piece : before) {
-        TU_RETURN_IF_NOT_OK (piece->print(out));
-    }
-    if (key != nullptr) {
-        TU_RETURN_IF_NOT_OK (key->print(out));
-        for (auto *piece : afterKey) {
-            TU_RETURN_IF_NOT_OK (piece->print(out));
-        }
-        absl::StrAppend(&out, ":");
-        if (value == nullptr)
-            return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
-                "invalid member piece");
-        for (auto *piece : beforeValue) {
-            TU_RETURN_IF_NOT_OK (piece->print(out));
-        }
-        TU_RETURN_IF_NOT_OK (value->print(out));
-    }
-    for (auto *piece : after) {
-        TU_RETURN_IF_NOT_OK (piece->print(out));
-    }
-    return {};
-}
-
 bool
 tempo_config::internal::MemberPiece::isMultiLine() const
 {
@@ -639,10 +536,6 @@ tempo_config::internal::ObjectPiece::insert(std::string_view key)
 {
     // allocate the element piece
     Token token;
-    token.type = -1;
-    token.channel = -1;
-    token.offset = -1;
-    token.span = -1;
     auto member = std::make_unique<MemberPiece>(token, key);
 
     if (keyIndex.contains(key))
@@ -682,40 +575,33 @@ tempo_utils::Status
 tempo_config::internal::ObjectPiece::finish(const std::unique_ptr<JsonPiece>& piece, std::stack<JsonPiece*>& stack)
 {
     if (pending != nullptr) {
-        if (pending->expect != MemberPiece::Expect::Done)
-            return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
-                "invalid lexer token");
         auto index = members.size();
-        auto key = pending->key->unquote();
-        keyIndex[key] = index;
-        members.push_back(pending);
+        switch (pending->expect)
+        {
+            case MemberPiece::Expect::Key:
+                {
+                    afterMembers = std::move(pending->before);
+                    members.push_back(pending);
+                    break;
+                }
+            case MemberPiece::Expect::Done:
+                {
+                    afterMembers = std::move(pending->after);
+                    auto key = pending->key->unquote();
+                    keyIndex[key] = index;
+                    members.push_back(pending);
+                    break;
+                }
+            default:
+                return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+                    "invalid lexer token");
+        }
         pending = nullptr;
     }
     if (stack.empty())
         return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
             "stack is empty");
     stack.pop();
-    return {};
-}
-
-tempo_utils::Status
-tempo_config::internal::ObjectPiece::print(std::string &out)
-{
-    absl::StrAppend(&out, "{");
-    auto it = members.cbegin();
-    if (it != members.cend()) {
-        TU_RETURN_IF_NOT_OK ((*it)->print(out));
-        ++it;
-    }
-    for (; it != members.cend(); ++it) {
-        absl::StrAppend(&out, ",");
-        TU_RETURN_IF_NOT_OK ((*it)->print(out));
-    }
-    if (pending != nullptr) {
-        absl::StrAppend(&out, ",");
-        TU_RETURN_IF_NOT_OK (pending->print(out));
-    }
-    absl::StrAppend(&out, "}");
     return {};
 }
 
@@ -734,13 +620,6 @@ tempo_config::internal::CommentPiece::CommentPiece(Token token, std::string valu
 {
 }
 
-tempo_utils::Status
-tempo_config::internal::CommentPiece::print(std::string &out)
-{
-    absl::StrAppend(&out, value);
-    return {};
-}
-
 bool
 tempo_config::internal::CommentPiece::isMultiLine() const
 {
@@ -750,13 +629,6 @@ tempo_config::internal::CommentPiece::isMultiLine() const
 tempo_config::internal::WhitespacePiece::WhitespacePiece(Token token, std::string value)
     : JsonPiece(PieceType::Whitespace, token, value)
 {
-}
-
-tempo_utils::Status
-tempo_config::internal::WhitespacePiece::print(std::string &out)
-{
-    absl::StrAppend(&out, value);
-    return {};
 }
 
 bool

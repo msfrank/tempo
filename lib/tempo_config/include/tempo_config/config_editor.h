@@ -30,8 +30,7 @@ namespace tempo_config {
 
         void reset();
 
-        tempo_utils::Status writeJson(std::string &out) const;
-        std::string toString() const;
+        tempo_utils::Status writeJson(std::string &out, const PrinterOptions &options = {}) const;
 
     private:
         std::unique_ptr<internal::PieceStore> m_store;

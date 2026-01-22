@@ -23,11 +23,11 @@ namespace tempo_config::internal {
     };
 
     struct Token {
-        size_t type;
-        size_t channel;
-        size_t offset;
-        size_t span;
-        bool synthesized;
+        const size_t type;
+        const size_t channel;
+        const size_t offset;
+        const size_t span;
+        const bool synthesized;
         Token();
         Token(size_t type, size_t channel, size_t offset, size_t span);
         Token(const Token &other);
@@ -41,7 +41,6 @@ namespace tempo_config::internal {
         JsonPiece(PieceType type, Token token, std::string_view value);
         virtual ~JsonPiece() = default;
         virtual tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack);
-        virtual tempo_utils::Status print(std::string &out);
         virtual bool isMultiLine() const;
     };
 
@@ -53,7 +52,6 @@ namespace tempo_config::internal {
         RootPiece();
         ~RootPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 
@@ -75,18 +73,15 @@ namespace tempo_config::internal {
 
     struct KeywordPiece : JsonPiece {
         KeywordPiece(Token token, std::string value);
-        tempo_utils::Status print(std::string &out) override;
     };
 
     struct NumberPiece : JsonPiece {
         NumberPiece(Token token, std::string value);
-        tempo_utils::Status print(std::string &out) override;
     };
 
     struct StringPiece : JsonPiece {
         StringPiece(Token token, std::string value);
         std::string unquote() const;
-        tempo_utils::Status print(std::string &out) override;
     };
 
     struct ElementPiece : JsonPiece {
@@ -97,20 +92,19 @@ namespace tempo_config::internal {
         explicit ElementPiece(Token token);
         ~ElementPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 
     struct ArrayPiece : JsonPiece {
         std::vector<ElementPiece *> elements;
         ElementPiece *pending;
+        std::vector<JsonPiece *> afterElements;
         explicit ArrayPiece(Token token);
         ~ArrayPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
         tempo_utils::Result<ElementPiece *> insert(int index, bool after);
         tempo_utils::Status remove(int index);
         tempo_utils::Status finish(const std::unique_ptr<JsonPiece> &piece, std::stack<JsonPiece *> &stack);
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 
@@ -126,7 +120,6 @@ namespace tempo_config::internal {
         MemberPiece(Token token, std::string_view key);
         ~MemberPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 
@@ -134,25 +127,23 @@ namespace tempo_config::internal {
         std::vector<MemberPiece *> members;
         absl::flat_hash_map<std::string, size_t> keyIndex;
         MemberPiece *pending;
+        std::vector<JsonPiece *> afterMembers;
         explicit ObjectPiece(Token token);
         ~ObjectPiece() override;
         tempo_utils::Status append(std::unique_ptr<JsonPiece> &&piece, std::stack<JsonPiece *> &stack) override;
         tempo_utils::Result<MemberPiece *> insert(std::string_view key);
         tempo_utils::Status remove(std::string_view key);
         tempo_utils::Status finish(const std::unique_ptr<JsonPiece> &piece, std::stack<JsonPiece *> &stack);
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 
     struct CommentPiece : JsonPiece {
         CommentPiece(Token token, std::string value);
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 
     struct WhitespacePiece : JsonPiece {
         WhitespacePiece(Token token, std::string value);
-        tempo_utils::Status print(std::string &out) override;
         bool isMultiLine() const override;
     };
 }

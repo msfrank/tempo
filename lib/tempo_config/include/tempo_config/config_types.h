@@ -67,6 +67,17 @@ namespace tempo_config {
         tu_uint32 m_textSpan;
     };
 
+    enum class Reformat {
+        None,
+        OnlyChanged,
+        Full,
+    };
+
+    struct PrinterOptions {
+        int indent = 2;
+        Reformat reformat = Reformat::OnlyChanged;
+    };
+
     enum class ConfigNodeType {
         kNil = 0,
         kValue = 1,

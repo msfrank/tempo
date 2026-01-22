@@ -15,6 +15,7 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/base_conversions.h
     include/tempo_config/config_builder.h
     include/tempo_config/config_editor.h
+    include/tempo_config/config_file_editor.h
     include/tempo_config/config_parser.h
     include/tempo_config/config_path.h
     include/tempo_config/config_result.h
@@ -64,6 +65,7 @@ target_sources(tempo_config
     src/base_conversions.cpp
     src/config_builder.cpp
     src/config_editor.cpp
+    src/config_file_editor.cpp
     src/config_parser.cpp
     src/config_path.cpp
     src/config_result.cpp

@@ -30,6 +30,14 @@ tempo_config::ConfigEditor::reset()
     m_store->reset();
 }
 
+bool
+tempo_config::ConfigEditor::hasNode(const ConfigPath &path) const
+{
+    if (m_store == nullptr)
+        return false;
+    return m_store->find(path) != nullptr;
+}
+
 inline int recalculate_index(
     int index,
     const tempo_config::internal::ArrayPiece *arrayPtr,

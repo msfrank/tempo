@@ -9,6 +9,7 @@ set(TEST_CASES
     config_builder_tests.cpp
     config_compare_tests.cpp
     config_editor_tests.cpp
+    config_file_editor_tests.cpp
     config_hash_tests.cpp
     config_listener_error_handling_tests.cpp
     config_listener_tests.cpp

@@ -24,6 +24,7 @@ namespace tempo_config {
 
         tempo_utils::Status parse(std::string_view utf8);
 
+        bool hasNode(const ConfigPath &path) const;
         tempo_utils::Status insertNode(const ConfigPath &path, const ConfigNode &node);
         tempo_utils::Status replaceNode(const ConfigPath &path, const ConfigNode &node);
         tempo_utils::Status removeNode(const ConfigPath &path);

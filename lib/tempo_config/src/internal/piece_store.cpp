@@ -213,9 +213,6 @@ tempo_config::internal::PieceStore::insert(const ConfigNode &node, JsonPiece *ro
 tempo_config::internal::JsonPiece *
 tempo_config::internal::PieceStore::findParent(const ConfigPath &path, ConfigPathPart &last)
 {
-    if (path.isRoot())
-        return nullptr;
-
     std::vector parts(path.partsBegin(), path.partsEnd());
     last = parts.back();
     parts.pop_back();
@@ -266,7 +263,7 @@ tempo_config::internal::JsonPiece *
 tempo_config::internal::PieceStore::find(const ConfigPath &path)
 {
     ConfigPathPart lastPart;
-    auto *parentPtr = findParent(path.parent(), lastPart);
+    auto *parentPtr = findParent(path, lastPart);
     if (parentPtr == nullptr)
         return nullptr;
 

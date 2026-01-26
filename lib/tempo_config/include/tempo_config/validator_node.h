@@ -8,41 +8,27 @@
 namespace tempo_config {
 
     enum class ValidatorNodeType {
-        SCHEMA_EMPTY,
-        SCHEMA_ANY,
-        SCHEMA_CONST,
-        SCHEMA_ENUM,
-        SCHEMA_INTEGER,
-        SCHEMA_FLOAT,
-        SCHEMA_STRING,
-        SCHEMA_SEQ,
-        SCHEMA_MAP,
-        SCHEMA_CLASS,
-        SCHEMA_ANY_OF,
-        SCHEMA_ALL_OF,
-        SCHEMA_NOT
-    };
-
-    enum class ValidatorValueType {
-        VALUE_EMPTY,
-        VALUE_ANY,
-        VALUE_NULL,
-        VALUE_BOOL,
-        VALUE_INTEGER,
-        VALUE_FLOAT,
-        VALUE_STRING,
-        VALUE_SEQ,
-        VALUE_MAP,
-        VALUE_CLASS,
-        VALUE_ANY_OF,
-        VALUE_ALL_OF,
-        VALUE_NOT
+        Invalid,
+        Any,
+        None,
+        Const,
+        Enum,
+        Integer,
+        Float,
+        String,
+        Seq,
+        Map,
+        Class,
+        AnyOf,
+        AllOf,
+        Not
     };
 
     enum class ValidatorComparisonType {
-        COMPARE_DISJOINT,
-        COMPARE_SUBSET,
-        COMPARE_EQUAL,
+        Invalid,
+        Disjoint,
+        Subset,
+        Equal,
     };
 
     class ValidatorNode {
@@ -51,7 +37,6 @@ namespace tempo_config {
         virtual ~ValidatorNode() = default;
 
         virtual ValidatorNodeType getType() const = 0;
-        virtual ValidatorValueType getValueType() const = 0;
         virtual tempo_utils::Status validate(const ConfigNode &node) = 0;
     };
 
@@ -59,7 +44,13 @@ namespace tempo_config {
     public:
         ValidateAny() = default;
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
+        tempo_utils::Status validate(const ConfigNode &node) override;
+    };
+
+    class ValidateNone : public ValidatorNode {
+    public:
+        ValidateNone() = default;
+        ValidatorNodeType getType() const override;
         tempo_utils::Status validate(const ConfigNode &node) override;
     };
 
@@ -114,15 +105,13 @@ namespace tempo_config {
             bool maxExclusive = false);
 
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
+        tempo_utils::Status validate(const ConfigNode &node) override;
 
         tu_int64 getMinimum() const;
         tu_int64 getMaximum() const;
         tu_int64 getMultipleOf() const;
         bool getMinExclusive() const;
         bool getMaxExclusive() const;
-
-        tempo_utils::Status validate(const ConfigNode &node) override;
 
     private:
         tu_int64 m_minimum;
@@ -142,7 +131,6 @@ namespace tempo_config {
             bool maxExclusive = false);
 
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
         tempo_utils::Status validate(const ConfigNode &node) override;
 
         double getMinimum() const;
@@ -166,7 +154,6 @@ namespace tempo_config {
             std::string_view pattern = {});
 
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
         tempo_utils::Status validate(const ConfigNode &node) override;
 
         tu_int32 getMinLength() const;
@@ -180,94 +167,68 @@ namespace tempo_config {
         std::string m_pattern;
     };
 
-    // class ValidatorSeq : public ValidatorNode {
-    //
-    // public:
-    //     ValidatorSeq();
-    //     ~ValidatorSeq() override;
-    //
-    //     ValidatorNodeType getType() const override;
-    //     ValidatorValueType getValueType() const override;
-    //
-    //     qint64 getMinItems() const;
-    //     void setMinItems(qint64 minItems);
-    //     qint64 getMaxItems() const;
-    //     void setMaxItems(qint64 maxItems);
-    //     ValidatorNode *getItems() const;
-    //     void setItems(ValidatorNode *node);
-    //     bool getUniqueItems() const;
-    //     void setUniqueItems(bool uniqueItems);
-    //     ValidatorNode *getContains() const;
-    //     void setContains(ValidatorNode *node);
-    //
-    //     SideEffect validate(const Atom &atom) override;
-    //     ValidatorComparisonType compare(ValidatorNode *other) const override;
-    //     uint hash() const override;
-    //
-    //     ValidatorNode *clone() const override;
-    //
-    // private:
-    //     qint64 m_minItems;
-    //     qint64 m_maxItems;
-    //     ValidatorNode *m_items;
-    //     bool m_uniqueItems;
-    //     ValidatorNode *m_contains;
-    // };
-    //
-    // class ValidatorMap : public ValidatorNode {
-    //
-    // public:
-    //     ValidatorMap();
-    //     ~ValidatorMap() override;
-    //
-    //     ValidatorNodeType getType() const override;
-    //     ValidatorValueType getValueType() const override;
-    //
-    //     qint64 getMinProperties() const;
-    //     void setMinProperties(qint64 minProperties);
-    //     qint64 getMaxProperties() const;
-    //     void setMaxProperties(qint64 maxProperties);
-    //     QStringList getRequired() const;
-    //     void setRequired(const QStringList &required);
-    //
-    //     ValidatorNode *getProperty(const QString &name) const;
-    //     void setProperty(const QString &name, ValidatorNode *node);
-    //     void removeProperty(const QString &name);
-    //     int numProperties() const;
-    //
-    //     SideEffect validate(const Atom &atom) override;
-    //     ValidatorComparisonType compare(ValidatorNode *other) const override;
-    //     uint hash() const override;
-    //
-    //     ValidatorNode *clone() const override;
-    //
-    // private:
-    //     qint64 m_minProperties;
-    //     qint64 m_maxProperties;
-    //     QSet<QString> m_required;
-    //     QHash<QString,ValidatorNode *> m_properties;
-    // };
+    class ValidateSeq : public ValidatorNode {
 
-    // class ValidatorClass : public ValidatorNode {
-    //
-    // public:
-    //     ValidatorClass();
-    //
-    //     ValidatorNodeType getType() const override;
-    //     ValidatorValueType getValueType() const override;
-    //
-    //     QVector<tu_uint16> getAncestry() const;
-    //     void setAncestry(const QVector<tu_uint16> &ancestry);
-    //
-    //     SideEffect validate(const Atom &atom) override;
-    //     ValidatorComparisonType compare(ValidatorNode *other) const override;
-    //     uint hash() const override;
-    //
-    //     ValidatorNode *clone() const override;
-    //
-    // private:
-    //     QVector<tu_uint16> m_ancestry;
-    // };
+    public:
+        ValidateSeq(
+            tu_uint32 minItems = 0,
+            tu_uint32 maxItems = std::numeric_limits<tu_uint32>::max(),
+            bool unique = false,
+            std::shared_ptr<ValidatorNode> items = {},
+            std::shared_ptr<ValidatorNode> contains = {});
+
+        ValidatorNodeType getType() const override;
+        tempo_utils::Status validate(const ConfigNode &node) override;
+
+        tu_uint32 getMinItems() const;
+        tu_uint32 getMaxItems() const;
+        bool getUnique() const;
+        std::shared_ptr<ValidatorNode> getItems() const;
+        std::shared_ptr<ValidatorNode> getContains() const;
+
+
+    private:
+        tu_uint32 m_minItems;
+        tu_uint32 m_maxItems;
+        bool m_unique;
+        std::shared_ptr<ValidatorNode> m_items;
+        std::shared_ptr<ValidatorNode> m_contains;
+    };
+
+    class ValidateMap : public ValidatorNode {
+
+    public:
+        ValidateMap(
+            tu_uint32 minProperties = 0,
+            tu_uint32 maxProperties = std::numeric_limits<tu_uint32>::max(),
+            const absl::flat_hash_set<std::string> &required = {},
+            const absl::flat_hash_map<std::string,std::shared_ptr<ValidatorNode>> &properties = {},
+            std::shared_ptr<ValidatorNode> additional = {});
+
+        ValidatorNodeType getType() const override;
+        tempo_utils::Status validate(const ConfigNode &node) override;
+
+        tu_uint32 getMinProperties() const;
+        tu_uint32 getMaxProperties() const;
+
+        bool hasRequired(std::string_view name) const;
+        absl::flat_hash_set<std::string>::const_iterator requiredBegin() const;
+        absl::flat_hash_set<std::string>::const_iterator requiredEnd() const;
+        int numRequired() const;
+
+        bool hasProperty(std::string_view name) const;
+        std::shared_ptr<ValidatorNode> getProperty(std::string_view name) const;
+        absl::flat_hash_map<std::string,std::shared_ptr<ValidatorNode>>::const_iterator propertiesBegin() const;
+        absl::flat_hash_map<std::string,std::shared_ptr<ValidatorNode>>::const_iterator propertiesEnd() const;
+        int numProperties() const;
+
+    private:
+        tu_uint32 m_minProperties;
+        tu_uint32 m_maxProperties;
+        absl::flat_hash_set<std::string> m_required;
+        absl::flat_hash_map<std::string,std::shared_ptr<ValidatorNode>> m_properties;
+        std::shared_ptr<ValidatorNode> m_additional;
+    };
 
     class ValidateAnyOf : public ValidatorNode {
 
@@ -278,7 +239,6 @@ namespace tempo_config {
         explicit ValidateAnyOf(std::initializer_list<std::shared_ptr<ValidatorNode>> anyOf);
 
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
         tempo_utils::Status validate(const ConfigNode &node) override;
 
         std::shared_ptr<ValidatorNode> getNode(int index) const;
@@ -299,7 +259,6 @@ namespace tempo_config {
         explicit ValidateAllOf(std::initializer_list<std::shared_ptr<ValidatorNode>> allOf);
 
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
         tempo_utils::Status validate(const ConfigNode &node) override;
 
         std::shared_ptr<ValidatorNode> getNode(int index) const;
@@ -318,7 +277,6 @@ namespace tempo_config {
         ValidateNot(std::shared_ptr<ValidatorNode> node);
 
         ValidatorNodeType getType() const override;
-        ValidatorValueType getValueType() const override;
         tempo_utils::Status validate(const ConfigNode &node) override;
 
         std::shared_ptr<ValidatorNode> getNode() const;

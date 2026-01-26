@@ -9,19 +9,26 @@
 tempo_config::ValidatorNodeType
 tempo_config::ValidateAny::getType() const
 {
-    return ValidatorNodeType::SCHEMA_ANY;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateAny::getValueType() const
-{
-    return ValidatorValueType::VALUE_ANY;
+    return ValidatorNodeType::Any;
 }
 
 tempo_utils::Status
 tempo_config::ValidateAny::validate(const ConfigNode &node)
 {
     return {};
+}
+
+tempo_config::ValidatorNodeType
+tempo_config::ValidateNone::getType() const
+{
+    return ValidatorNodeType::None;
+}
+
+tempo_utils::Status
+tempo_config::ValidateNone::validate(const ConfigNode &node)
+{
+    return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+        "expected none, encountered {}", node.toString());
 }
 
 // tempo_config::ValidatorComparisonType
@@ -222,13 +229,7 @@ tempo_config::ValidateInteger::ValidateInteger(
 tempo_config::ValidatorNodeType
 tempo_config::ValidateInteger::getType() const
 {
-    return ValidatorNodeType::SCHEMA_INTEGER;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateInteger::getValueType() const
-{
-    return ValidatorValueType::VALUE_INTEGER;
+    return ValidatorNodeType::Integer;
 }
 
 tu_int64
@@ -361,13 +362,7 @@ tempo_config::ValidateFloat::ValidateFloat(
 tempo_config::ValidatorNodeType
 tempo_config::ValidateFloat::getType() const
 {
-    return ValidatorNodeType::SCHEMA_FLOAT;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateFloat::getValueType() const
-{
-    return ValidatorValueType::VALUE_FLOAT;
+    return ValidatorNodeType::Float;
 }
 
 double
@@ -485,13 +480,7 @@ tempo_config::ValidateString::ValidateString(
 tempo_config::ValidatorNodeType
 tempo_config::ValidateString::getType() const
 {
-    return ValidatorNodeType::SCHEMA_STRING;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateString::getValueType() const
-{
-    return ValidatorValueType::VALUE_STRING;
+    return ValidatorNodeType::String;
 }
 
 tu_int32
@@ -577,385 +566,246 @@ tempo_config::ValidateString::validate(const ConfigNode &node)
 //     return ValidatorComparisonType::COMPARE_SUBSET;
 // }
 
-// ValidatorSeq::ValidatorSeq()
-// {
-//     m_minItems = 0;
-//     m_maxItems = std::numeric_limits<qint64>::max();
-//     m_items = nullptr;
-//     m_uniqueItems = false;
-//     m_contains = nullptr;
-// }
-//
-// ValidatorSeq::~ValidatorSeq()
-// {
-//     delete m_items;
-//     delete m_contains;
-// }
-//
-// ValidatorNodeType
-// ValidatorSeq::getType() const
-// {
-//     return ValidatorNodeType::SCHEMA_SEQ;
-// }
-//
-// ValidatorValueType
-// ValidatorSeq::getValueType() const
-// {
-//     return ValidatorValueType::VALUE_SEQ;
-// }
-//
-// qint64
-// ValidatorSeq::getMinItems() const
-// {
-//     return m_minItems;
-// }
-//
-// void
-// ValidatorSeq::setMinItems(qint64 minItems)
-// {
-//     m_minItems = minItems;
-// }
-//
-// qint64
-// ValidatorSeq::getMaxItems() const
-// {
-//     return m_maxItems;
-// }
-//
-// void
-// ValidatorSeq::setMaxItems(qint64 maxItems)
-// {
-//     m_maxItems = maxItems;
-// }
-//
-// ValidatorNode *
-// ValidatorSeq::getItems() const
-// {
-//     return m_items;
-// }
-//
-// void
-// ValidatorSeq::setItems(ValidatorNode *node)
-// {
-//     Q_ASSERT(node != nullptr);
-//     delete m_items;
-//     m_items = node;
-//     node->setParent(this);
-// }
-//
-// bool
-// ValidatorSeq::getUniqueItems() const
-// {
-//     return m_uniqueItems;
-// }
-//
-// void
-// ValidatorSeq::setUniqueItems(bool uniqueItems)
-// {
-//     m_uniqueItems = uniqueItems;
-// }
-//
-// ValidatorNode *
-// ValidatorSeq::getContains() const
-// {
-//     return m_contains;
-// }
-//
-// void
-// ValidatorSeq::setContains(ValidatorNode *node)
-// {
-//     Q_ASSERT(node != nullptr);
-//     delete m_contains;
-//     m_contains = node;
-//     node->setParent(this);
-// }
-//
-// SideEffect
-// ValidatorSeq::validate(const Atom &atom)
-// {
-//     if (!atom.isSeq())
-//         return SideEffect::failure(RuntimeError(QString("%1 is not a seq").arg(atom.toString())));
-//     if (atom.seqSize() < m_minItems)
-//         return SideEffect::failure(RuntimeError(QString("%1 item count is less than %2").arg(atom.toString()).arg(m_minItems)));
-//     if (atom.seqSize() > m_maxItems)
-//         return SideEffect::failure(RuntimeError(QString("%1 item count is greater than %2").arg(atom.toString()).arg(m_maxItems)));
-//
-//     bool contains = m_contains ? false : true;
-//     for (auto iterator = atom.seqBegin(); iterator != atom.seqEnd(); iterator++) {
-//         auto &item = *iterator;
-//
-//         if (m_items) {
-//             auto result = m_items->validate(item);
-//             if (result.isFailure())
-//                 return SideEffect::failure(RuntimeError(QString("%1 does not conform to schema: %2").arg(item.toString()).arg(result.getError().getMessage())));
-//         }
-//         if (m_contains && !contains && m_contains->validate(item).isSuccess())
-//             contains = true;
-//     }
-//
-//     if (!contains)
-//         return SideEffect::failure(RuntimeError(QString("%1 does not contain item conforming to schema").arg(atom.toString())));
-//
-//     return SideEffect::success();
-//
-// }
-//
-// ValidatorComparisonType
-// ValidatorSeq::compare(ValidatorNode *other) const
-// {
-//     return ValidatorComparisonType::COMPARE_DISJOINT;
-// }
-//
-// uint
-// ValidatorSeq::hash() const
-// {
-//     auto result = qHash(m_minItems) + qHash(m_maxItems) + qHash(m_uniqueItems);
-//     if (m_items)
-//         result += m_items->hash();
-//     if (m_contains)
-//         result += m_contains->hash();
-//     return result;
-// }
-//
-// ValidatorNode *
-// ValidatorSeq::clone() const
-// {
-//     ValidatorSeq *array = new ValidatorSeq;
-//     array->m_minItems = m_minItems;
-//     array->m_maxItems = m_maxItems;
-//     array->m_uniqueItems = m_uniqueItems;
-//     if (m_items)
-//         array->m_items = m_items->clone();
-//     if (m_contains)
-//         array->m_contains = m_contains->clone();
-//     return array;
-// }
-//
-// ValidatorMap::ValidatorMap() : ValidatorNode()
-// {
-//     m_minProperties = 0;
-//     m_maxProperties = std::numeric_limits<qint64>::max();
-// }
-//
-// ValidatorMap::~ValidatorMap()
-// {
-//     for (auto iterator = m_properties.begin(); iterator != m_properties.end(); iterator++) {
-//         delete iterator.value();
-//     }
-//     m_properties.clear();
-// }
-//
-// ValidatorNodeType
-// ValidatorMap::getType() const
-// {
-//     return ValidatorNodeType::SCHEMA_MAP;
-// }
-//
-// ValidatorValueType
-// ValidatorMap::getValueType() const
-// {
-//     return ValidatorValueType::VALUE_MAP;
-// }
-//
-// qint64
-// ValidatorMap::getMinProperties() const
-// {
-//     return m_minProperties;
-// }
-//
-// void
-// ValidatorMap::setMinProperties(qint64 minProperties)
-// {
-//     m_minProperties = minProperties;
-// }
-//
-// qint64
-// ValidatorMap::getMaxProperties() const
-// {
-//     return m_maxProperties;
-// }
-//
-// void
-// ValidatorMap::setMaxProperties(qint64 maxProperties)
-// {
-//     m_maxProperties = maxProperties;
-// }
-//
-// QStringList
-// ValidatorMap::getRequired() const
-// {
-//     return QList<QString>(m_required.cbegin(), m_required.cend());
-// }
-//
-// void
-// ValidatorMap::setRequired(const QStringList &required)
-// {
-//     m_required = QSet<QString>(required.cbegin(), required.cend());
-// }
-//
-// ValidatorNode *
-// ValidatorMap::getProperty(const QString &name) const
-// {
-//     if (!m_properties.contains(name))
-//         return nullptr;
-//     return m_properties[name];
-// }
-//
-// void
-// ValidatorMap::setProperty(const QString &name, ValidatorNode *node)
-// {
-//     Q_ASSERT(node != nullptr);
-//     removeProperty(name);
-//     m_properties[name] = node;
-//     node->setParent(this);
-// }
-//
-// void
-// ValidatorMap::removeProperty(const QString &name)
-// {
-//     if (m_properties.contains(name))
-//         delete m_properties.take(name);
-// }
-//
-// int
-// ValidatorMap::numProperties() const
-// {
-//     return m_properties.size();
-// }
-//
-// SideEffect
-// ValidatorMap::validate(const Atom &atom)
-// {
-//     if (!atom.isMap())
-//         return SideEffect::failure(RuntimeError(QString("%1 is not a map").arg(atom.toString())));
-//     if (atom.mapSize() < m_minProperties)
-//         return SideEffect::failure(RuntimeError(QString("%1 property count is less than %2").arg(atom.toString()).arg(m_minProperties)));
-//     if (atom.mapSize() > m_maxProperties)
-//         return SideEffect::failure(RuntimeError(QString("%1 property count is greater than %2").arg(atom.toString()).arg(m_maxProperties)));
-//     if (!m_required.isEmpty()) {
-//         auto missingKeys = QSet<QString>(atom.mapKeys().cbegin(), atom.mapKeys().cend());
-//         missingKeys.subtract(m_required);
-//         if (!missingKeys.isEmpty()) {
-//             return SideEffect::failure(
-//                 RuntimeError(QString("%1 is missing required keys %2")
-//                 .arg(atom.toString())
-//                 .arg(QStringList(missingKeys.cbegin(), missingKeys.cend()).join(", "))));
-//         }
-//     }
-//     for (auto iterator = m_properties.cbegin(); iterator != m_properties.cend(); iterator++) {
-//         auto name = iterator.key();
-//         auto schema = iterator.value();
-//         if (!atom.mapContains(name))
-//             return SideEffect::failure(RuntimeError(QString("%1 is missing required property %2").arg(atom.toString()).arg(name)));
-//         auto result = schema->validate(atom.mapAt(name));
-//         if (result.isFailure())
-//             return result;
-//     }
-//     return SideEffect::success();
-// }
-//
-// ValidatorComparisonType
-// ValidatorMap::compare(ValidatorNode *other) const
-// {
-//     return ValidatorComparisonType::COMPARE_DISJOINT;
-// }
-//
-// uint
-// ValidatorMap::hash() const
-// {
-//     auto result = qHash(m_minProperties) + qHash(m_maxProperties) + qHash(m_required);
-//     auto propertyKeys = m_properties.keys();
-//     std::sort(propertyKeys.begin(), propertyKeys.end());
-//     for (const auto &key : propertyKeys) {
-//         result += qHash(key);
-//         result += m_properties[key]->hash();
-//     }
-//     return result;
-// }
-//
-// ValidatorNode *
-// ValidatorMap::clone() const
-// {
-//     auto object = new ValidatorMap();
-//     object->m_minProperties = m_minProperties;
-//     object->m_maxProperties = m_maxProperties;
-//     object->m_required = m_required;
-//     for (auto iterator = m_properties.cbegin(); iterator != m_properties.cend(); iterator++) {
-//         object->m_properties[iterator.key()] = iterator.value()->clone();
-//     }
-//     return object;
-// }
-//
-// ValidatorClass::ValidatorClass()
-// {
-// }
-//
-// ValidatorNodeType
-// ValidatorClass::getType() const
-// {
-//     return ValidatorNodeType::SCHEMA_CLASS;
-// }
-//
-// ValidatorValueType
-// ValidatorClass::getValueType() const
-// {
-//     return ValidatorValueType::VALUE_CLASS;
-// }
-//
-// QVector<uint16_t>
-// ValidatorClass::getAncestry() const
-// {
-//     return m_ancestry;
-// }
-//
-// void
-// ValidatorClass::setAncestry(const QVector<uint16_t> &ancestry)
-// {
-//     m_ancestry = ancestry;
-// }
-//
-// SideEffect
-// ValidatorClass::validate(const Atom &atom)
-// {
-//     return SideEffect::failure(RuntimeError(QString("%1 is not an object").arg(atom.toString())));
-// }
-//
-// ValidatorComparisonType
-// ValidatorClass::compare(ValidatorNode *other) const
-// {
-//     if (!other)
-//         return ValidatorComparisonType::COMPARE_DISJOINT;
-//
-//     if (other->getType() != ValidatorNodeType::SCHEMA_CLASS)
-//         return ValidatorComparisonType::COMPARE_DISJOINT;
-//
-//     auto otherAncestry = static_cast<ValidatorClass *>(other)->getAncestry();
-//     if (otherAncestry.size() < m_ancestry.size())
-//         return ValidatorComparisonType::COMPARE_DISJOINT;
-//
-//     for (int i = 0; i < m_ancestry.size(); i++) {
-//         if (m_ancestry[i] != otherAncestry[i])
-//             return ValidatorComparisonType::COMPARE_DISJOINT;
-//     }
-//
-//     if (otherAncestry.size() == m_ancestry.size())
-//         return ValidatorComparisonType::COMPARE_EQUAL;
-//     return ValidatorComparisonType::COMPARE_SUBSET;
-// }
-//
-// uint
-// ValidatorClass::hash() const
-// {
-//     return qHash(m_ancestry);
-// }
-//
-// ValidatorNode *
-// ValidatorClass::clone() const
-// {
-//     auto object = new ValidatorClass();
-//     object->m_ancestry = m_ancestry;
-//     return object;
-// }
+tempo_config::ValidateSeq::ValidateSeq(
+    tu_uint32 minItems,
+    tu_uint32 maxItems,
+    bool unique,
+    std::shared_ptr<ValidatorNode> items,
+    std::shared_ptr<ValidatorNode> contains)
+    : m_minItems(minItems),
+      m_maxItems(maxItems),
+      m_unique(unique),
+      m_items(std::move(items)),
+      m_contains(std::move(contains))
+{
+}
+
+tempo_config::ValidatorNodeType
+tempo_config::ValidateSeq::getType() const
+{
+    return ValidatorNodeType::Seq;
+}
+
+tu_uint32
+tempo_config::ValidateSeq::getMinItems() const
+{
+    return m_minItems;
+}
+
+tu_uint32
+tempo_config::ValidateSeq::getMaxItems() const
+{
+    return m_maxItems;
+}
+
+bool
+tempo_config::ValidateSeq::getUnique() const
+{
+    return m_unique;
+}
+
+std::shared_ptr<tempo_config::ValidatorNode>
+tempo_config::ValidateSeq::getItems() const
+{
+    return m_items;
+}
+
+std::shared_ptr<tempo_config::ValidatorNode>
+tempo_config::ValidateSeq::getContains() const
+{
+    return m_contains;
+}
+
+tempo_utils::Status
+tempo_config::ValidateSeq::validate(const ConfigNode &node)
+{
+    if (node.getNodeType() != ConfigNodeType::kSeq)
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} is not a seq", node.toString());
+    auto seq = node.toSeq();
+
+    if (seq.seqSize() < m_minItems)
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} contains less than {} items", node.toString(), m_minItems);
+    if (seq.seqSize() > m_maxItems)
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} contains more than {} items", node.toString(), m_maxItems);
+
+    bool contains = m_contains ? false : true;
+    absl::flat_hash_set<ConfigNode> uniqueItems;
+    std::vector<std::string> errors;
+
+    for (int i = 0; i < seq.seqSize(); i++) {
+        const auto &item = seq.seqAt(i);
+
+        if (m_items) {
+            auto status = m_items->validate(item);
+            if (status.notOk()) {
+                errors.push_back(fmt::format(
+                    "element {} does not conform to 'items' schema: {}", i, status.getMessage()));
+            }
+        }
+        if (!contains) {
+            auto status = m_contains->validate(item);
+            if (status.isOk()) {
+                contains = true;
+            }
+        }
+        if (m_unique) {
+            if (uniqueItems.contains(item)) {
+                errors.push_back(fmt::format("element {} is not unique", i));
+            }
+        }
+    }
+
+    if (!contains) {
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} has no element conforming to 'contains' schema", node.toString());
+    }
+
+    return {};
+}
+
+tempo_config::ValidateMap::ValidateMap(
+    tu_uint32 minProperties,
+    tu_uint32 maxProperties,
+    const absl::flat_hash_set<std::string> &required,
+    const absl::flat_hash_map<std::string,std::shared_ptr<ValidatorNode>> &properties,
+    std::shared_ptr<ValidatorNode> additional)
+    : m_minProperties(minProperties),
+      m_maxProperties(maxProperties),
+      m_required(required),
+      m_properties(properties),
+      m_additional(std::move(additional))
+{
+}
+
+tempo_config::ValidatorNodeType
+tempo_config::ValidateMap::getType() const
+{
+    return ValidatorNodeType::Map;
+}
+
+tu_uint32
+tempo_config::ValidateMap::getMinProperties() const
+{
+    return m_minProperties;
+}
+
+tu_uint32
+tempo_config::ValidateMap::getMaxProperties() const
+{
+    return m_maxProperties;
+}
+
+bool
+tempo_config::ValidateMap::hasRequired(std::string_view name) const
+{
+    return m_required.contains(name);
+}
+
+absl::flat_hash_set<std::string>::const_iterator
+tempo_config::ValidateMap::requiredBegin() const
+{
+    return m_required.cbegin();
+}
+
+absl::flat_hash_set<std::string>::const_iterator
+tempo_config::ValidateMap::requiredEnd() const
+{
+    return m_required.cend();
+}
+
+int
+tempo_config::ValidateMap::numRequired() const
+{
+    return m_required.size();
+}
+
+bool
+tempo_config::ValidateMap::hasProperty(std::string_view name) const
+{
+    return m_properties.contains(name);
+}
+
+std::shared_ptr<tempo_config::ValidatorNode>
+tempo_config::ValidateMap::getProperty(std::string_view name) const
+{
+    auto entry = m_properties.find(name);
+    if (entry != m_properties.cend())
+        return entry->second;
+    return {};
+}
+
+absl::flat_hash_map<std::string,std::shared_ptr<tempo_config::ValidatorNode>>::const_iterator
+tempo_config::ValidateMap::propertiesBegin() const
+{
+    return m_properties.cbegin();
+}
+
+absl::flat_hash_map<std::string,std::shared_ptr<tempo_config::ValidatorNode>>::const_iterator
+tempo_config::ValidateMap::propertiesEnd() const
+{
+    return m_properties.cend();
+}
+
+int
+tempo_config::ValidateMap::numProperties() const
+{
+    return m_properties.size();
+}
+
+tempo_utils::Status
+tempo_config::ValidateMap::validate(const ConfigNode &node)
+{
+    if (node.getNodeType() != ConfigNodeType::kMap)
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} is not a map", node.toString());
+    auto map = node.toMap();
+
+    if (map.mapSize() < m_minProperties)
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} contains less than {} properties", node.toString(), m_minProperties);
+    if (map.mapSize() > m_maxProperties)
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} contains more than {} properties", node.toString(), m_maxProperties);
+
+    std::vector<std::string> missing;
+    for (const auto &name : m_required) {
+        if (!map.mapContains(name)) {
+            auto propName = absl::StrCat("\"", name, "\"");
+            missing.push_back(std::move(propName));
+        }
+    }
+    if (!missing.empty())
+        return ConfigStatus::forCondition(ConfigCondition::kConfigInvariant,
+            "{} is missing required properties: ", node.toString(), absl::StrJoin(missing, ", "));
+
+    std::vector<std::string> errors;
+
+    for (auto it = map.mapBegin(); it != map.mapEnd(); ++it) {
+        const auto &name = it->first;
+        const auto &value = it->second;
+
+        auto pentry = m_properties.find(name);
+        if (pentry != m_properties.cend()) {
+            auto property = pentry->second;
+            auto status = property->validate(value);
+            if (status.notOk()) {
+                errors.push_back(fmt::format(
+                    "property '{}' does not conform to 'properties' schema: {}", name, status.getMessage()));
+            }
+        } else if (m_additional != nullptr) {
+            auto status = m_additional->validate(value);
+            if (status.notOk()) {
+                errors.push_back(fmt::format(
+                    "property '{}' does not conform to 'additional' schema: {}", name, status.getMessage()));
+            }
+        }
+    }
+
+    return {};
+}
 
 tempo_config::ValidateAnyOf::ValidateAnyOf() : ValidatorNode()
 {
@@ -979,25 +829,7 @@ tempo_config::ValidateAnyOf::ValidateAnyOf(std::initializer_list<std::shared_ptr
 tempo_config::ValidatorNodeType
 tempo_config::ValidateAnyOf::getType() const
 {
-    return ValidatorNodeType::SCHEMA_ANY_OF;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateAnyOf::getValueType() const
-{
-    if (m_anyOf.empty())
-        return ValidatorValueType::VALUE_ANY;
-
-    auto valueType = m_anyOf.front()->getValueType();
-    if (m_anyOf.size() == 1)
-        return valueType;
-
-    for (int i = 1; i < m_anyOf.size(); i++) {
-        auto otherType = m_anyOf[i]->getValueType();
-        if (otherType != valueType)
-            return ValidatorValueType::VALUE_ANY_OF;
-    }
-    return valueType;
+    return ValidatorNodeType::AnyOf;
 }
 
 std::shared_ptr<tempo_config::ValidatorNode>
@@ -1064,25 +896,7 @@ tempo_config::ValidateAllOf::ValidateAllOf(std::initializer_list<std::shared_ptr
 tempo_config::ValidatorNodeType
 tempo_config::ValidateAllOf::getType() const
 {
-    return ValidatorNodeType::SCHEMA_ALL_OF;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateAllOf::getValueType() const
-{
-    if (m_allOf.empty())
-        return ValidatorValueType::VALUE_ANY;
-
-    auto valueType = m_allOf.front()->getValueType();
-    if (m_allOf.size() == 1)
-        return valueType;
-
-    for (int i = 1; i < m_allOf.size(); i++) {
-        auto otherType = m_allOf[i]->getValueType();
-        if (otherType != valueType)
-            return ValidatorValueType::VALUE_ALL_OF;
-    }
-    return valueType;
+    return ValidatorNodeType::AllOf;
 }
 
 std::shared_ptr<tempo_config::ValidatorNode>
@@ -1142,15 +956,7 @@ tempo_config::ValidateNot::ValidateNot(std::shared_ptr<ValidatorNode> node)
 tempo_config::ValidatorNodeType
 tempo_config::ValidateNot::getType() const
 {
-    return ValidatorNodeType::SCHEMA_NOT;
-}
-
-tempo_config::ValidatorValueType
-tempo_config::ValidateNot::getValueType() const
-{
-    if (m_node == nullptr)
-        return ValidatorValueType::VALUE_ANY;
-    return ValidatorValueType::VALUE_NOT;
+    return ValidatorNodeType::Not;
 }
 
 std::shared_ptr<tempo_config::ValidatorNode>
@@ -1170,50 +976,3 @@ tempo_config::ValidateNot::validate(const ConfigNode &node)
     }
     return {};
 }
-
-// QDebug
-// operator<<(QDebug dbg, const ValidatorNodeType &t)
-// {
-//     switch (t) {
-//         case ValidatorNodeType::SCHEMA_EMPTY:
-//             dbg.noquote() << "EMPTY";
-//             break;
-//         case ValidatorNodeType::SCHEMA_ANY:
-//             dbg.noquote() << "ANY";
-//             break;
-//         case ValidatorNodeType::SCHEMA_CONST:
-//             dbg.noquote() << "CONST";
-//             break;
-//         case ValidatorNodeType::SCHEMA_ENUM:
-//             dbg.noquote() << "ENUM";
-//             break;
-//         case ValidatorNodeType::SCHEMA_INTEGER:
-//             dbg.noquote() << "INTEGER";
-//             break;
-//         case ValidatorNodeType::SCHEMA_FLOAT:
-//             dbg.noquote() << "FLOAT";
-//             break;
-//         case ValidatorNodeType::SCHEMA_STRING:
-//             dbg.noquote() << "STRING";
-//             break;
-//         case ValidatorNodeType::SCHEMA_SEQ:
-//             dbg.noquote() << "SEQ";
-//             break;
-//         case ValidatorNodeType::SCHEMA_MAP:
-//             dbg.noquote() << "MAP";
-//             break;
-//         case ValidatorNodeType::SCHEMA_CLASS:
-//             dbg.noquote() << "CLASS";
-//             break;
-//         case ValidatorNodeType::SCHEMA_ANY_OF:
-//             dbg.noquote() << "ANY_OF";
-//             break;
-//         case ValidatorNodeType::SCHEMA_ALL_OF:
-//             dbg.noquote() << "ALL_OF";
-//             break;
-//         case ValidatorNodeType::SCHEMA_NOT:
-//             dbg.noquote() << "NOT";
-//             break;
-//     }
-//     return dbg;
-// }

@@ -168,6 +168,9 @@ find_package(utfcpp REQUIRED)
 # find required Fmt dependency
 find_package(fmt REQUIRED)
 
+# find required RE2 dependency
+find_package(re2 REQUIRED)
+
 # find required jemalloc dependency
 find_package(jemalloc REQUIRED)
 

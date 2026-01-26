@@ -5,6 +5,8 @@
 #include <tempo_config/config_editor.h>
 #include <tempo_test/tempo_test.h>
 
+#include "tempo_config/config_utils.h"
+
 class ConfigEditor : public ::testing::Test {};
 
 TEST_F(ConfigEditor, ParseInputAndWriteOutput)
@@ -218,6 +220,7 @@ TEST_F(ConfigEditor, InsertNodeAtTheEndOfTheObject)
     tempo_config::PrinterOptions options;
     options.reformat = tempo_config::Reformat::None;
     ASSERT_THAT (editor.writeJson(output, options), tempo_test::IsOk());
+    ASSERT_THAT (tempo_config::read_config_string(output), tempo_test::IsResult());
 
     auto expected = std::string(R"({"foo": "1","bar":"2"})");
     ASSERT_EQ (expected, output);
@@ -237,6 +240,7 @@ TEST_F(ConfigEditor, ReplaceNodeInArray)
     tempo_config::PrinterOptions options;
     options.reformat = tempo_config::Reformat::None;
     ASSERT_THAT (editor.writeJson(output, options), tempo_test::IsOk());
+    ASSERT_THAT (tempo_config::read_config_string(output), tempo_test::IsResult());
 
     auto expected = std::string(R"(["qux", "bar", "baz"])");
     ASSERT_EQ (expected, output);
@@ -256,7 +260,37 @@ TEST_F(ConfigEditor, ReplaceNodeInObject)
     tempo_config::PrinterOptions options;
     options.reformat = tempo_config::Reformat::None;
     ASSERT_THAT (editor.writeJson(output, options), tempo_test::IsOk());
+    ASSERT_THAT (tempo_config::read_config_string(output), tempo_test::IsResult());
 
     auto expected = std::string(R"({"foo":"5"})");
     ASSERT_EQ (expected, output);
+}
+
+TEST_F(ConfigEditor, MultipleEdits)
+{
+    tempo_config::ConfigEditor editor;
+
+    auto input = std::string(R"({})");
+    ASSERT_THAT (editor.parse(input), tempo_test::IsOk());
+
+    tempo_config::ConfigPath root;
+    auto targetsPath = root.traverse("targets");
+    ASSERT_THAT (editor.insertNode(targetsPath, tempo_config::ConfigMap{}), tempo_test::IsOk());
+
+    std::string targetName = "foo";
+    auto targetPath = targetsPath.traverse(targetName);
+    ASSERT_THAT (editor.insertNode(targetPath,
+        tempo_config::startMap()
+            .put("name", tempo_config::valueNode("foo"))
+            .buildNode()),
+    tempo_test::IsOk());
+
+    std::string output;
+    tempo_config::PrinterOptions options;
+    options.reformat = tempo_config::Reformat::OnlyChanged;
+    ASSERT_THAT (editor.writeJson(output, options), tempo_test::IsOk());
+    ASSERT_THAT (tempo_config::read_config_string(output), tempo_test::IsResult());
+
+    //auto expected = std::string(R"({"foo":"5"})");
+    //ASSERT_EQ (expected, output);
 }

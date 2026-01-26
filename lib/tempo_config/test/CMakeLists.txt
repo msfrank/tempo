@@ -20,6 +20,7 @@ set(TEST_CASES
     number_conversions_tests.cpp
     piece_printer_tests.cpp
     time_conversion_tests.cpp
+    validator_node_tests.cpp
     )
 
 # define test suite driver

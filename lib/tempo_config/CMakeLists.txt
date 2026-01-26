@@ -28,6 +28,7 @@ set(TEMPO_CONFIG_INCLUDES
     include/tempo_config/number_conversions.h
     include/tempo_config/parse_config.h
     include/tempo_config/time_conversions.h
+        include/tempo_config/validator_node.h
     )
 set_target_properties(tempo_config PROPERTIES PUBLIC_HEADER "${TEMPO_CONFIG_INCLUDES}")
 
@@ -75,6 +76,7 @@ target_sources(tempo_config
     src/merge_map.cpp
     src/parse_directories.cpp
     src/time_conversions.cpp
+        src/validator_node.cpp
 
     include/tempo_config/internal/abstract_json_node.h
     include/tempo_config/internal/config_listener.h
@@ -140,6 +142,7 @@ target_link_libraries(tempo_config
     PRIVATE
     antlr::antlr
     rapidjson::rapidjson
+    re2::re2
     )
 
 # install targets

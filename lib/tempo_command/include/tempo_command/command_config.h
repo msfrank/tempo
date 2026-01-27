@@ -33,12 +33,12 @@ namespace tempo_command {
     typedef std::vector<Mapping> MappingVector;
     typedef absl::flat_hash_map<std::string, tempo_config::ConfigNode> CommandConfig;
 
-    CommandStatus convert_options(
+    tempo_utils::Status convert_options(
         const OptionsHash &options,
         const MappingVector &mappings,
         CommandConfig &config);
 
-    CommandStatus convert_arguments(
+    tempo_utils::Status convert_arguments(
         const ArgumentVector &arguments,
         const MappingVector &mappings,
         CommandConfig &config);

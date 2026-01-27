@@ -196,7 +196,7 @@ void
 tempo_command::display_version_and_exit(const char *versionString)
 {
     TU_ASSERT (versionString != nullptr);
-    std::cout << "zuri version " << versionString << std::endl;
+    std::cout << "version " << versionString << std::endl;
     exit(0);
 }
 

@@ -11,6 +11,7 @@ list(APPEND TEMPO_DEVKIT_TARGETS "tempo_command")
 set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
 
 set(TEMPO_COMMAND_INCLUDES
+    include/tempo_command/command.h
     include/tempo_command/command_config.h
     include/tempo_command/command_help.h
     include/tempo_command/command_parser.h
@@ -22,6 +23,7 @@ set_target_properties(tempo_command PROPERTIES PUBLIC_HEADER "${TEMPO_COMMAND_IN
 
 target_sources(tempo_command
     PRIVATE
+    src/command.cpp
     src/command_config.cpp
     src/command_help.cpp
     src/command_parser.cpp

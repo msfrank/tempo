@@ -10,7 +10,7 @@
  * @param config
  * @return
  */
-tempo_command::CommandStatus
+tempo_utils::Status
 tempo_command::convert_options(
     const OptionsHash &options,
     const MappingVector &mappings,
@@ -145,7 +145,7 @@ tempo_command::convert_options(
  * @param config
  * @return
  */
-tempo_command::CommandStatus
+tempo_utils::Status
 tempo_command::convert_arguments(
     const ArgumentVector &arguments,
     const MappingVector &mappings,

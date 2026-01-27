@@ -103,7 +103,8 @@ parse_tokens(
         // get the grouping for the option token
         if (!groupingIndex.contains(token))
             return tempo_command::CommandStatus::forCondition(
-                tempo_command::CommandCondition::kCommandInvariant, "unknown option {}", token.valueView());
+                tempo_command::CommandCondition::kUnknownCommandOption,
+                "unknown option {}", token.valueView());
         const auto &grouping = groupings[groupingIndex[token]];
 
         auto &optlist = options[grouping.id];
@@ -120,15 +121,15 @@ parse_tokens(
             case tempo_command::GroupingType::SINGLE_ARGUMENT: {
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kCommandInvariant,
-                        "missing required value for option {}", grouping.id);
-                token = tokens.front();
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing required value for {}", token.valueView());
+                auto value = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.getType() != tempo_command::TokenType::ARGUMENT)
+                if (value.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kInvalidToken,
-                        "missing required value for option {}", grouping.id);
-                optlist.push_back(token.getValue());
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing required value for {}", token.valueView());
+                optlist.push_back(value.getValue());
                 break;
             }
 
@@ -136,26 +137,26 @@ parse_tokens(
             case tempo_command::GroupingType::KV_ARGUMENT: {
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kCommandInvariant,
-                        "missing key for option {}", grouping.id);
-                token = tokens.front();
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing key for {}", token.valueView());
+                auto key = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.getType() != tempo_command::TokenType::ARGUMENT)
+                if (key.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kInvalidToken,
-                        "missing key for option {}", grouping.id);
-                optlist.push_back(token.getValue());
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing key for {}", token.valueView());
+                optlist.push_back(key.getValue());
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kInvalidToken,
-                        "missing value for option {}", grouping.id);
-                token = tokens.front();
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing value for {}", token.valueView());
+                auto value = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.getType() != tempo_command::TokenType::ARGUMENT)
+                if (value.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kInvalidToken,
-                        "missing value for option {}", grouping.id);
-                optlist.push_back(token.getValue());
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing value for {}", token.valueView());
+                optlist.push_back(value.getValue());
                 break;
             }
 
@@ -163,21 +164,21 @@ parse_tokens(
             case tempo_command::GroupingType::MULTI_ARGUMENT: {
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kCommandInvariant,
-                        "missing value for option {}", grouping.id);
-                token = tokens.front();
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing value for {}", token.valueView());
+                auto value = tokens.front();
                 tokens.erase(tokens.cbegin());
-                if (token.getType() != tempo_command::TokenType::ARGUMENT)
+                if (value.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
-                        tempo_command::CommandCondition::kInvalidToken,
-                        "missing value for option {}", grouping.id);
-                optlist.push_back(token.getValue());
+                        tempo_command::CommandCondition::kInvalidConfiguration,
+                        "missing value for {}", token.valueView());
+                optlist.push_back(value.getValue());
                 while (!tokens.empty()) {
                     if (tokens.front().getType() != tempo_command::TokenType::ARGUMENT)
                         break;
-                    token = tokens.front();
+                    value = tokens.front();
                     tokens.erase(tokens.cbegin());
-                    optlist.push_back(token.getValue());
+                    optlist.push_back(value.getValue());
                 }
                 break;
             }

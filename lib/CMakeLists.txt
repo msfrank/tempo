@@ -30,6 +30,7 @@ target_link_libraries(tempo_testsuite
         PUBLIC gtest::gtest
         PRIVATE
         TempoAllocatorTestSuite
+        TempoCommandTestSuite
         TempoConfigTestSuite
         TempoSchemaTestSuite
         TempoSecurityTestSuite

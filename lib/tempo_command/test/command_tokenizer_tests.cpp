@@ -1,6 +1,5 @@
-
 #include <gtest/gtest.h>
-#include <gmock/gmock-matchers.h>
+#include <gmock/gmock.h>
 
 #include <tempo_command/command_tokenizer.h>
 

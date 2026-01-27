@@ -108,6 +108,7 @@ parse_tokens(
         const auto &grouping = groupings[groupingIndex[token]];
 
         auto &optlist = options[grouping.id];
+        auto optname = token.getValue();
 
         switch (grouping.type) {
 
@@ -122,14 +123,14 @@ parse_tokens(
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing required value for {}", token.valueView());
+                        "missing required value for {}", optname);
                 auto value = tokens.front();
                 tokens.erase(tokens.cbegin());
                 if (value.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing required value for {}", token.valueView());
-                optlist.push_back(value.getValue());
+                        "missing required value for {}", optname);
+                optlist.emplace_back(optname, value.getValue());
                 break;
             }
 
@@ -138,25 +139,25 @@ parse_tokens(
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing key for {}", token.valueView());
+                        "missing key for {}", optname);
                 auto key = tokens.front();
                 tokens.erase(tokens.cbegin());
                 if (key.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing key for {}", token.valueView());
-                optlist.push_back(key.getValue());
+                        "missing key for {}", optname);
+                optlist.emplace_back(optname, key.getValue());
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing value for {}", token.valueView());
+                        "missing value for {}", optname);
                 auto value = tokens.front();
                 tokens.erase(tokens.cbegin());
                 if (value.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing value for {}", token.valueView());
-                optlist.push_back(value.getValue());
+                        "missing value for {}", optname);
+                optlist.emplace_back(optname, value.getValue());
                 break;
             }
 
@@ -165,20 +166,20 @@ parse_tokens(
                 if (tokens.empty())
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing value for {}", token.valueView());
+                        "missing value for {}", optname);
                 auto value = tokens.front();
                 tokens.erase(tokens.cbegin());
                 if (value.getType() != tempo_command::TokenType::ARGUMENT)
                     return tempo_command::CommandStatus::forCondition(
                         tempo_command::CommandCondition::kInvalidConfiguration,
-                        "missing value for {}", token.valueView());
-                optlist.push_back(value.getValue());
+                        "missing value for {}", optname);
+                optlist.emplace_back(optname, value.getValue());
                 while (!tokens.empty()) {
                     if (tokens.front().getType() != tempo_command::TokenType::ARGUMENT)
                         break;
                     value = tokens.front();
                     tokens.erase(tokens.cbegin());
-                    optlist.push_back(value.getValue());
+                    optlist.emplace_back(optname, value.getValue());
                 }
                 break;
             }

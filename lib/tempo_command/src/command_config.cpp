@@ -14,18 +14,27 @@ tempo_utils::Status
 tempo_command::convert_options(
     const OptionsHash &options,
     const MappingVector &mappings,
+    const GroupingVector &groupings,
     CommandConfig &config)
 {
+    absl::flat_hash_map<std::string,std::string> idToOptionName;
+    for (const auto &grp : groupings) {
+        idToOptionName[grp.id] = absl::StrJoin(grp.matches, ",");
+    }
+
     for (const auto &mapping : mappings) {
         switch (mapping.type) {
 
             case MappingType::ZERO_OR_ONE_INSTANCE: {
                 if (options.contains(mapping.id)) {
-                    const auto &values = options.at(mapping.id);
-                    if (values.size() > 1)
+                    const auto &instances = options.at(mapping.id);
+                    const auto &instance = instances.front();
+                    if (instances.size() > 1) {
                         return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-                            "option {} must be specified once but found {} instances", mapping.id, values.size());
-                    tempo_config::ConfigValue v(values.front());
+                            "{} must be specified once but found {} instances",
+                            instance.first, instances.size());
+                    }
+                    tempo_config::ConfigValue v(instance.second);
                     config[mapping.id] = v;
                 }
                 break;
@@ -34,15 +43,17 @@ tempo_command::convert_options(
             case MappingType::ONE_INSTANCE: {
                 if (!options.contains(mapping.id))
                     return CommandStatus::forCondition(CommandCondition::kMissingCommandOption,
-                        "value required for option {}", mapping.id);
-                const auto &values = options.at(mapping.id);
-                if (values.empty())
+                        "missing required option {}", idToOptionName.at(mapping.id));
+                const auto &instances = options.at(mapping.id);
+                if (instances.empty())
                     return CommandStatus::forCondition(CommandCondition::kMissingCommandOption,
-                        "value required for option {}", mapping.id);
-                if (values.size() > 1)
+                        "missing required option {}", idToOptionName.at(mapping.id));
+                const auto &instance = instances.front();
+                if (instances.size() > 1)
                     return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-                        "option {} must be specified exactly once but found {} instances", mapping.id, values.size());
-                tempo_config::ConfigValue v(values.front());
+                        "{} must be specified exactly once but found {} instances",
+                        instance.first, instances.size());
+                tempo_config::ConfigValue v(instance.second);
                 config[mapping.id] = v;
                 break;
             }
@@ -50,14 +61,14 @@ tempo_command::convert_options(
             case MappingType::ONE_OR_MORE_INSTANCES: {
                 if (!options.contains(mapping.id))
                     return CommandStatus::forCondition(CommandCondition::kMissingCommandOption,
-                        "value required for option {}", mapping.id);
-                const auto &values = options.at(mapping.id);
-                if (values.empty())
+                        "missing required option {}", idToOptionName.at(mapping.id));
+                const auto &instances = options.at(mapping.id);
+                if (instances.empty())
                     return CommandStatus::forCondition(CommandCondition::kMissingCommandOption,
-                        "value required for option {}", mapping.id);
+                        "missing required option {}", idToOptionName.at(mapping.id));
                 std::vector<tempo_config::ConfigNode> seq;
-                for (const auto &value : values) {
-                    seq.push_back(tempo_config::ConfigValue(value));
+                for (const auto &instance : instances) {
+                    seq.push_back(tempo_config::ConfigValue(instance.second));
                 }
                 config[mapping.id] = tempo_config::ConfigSeq(seq);
                 break;
@@ -65,10 +76,10 @@ tempo_command::convert_options(
 
             case MappingType::ANY_INSTANCES: {
                 if (options.contains(mapping.id)) {
-                    const auto &values = options.at(mapping.id);
+                    const auto &instances = options.at(mapping.id);
                     std::vector<tempo_config::ConfigNode> seq;
-                    for (const auto &value: values) {
-                        seq.push_back(tempo_config::ConfigValue(value));
+                    for (const auto &instance: instances) {
+                        seq.push_back(tempo_config::ConfigValue(instance.second));
                     }
                     config[mapping.id] = tempo_config::ConfigSeq(seq);
                 }
@@ -77,8 +88,8 @@ tempo_command::convert_options(
 
             case MappingType::COUNT_INSTANCES: {
                 if (options.contains(mapping.id)) {
-                    const auto &values = options.at(mapping.id);
-                    config[mapping.id] = tempo_config::ConfigValue(absl::StrCat(values.size()));
+                    const auto &instances = options.at(mapping.id);
+                    config[mapping.id] = tempo_config::ConfigValue(absl::StrCat(instances.size()));
                 } else {
                     config[mapping.id] = tempo_config::ConfigValue("0");
                 }
@@ -87,11 +98,14 @@ tempo_command::convert_options(
 
             case MappingType::TRUE_IF_INSTANCE: {
                 if (options.contains(mapping.id)) {
-                    const auto &values = options.at(mapping.id);
-                    if (values.size() > 1)
+                    const auto &instances = options.at(mapping.id);
+                    if (instances.size() > 1) {
+                        const auto &instance = instances.front();
                         return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-                            "option {} must be specified exactly once but found {} instances", mapping.id, values.size());
-                    config[mapping.id] = tempo_config::ConfigValue(!values.empty()? "true" : "false");
+                            "{} must be specified exactly once but found {} instances",
+                            instance.first, instances.size());
+                    }
+                    config[mapping.id] = tempo_config::ConfigValue(!instances.empty()? "true" : "false");
                 } else {
                     config[mapping.id] = tempo_config::ConfigValue("false");
                 }
@@ -100,11 +114,14 @@ tempo_command::convert_options(
 
             case MappingType::FALSE_IF_INSTANCE: {
                 if (options.contains(mapping.id)) {
-                    const auto &values = options.at(mapping.id);
-                    if (values.size() > 1)
+                    const auto &instances = options.at(mapping.id);
+                    if (instances.size() > 1) {
+                        const auto &instance = instances.front();
                         return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-                            "option {} must be specified exactly once but found {} instances", mapping.id, values.size());
-                    config[mapping.id] = tempo_config::ConfigValue(values.empty()? "true" : "false");
+                            "{} must be specified exactly once but found {} instances",
+                            instance.first, instances.size());
+                    }
+                    config[mapping.id] = tempo_config::ConfigValue(instances.empty()? "true" : "false");
                 } else {
                     config[mapping.id] = tempo_config::ConfigValue("true");
                 }
@@ -113,15 +130,15 @@ tempo_command::convert_options(
 
             case MappingType::INSTANCE_HASH: {
                 if (options.contains(mapping.id)) {
-                    const auto &values = options.at(mapping.id);
-                    if (values.size() % 2 != 0)
+                    const auto &instances = options.at(mapping.id);
+                    if (instances.size() % 2 != 0)
                         return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-                            "missing hash value for option {}", mapping.id);
+                            "missing hash value for option {}", idToOptionName.at(mapping.id));
                     absl::flat_hash_map<std::string,tempo_config::ConfigNode> map;
-                    for (int i = 0; i < static_cast<int>(values.size()); i += 2) {
-                        const auto &k = values[i];
-                        tempo_config::ConfigValue v(values[i + 1]);
-                        map[k] = v;
+                    for (int i = 0; i < static_cast<int>(instances.size()); i += 2) {
+                        const auto &k = instances[i];
+                        const auto &v = instances[i + 1];
+                        map[k.second] = tempo_config::ConfigValue(v.second);
                     }
                     config[mapping.id] = tempo_config::ConfigMap(map);
                 }
@@ -130,8 +147,8 @@ tempo_command::convert_options(
 
             case MappingType::INVALID:
             default:
-                return CommandStatus::forCondition(
-                    CommandCondition::kCommandInvariant, "invalid option mapping {}", mapping.id);
+                return CommandStatus::forCondition(CommandCondition::kCommandInvariant,
+                    "invalid option mapping {}", mapping.id);
         }
     }
 
@@ -160,7 +177,8 @@ tempo_command::convert_arguments(
             // if at least one argument is present, then consume it
             case MappingType::ZERO_OR_ONE_INSTANCE: {
                 if (curr != end) {
-                    config[mapping.id] = tempo_config::ConfigValue(*curr++);
+                    const auto &instance = *curr++;
+                    config[mapping.id] = tempo_config::ConfigValue(instance);
                 }
                 break;
             }
@@ -168,18 +186,20 @@ tempo_command::convert_arguments(
             case MappingType::ONE_INSTANCE: {
                 if (curr == end)
                     return CommandStatus::forCondition(CommandCondition::kMissingCommandOption,
-                        "missing required argument {}", mapping.id);
-                config[mapping.id] = tempo_config::ConfigValue(*curr++);
+                        "missing required argument {}", mapping.meta);
+                const auto &instance = *curr++;
+                config[mapping.id] = tempo_config::ConfigValue(instance);
                 break;
             }
 
             case MappingType::ONE_OR_MORE_INSTANCES: {
                 if (curr == end)
                     return CommandStatus::forCondition(CommandCondition::kMissingCommandOption,
-                        "missing required argument {}", mapping.id);
+                        "missing required argument {}", mapping.meta);
                 std::vector<tempo_config::ConfigNode> seq;
                 for (; curr != end; curr++) {
-                    seq.push_back(tempo_config::ConfigValue(*curr));
+                    const auto &instance = *curr;
+                    seq.push_back(tempo_config::ConfigValue(instance));
                 }
                 config[mapping.id] = tempo_config::ConfigSeq(seq);
                 break;
@@ -188,7 +208,8 @@ tempo_command::convert_arguments(
             case MappingType::ANY_INSTANCES: {
                 std::vector<tempo_config::ConfigNode> seq;
                 for (; curr != end; curr++) {
-                    seq.push_back(tempo_config::ConfigValue(*curr));
+                    const auto &instance = *curr;
+                    seq.push_back(tempo_config::ConfigValue(instance));
                 }
                 config[mapping.id] = tempo_config::ConfigSeq(seq);
                 break;
@@ -231,9 +252,11 @@ tempo_command::convert_arguments(
         }
     }
 
-    if (curr != end)
+    if (curr != end) {
+        const auto &instance = *curr;
         return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-            "unexpected argument '{}'", *curr);
+            "unexpected argument '{}'", instance);
+    }
 
     return {};
 }

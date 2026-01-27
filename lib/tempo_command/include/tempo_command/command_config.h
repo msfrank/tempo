@@ -37,6 +37,7 @@ namespace tempo_command {
     tempo_utils::Status convert_options(
         const OptionsHash &options,
         const MappingVector &mappings,
+        const GroupingVector &groupings,
         CommandConfig &config);
 
     tempo_utils::Status convert_arguments(

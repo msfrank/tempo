@@ -33,7 +33,7 @@ namespace tempo_command {
     };
 
     typedef std::vector<Grouping> GroupingVector;
-    typedef absl::flat_hash_map<std::string,std::vector<std::string>> OptionsHash;
+    typedef absl::flat_hash_map<std::string,std::vector<std::pair<std::string,std::string>>> OptionsHash;
     typedef std::vector<std::string> ArgumentVector;
     typedef std::vector<Subcommand> SubcommandVector;
 

@@ -235,7 +235,7 @@ tempo_command::Command::parseCompletely(TokenVector &tokens)
         return status;
     }
 
-    TU_RETURN_IF_NOT_OK (tempo_command::convert_options(options, m_optMappings, m_config));
+    TU_RETURN_IF_NOT_OK (tempo_command::convert_options(options, m_optMappings, m_groupings, m_config));
     TU_RETURN_IF_NOT_OK (tempo_command::convert_arguments(arguments, m_argMappings, m_config));
     return {};
 }
@@ -259,7 +259,7 @@ tempo_command::Command::parseUntilMatchingToken(TokenVector &tokens, const Token
         return status;
     }
 
-    TU_RETURN_IF_NOT_OK (tempo_command::convert_options(options, m_optMappings, m_config));
+    TU_RETURN_IF_NOT_OK (tempo_command::convert_options(options, m_optMappings, m_groupings, m_config));
     TU_RETURN_IF_NOT_OK (tempo_command::convert_arguments(arguments, m_argMappings, m_config));
     return {};
 }
@@ -286,7 +286,7 @@ tempo_command::Command::parseUntilSubcommand(TokenVector &tokens, int &selected)
         return status;
     }
 
-    TU_RETURN_IF_NOT_OK (tempo_command::convert_options(options, m_optMappings, m_config));
+    TU_RETURN_IF_NOT_OK (tempo_command::convert_options(options, m_optMappings, m_groupings, m_config));
     return {};
 }
 

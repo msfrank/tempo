@@ -16,15 +16,15 @@ TEST(CommandParser, ParseCompletelyArgument)
     auto tokens = tokenizeResult.getResult();
 
     std::vector<tempo_command::Grouping> groupings = {
-        {"verbose", {"-v", "--verbose"}, tempo_command::GroupingType::NO_ARGUMENT},
+        {"verbose", tempo_command::GroupingType::NO_ARGUMENT, {"-v", "--verbose"}},
     };
 
     std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ANY_INSTANCES, "verbose"},
+        {"verbose", tempo_command::MappingType::ANY_INSTANCES, {}},
     };
 
     std::vector<tempo_command::Mapping> argMappings = {
-        {tempo_command::MappingType::ANY_INSTANCES, "arg"},
+        {"arg", tempo_command::MappingType::ANY_INSTANCES, "ARG"},
     };
 
     tempo_command::OptionsHash options;
@@ -51,11 +51,11 @@ TEST(CommandParser, ParseCompletelyShortOption)
     auto tokens = tokenizeResult.getResult();
 
     std::vector<tempo_command::Grouping> groupings = {
-        {"verbose", {"-v", "--verbose"}, tempo_command::GroupingType::NO_ARGUMENT},
+        {"verbose", tempo_command::GroupingType::NO_ARGUMENT, {"-v", "--verbose"}},
     };
 
     std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ANY_INSTANCES, "verbose"},
+        {"verbose", tempo_command::MappingType::ANY_INSTANCES},
     };
 
     std::vector<tempo_command::Mapping> argMappings;
@@ -85,11 +85,11 @@ TEST(CommandParser, ParseCompletelyRunOfShortOptions)
     auto tokens = tokenizeResult.getResult();
 
     std::vector<tempo_command::Grouping> groupings = {
-        {"verbose", {"-v", "--verbose"}, tempo_command::GroupingType::NO_ARGUMENT},
+        {"verbose", tempo_command::GroupingType::NO_ARGUMENT, {"-v", "--verbose"}},
     };
 
     std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ANY_INSTANCES, "verbose"},
+        {"verbose", tempo_command::MappingType::ANY_INSTANCES},
     };
 
     std::vector<tempo_command::Mapping> argMappings;
@@ -119,11 +119,11 @@ TEST(CommandParser, ParseCompletelyLongOption)
     auto tokens = tokenizeResult.getResult();
 
     std::vector<tempo_command::Grouping> groupings = {
-        {"verbose", {"-v", "--verbose"}, tempo_command::GroupingType::NO_ARGUMENT},
+        {"verbose", tempo_command::GroupingType::NO_ARGUMENT, {"-v", "--verbose"}},
     };
 
     std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ANY_INSTANCES, "verbose"},
+        {"verbose", tempo_command::MappingType::ANY_INSTANCES},
     };
 
     std::vector<tempo_command::Mapping> argMappings;
@@ -157,7 +157,7 @@ TEST(CommandParser, ParseUntilSubcommand)
         { "subcommand" , "description of subcommand"},
     };
     std::vector<tempo_command::Grouping> groupings = {
-        {"verbose", {"-v", "--verbose"}, tempo_command::GroupingType::NO_ARGUMENT},
+        {"verbose", tempo_command::GroupingType::NO_ARGUMENT, {"-v", "--verbose"}},
     };
 
     tempo_command::OptionsHash options;

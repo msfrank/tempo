@@ -8,6 +8,7 @@
 #include <tempo_utils/file_writer.h>
 
 #include "bytes_to_code_serializer.h"
+#include "tempo_command/command.h"
 #include "tempo_config/base_conversions.h"
 #include "tempo_utils/file_reader.h"
 #include "tempo_utils/log_sink.h"
@@ -39,74 +40,28 @@ bytes_to_code(int argc, const char *argv[])
     tempo_config::IntegerParser quietParser(0);
     tempo_config::BooleanParser silentParser(false);
 
-    std::vector<tempo_command::Default> cmdDefaults = {
-        {"includeGuard", "define a preprocessor variable to use as an include guard", "GUARD"},
-        {"cppNamespace", "declare the data and size variables with a namespace", "NAMESPACE"},
-        {"verbose", "Display verbose output (specify twice for even more verbose output)"},
-        {"quiet", "Display warnings and errors only (specify twice for errors only)"},
-        {"silent", "Suppress all output"},
-        {"inputDataFile", "Path to the input data file", "FILE"},
-        {"outputHeaderPath", "Path to the output header file", "PATH"},
-    };
+    tempo_command::Command command("tempo-bytes2code");
 
-    const std::vector<tempo_command::Grouping> cmdGroupings = {
-        {"includeGuard", {"-g", "--include-guard"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"cppNamespace", {"-n", "--cpp-namespace"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"verbose", {"-v"}, tempo_command::GroupingType::NO_ARGUMENT},
-        {"quiet", {"-q"}, tempo_command::GroupingType::NO_ARGUMENT},
-        {"silent", {"-s", "--silent"}, tempo_command::GroupingType::NO_ARGUMENT},
-        {"help", {"-h", "--help"}, tempo_command::GroupingType::HELP_FLAG},
-        {"version", {"--version"}, tempo_command::GroupingType::VERSION_FLAG},
-    };
+    command.addOption("includeGuard", {"-g", "--include-guard"},
+        tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "Define a preprocessor variable to use as an include guard", "GUARD");
+    command.addOption("cppNamespace", {"-n", "--cpp-namespace"},
+        tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "Declare the data an size variables with a namespace", "NAMESPACE");
+    command.addFlag("verbose", {"-v"}, tempo_command::MappingType::COUNT_INSTANCES,
+        "Display verbose output (specify twice for even more verbose output)");
+    command.addFlag("quiet", {"-q"}, tempo_command::MappingType::COUNT_INSTANCES,
+        "Display warnings and errors only (specify twice for errors only)");
+    command.addFlag("silent", {"-s"}, tempo_command::MappingType::TRUE_IF_INSTANCE,
+        "Suppress all output");
+    command.addArgument("inputDataFile", "FILE", tempo_command::MappingType::ONE_INSTANCE,
+        "Path to the input data file");
+    command.addArgument("outputHeaderPath", "PATH", tempo_command::MappingType::ONE_INSTANCE,
+        "Path to the output header file");
+    command.addHelpOption("help", {"-h", "--help"},
+        "Generate a C/C++ header file containing the specified input as a byte array");
 
-    const std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "includeGuard"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "cppNamespace"},
-        {tempo_command::MappingType::COUNT_INSTANCES, "verbose"},
-        {tempo_command::MappingType::COUNT_INSTANCES, "quiet"},
-        {tempo_command::MappingType::TRUE_IF_INSTANCE, "silent"},
-    };
-
-    std::vector<tempo_command::Mapping> argMappings = {
-        {tempo_command::MappingType::ONE_INSTANCE, "inputDataFile"},
-        {tempo_command::MappingType::ONE_INSTANCE, "outputHeaderPath"},
-    };
-
-    // parse argv array into a vector of tokens
-    auto tokenizeResult = tempo_command::tokenize_argv(argc - 1, &argv[1]);
-    if (tokenizeResult.isStatus())
-        tempo_command::display_status_and_exit(tokenizeResult.getStatus());
-    auto tokens = tokenizeResult.getResult();
-
-    std::string subcommand;
-    tempo_command::OptionsHash cmdOptions;
-    tempo_command::ArgumentVector cmdArguments;
-
-    // parse global options and get the subcommand
-    auto status = tempo_command::parse_completely(tokens, cmdGroupings, cmdOptions, cmdArguments);
-    if (status.notOk()) {
-        tempo_command::CommandStatus commandStatus;
-        if (!status.convertTo(commandStatus))
-            return status;
-        switch (commandStatus.getCondition()) {
-            case tempo_command::CommandCondition::kHelpRequested:
-                tempo_command::display_help_and_exit({"tempo-bytes2code"},
-                    "Generate a C/C++ header file containing the specified input as a byte array",
-                    {}, cmdGroupings, optMappings, argMappings, cmdDefaults);
-            default:
-                return status;
-        }
-    }
-
-    tempo_command::CommandConfig cmdConfig;
-
-    // convert options to config
-    TU_RETURN_IF_NOT_OK (convert_options(cmdOptions, optMappings, cmdConfig));
-
-    // convert arguments to config
-    TU_RETURN_IF_NOT_OK (convert_arguments(cmdArguments, argMappings, cmdConfig));
-
-    TU_LOG_INFO << "cmd config:\n" << tempo_command::command_config_to_string(cmdConfig);
+    TU_RETURN_IF_NOT_OK (command.parse(argc - 1, &argv[1]));
 
     // configure logging
     tempo_utils::LoggingConfiguration logging = {
@@ -115,16 +70,13 @@ bytes_to_code(int argc, const char *argv[])
     };
 
     bool silent;
-    TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(silent, silentParser,
-        cmdConfig, "silent"));
+    TU_RETURN_IF_NOT_OK(command.convert(silent, silentParser, "silent"));
     if (silent) {
         logging.severityFilter = tempo_utils::SeverityFilter::kSilent;
     } else {
         int verbose, quiet;
-        TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(verbose, verboseParser,
-            cmdConfig, "verbose"));
-        TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(quiet, quietParser,
-            cmdConfig, "quiet"));
+        TU_RETURN_IF_NOT_OK(command.convert(verbose, verboseParser, "verbose"));
+        TU_RETURN_IF_NOT_OK(command.convert(quiet, quietParser, "quiet"));
         if (verbose && quiet)
             return tempo_command::CommandStatus::forCondition(
                 tempo_command::CommandCondition::kCommandError, "cannot specify both -v and -q");
@@ -145,37 +97,35 @@ bytes_to_code(int argc, const char *argv[])
 
     // determine the input data file
     std::filesystem::path inputDataFile;
-    TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(inputDataFile, inputDataFileParser,
-        cmdConfig, "inputDataFile"));
+    TU_RETURN_IF_NOT_OK(command.convert(inputDataFile, inputDataFileParser, "inputDataFile"));
 
     // determine the output header path
     std::filesystem::path outputHeaderPath;
-    TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(outputHeaderPath, outputHeaderPathParser,
-        cmdConfig, "outputHeaderPath"));
+    TU_RETURN_IF_NOT_OK(command.convert(outputHeaderPath, outputHeaderPathParser, "outputHeaderPath"));
 
     // determine the include guard
     std::string includeGuard;
-    TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(includeGuard, includeGuardParser,
-        cmdConfig, "includeGuard"));
+    TU_RETURN_IF_NOT_OK(command.convert(includeGuard, includeGuardParser, "includeGuard"));
 
     // determine the output header path
     std::string cppNamespace;
-    TU_RETURN_IF_NOT_OK(tempo_command::parse_command_config(cppNamespace, cppNamespaceParser,
-        cmdConfig, "cppNamespace"));
+    TU_RETURN_IF_NOT_OK(command.convert(cppNamespace, cppNamespaceParser, "cppNamespace"));
 
     // serialize the input
     BytesToCodeSerializer serializer(inputDataFile, includeGuard, cppNamespace);
     TU_RETURN_IF_NOT_OK (serializer.getStatus());
 
     // write the code to the path, overwriting if a file already exists at the specified path
-    tempo_utils::FileWriter writer(outputHeaderPath, serializer.getCode(), tempo_utils::FileWriterMode::CREATE_OR_OVERWRITE);
+    tempo_utils::FileWriter writer(outputHeaderPath,
+        serializer.getCode(), tempo_utils::FileWriterMode::CREATE_OR_OVERWRITE);
     TU_RETURN_IF_NOT_OK (writer.getStatus());
 
     return {};
 }
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, const char *argv[])
+{
     if (argc == 0 || argv == nullptr)
         return -1;
 

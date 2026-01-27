@@ -9,6 +9,11 @@ tempo_command::Command::Command(const std::vector<std::string> &commandPath)
     TU_ASSERT (!m_commandPath.empty());
 }
 
+tempo_command::Command::Command(const std::string &commandName)
+    : Command(std::vector{commandName})
+{
+}
+
 tempo_command::Command::Command(
     const std::vector<std::string> &commandPath,
     const std::vector<Subcommand> &subcommands)
@@ -16,6 +21,14 @@ tempo_command::Command::Command(
       m_subcommands(subcommands),
       m_hasHelp(false),
       m_hasVersion(false)
+{
+    TU_ASSERT (!m_commandPath.empty());
+}
+
+tempo_command::Command::Command(
+    const std::string &commandName,
+    const std::vector<Subcommand> &subcommands)
+    : Command(std::vector{commandName}, subcommands)
 {
 }
 
@@ -32,11 +45,11 @@ tempo_command::Command::addArgument(
 
     CommandEntry entry;
     entry.isOption = false;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string(description), meta);
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string(description));
     entry.grpIndex = -1;
     entry.mapIndex = m_optMappings.size();
-    m_argMappings.emplace_back(mapping, id);
+    m_argMappings.emplace_back(id, mapping, meta);
 
     m_entries[id] = entry;
     return {};
@@ -55,12 +68,12 @@ tempo_command::Command::addFlag(
 
     CommandEntry entry;
     entry.isOption = true;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string(description), std::string{});
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string(description));
     entry.grpIndex = m_groupings.size();
-    m_groupings.emplace_back(id, matches, GroupingType::NO_ARGUMENT);
+    m_groupings.emplace_back(id, GroupingType::NO_ARGUMENT, matches);
     entry.mapIndex = m_optMappings.size();
-    m_optMappings.emplace_back(mapping, id);
+    m_optMappings.emplace_back(id, mapping, std::string{});
 
     m_entries[id] = entry;
     return {};
@@ -80,12 +93,12 @@ tempo_command::Command::addOption(
 
     CommandEntry entry;
     entry.isOption = true;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string(description), std::string(meta));
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string(description));
     entry.grpIndex = m_groupings.size();
-    m_groupings.emplace_back(id, matches, GroupingType::SINGLE_ARGUMENT);
+    m_groupings.emplace_back(id, GroupingType::SINGLE_ARGUMENT, matches);
     entry.mapIndex = m_optMappings.size();
-    m_optMappings.emplace_back(mapping, id);
+    m_optMappings.emplace_back(id, mapping, std::string{meta});
 
     m_entries[id] = entry;
     return {};
@@ -105,12 +118,12 @@ tempo_command::Command::addMultipleValueOption(
 
     CommandEntry entry;
     entry.isOption = true;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string(description), std::string(meta));
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string(description));
     entry.grpIndex = m_groupings.size();
-    m_groupings.emplace_back(id, matches, GroupingType::MULTI_ARGUMENT);
+    m_groupings.emplace_back(id, GroupingType::MULTI_ARGUMENT, matches);
     entry.mapIndex = m_optMappings.size();
-    m_optMappings.emplace_back(mapping, id);
+    m_optMappings.emplace_back(id, mapping, std::string{meta});
 
     m_entries[id] = entry;
     return {};
@@ -130,12 +143,12 @@ tempo_command::Command::addKeyValueOption(
 
     CommandEntry entry;
     entry.isOption = true;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string(description), std::string(meta));
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string(description));
     entry.grpIndex = m_groupings.size();
-    m_groupings.emplace_back(id, matches, GroupingType::KV_ARGUMENT);
+    m_groupings.emplace_back(id, GroupingType::KV_ARGUMENT, matches);
     entry.mapIndex = m_optMappings.size();
-    m_optMappings.emplace_back(mapping, id);
+    m_optMappings.emplace_back(id, mapping, std::string{meta});
 
     m_entries[id] = entry;
     return {};
@@ -156,10 +169,10 @@ tempo_command::Command::addHelpOption(
 
     CommandEntry entry;
     entry.isOption = true;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string("Display help"), std::string{});
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string("Display help"));
     entry.grpIndex = m_groupings.size();
-    m_groupings.emplace_back(id, matches, GroupingType::HELP_FLAG);
+    m_groupings.emplace_back(id, GroupingType::HELP_FLAG, matches);
     entry.mapIndex = -1;
 
     m_entries[id] = entry;
@@ -183,10 +196,10 @@ tempo_command::Command::addVersionOption(
 
     CommandEntry entry;
     entry.isOption = true;
-    entry.dflIndex = m_defaults.size();
-    m_defaults.emplace_back(id, std::string("Display version"), std::string{});
+    entry.helpIndex = m_help.size();
+    m_help.emplace_back(id, std::string("Display version"));
     entry.grpIndex = m_groupings.size();
-    m_groupings.emplace_back(id, matches, GroupingType::VERSION_FLAG);
+    m_groupings.emplace_back(id, GroupingType::VERSION_FLAG, matches);
     entry.mapIndex = -1;
 
     m_entries[id] = entry;
@@ -216,7 +229,7 @@ tempo_command::Command::parseCompletely(TokenVector &tokens)
     {
         if (status.matchesCondition(CommandCondition::kHelpRequested))
             display_help_and_exit(m_commandPath, m_description, m_subcommands,
-                m_groupings, m_optMappings, m_argMappings, m_defaults);
+                m_groupings, m_optMappings, m_argMappings, m_help);
         if (status.matchesCondition(CommandCondition::kVersionRequested))
             display_version_and_exit(m_version.c_str());
         return status;
@@ -240,7 +253,7 @@ tempo_command::Command::parseUntilMatchingToken(TokenVector &tokens, const Token
     {
         if (status.matchesCondition(CommandCondition::kHelpRequested))
             display_help_and_exit(m_commandPath, m_description, m_subcommands,
-                m_groupings, m_optMappings, m_argMappings, m_defaults);
+                m_groupings, m_optMappings, m_argMappings, m_help);
         if (status.matchesCondition(CommandCondition::kVersionRequested))
             display_version_and_exit(m_version.c_str());
         return status;
@@ -267,7 +280,7 @@ tempo_command::Command::parseUntilSubcommand(TokenVector &tokens, int &selected)
     {
         if (status.matchesCondition(CommandCondition::kHelpRequested))
             display_help_and_exit(m_commandPath, m_description, m_subcommands,
-                m_groupings, m_optMappings, m_argMappings, m_defaults);
+                m_groupings, m_optMappings, m_argMappings, m_help);
         if (status.matchesCondition(CommandCondition::kVersionRequested))
             display_version_and_exit(m_version.c_str());
         return status;

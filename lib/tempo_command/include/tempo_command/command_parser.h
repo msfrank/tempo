@@ -28,8 +28,8 @@ namespace tempo_command {
 
     struct Grouping {
         std::string id;
-        std::vector<std::string> matches;
         GroupingType type;
+        std::vector<std::string> matches;
     };
 
     typedef std::vector<Grouping> GroupingVector;

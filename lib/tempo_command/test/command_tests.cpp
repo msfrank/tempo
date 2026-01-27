@@ -13,7 +13,7 @@ class Command : public ::testing::Test {};
 
 TEST_F(Command, ParseCompletelyArgument)
 {
-    tempo_command::Command command({"test"});
+    tempo_command::Command command("test");
     ASSERT_THAT (command.addArgument(
         "number", "NUMBER", tempo_command::MappingType::ONE_INSTANCE),
     tempo_test::IsOk());
@@ -35,7 +35,7 @@ TEST_F(Command, ParseCompletelyArgument)
 
 TEST_F(Command, ParseCompletelyFlag)
 {
-    tempo_command::Command command({"test"});
+    tempo_command::Command command("test");
     ASSERT_THAT (command.addFlag(
         "flag", {"-f"}, tempo_command::MappingType::TRUE_IF_INSTANCE),
     tempo_test::IsOk());
@@ -57,7 +57,7 @@ TEST_F(Command, ParseCompletelyFlag)
 
 TEST_F(Command, ParseCompletelyOption)
 {
-    tempo_command::Command command({"test"});
+    tempo_command::Command command("test");
     ASSERT_THAT (command.addOption(
         "option", {"-o"}, tempo_command::MappingType::ONE_INSTANCE),
     tempo_test::IsOk());
@@ -80,7 +80,7 @@ TEST_F(Command, ParseCompletelyOption)
 
 TEST_F(Command, ParseFailsUnknownOption)
 {
-    tempo_command::Command command({"test"});
+    tempo_command::Command command("test");
 
     const char *argv[] = {
         "-o",
@@ -94,7 +94,7 @@ TEST_F(Command, ParseFailsUnknownOption)
 
 TEST_F(Command, ParseFailsOptionMissingValue)
 {
-    tempo_command::Command command({"test"});
+    tempo_command::Command command("test");
     ASSERT_THAT (command.addOption(
         "option", {"-o"}, tempo_command::MappingType::ONE_INSTANCE),
     tempo_test::IsOk());
@@ -108,9 +108,9 @@ TEST_F(Command, ParseFailsOptionMissingValue)
     ASSERT_THAT (status, tempo_test::IsCondition(tempo_command::CommandCondition::kInvalidConfiguration));
 }
 
-TEST_F(Command, ConvertFailsValidationError)
+TEST_F(Command, ConvertOptionFailsValidationError)
 {
-    tempo_command::Command command({"test"});
+    tempo_command::Command command("test");
     ASSERT_THAT (command.addOption(
         "number", {"--number"}, tempo_command::MappingType::ONE_INSTANCE),
     tempo_test::IsOk());
@@ -121,6 +121,26 @@ TEST_F(Command, ConvertFailsValidationError)
         nullptr,
     };
     ASSERT_THAT (command.parse(2, argv), tempo_test::IsOk());
+
+    int number;
+    tempo_config::IntegerParser numberParser;
+    auto status = command.convert(number, numberParser, "number");
+    TU_CONSOLE_ERR << status;
+    ASSERT_THAT (status, tempo_test::IsCondition(tempo_command::CommandCondition::kInvalidConfiguration));
+}
+
+TEST_F(Command, ConvertArgumentFailsValidationError)
+{
+    tempo_command::Command command("test");
+    ASSERT_THAT (command.addArgument(
+        "number", "NUMBER", tempo_command::MappingType::ONE_INSTANCE),
+    tempo_test::IsOk());
+
+    const char *argv[] = {
+        "value",
+        nullptr,
+    };
+    ASSERT_THAT (command.parse(1, argv), tempo_test::IsOk());
 
     int number;
     tempo_config::IntegerParser numberParser;

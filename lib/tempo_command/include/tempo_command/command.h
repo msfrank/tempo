@@ -10,7 +10,9 @@ namespace tempo_command {
     class Command {
     public:
         explicit Command(const std::vector<std::string> &commandPath);
+        explicit Command(const std::string &commandName);
         Command(const std::vector<std::string> &commandPath, const std::vector<Subcommand> &subcommands);
+        Command(const std::string &commandName, const std::vector<Subcommand> &subcommands);
 
         tempo_utils::Status addArgument(
             const std::string &id,
@@ -70,7 +72,7 @@ namespace tempo_command {
     private:
         std::vector<std::string> m_commandPath;
         std::vector<Subcommand> m_subcommands;
-        std::vector<Default> m_defaults;
+        std::vector<Help> m_help;
         std::vector<Grouping> m_groupings;
         std::vector<Mapping> m_optMappings;
         std::vector<Mapping> m_argMappings;
@@ -81,9 +83,9 @@ namespace tempo_command {
         absl::flat_hash_map<std::string,tempo_config::ConfigNode> m_config;
 
         struct CommandEntry {
-            int dflIndex;
             int grpIndex;
             int mapIndex;
+            int helpIndex;
             bool isOption;
         };
         absl::flat_hash_map<std::string, CommandEntry> m_entries;
@@ -116,9 +118,9 @@ namespace tempo_command {
                 return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
                     "invalid option {}; {}", firstMatch, status.getMessage());
             }
-            const auto &dfl = m_defaults.at(command.dflIndex);
+            const auto &map = m_argMappings.at(command.mapIndex);
             return CommandStatus::forCondition(CommandCondition::kInvalidConfiguration,
-                "invalid argument {}; {}", dfl.meta, status.getMessage());
+                "invalid argument {}; {}", map.meta, status.getMessage());
         }
     };
 }

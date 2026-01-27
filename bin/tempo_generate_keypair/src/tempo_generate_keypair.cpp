@@ -1,16 +1,15 @@
 
-#include "tempo_security/ed25519_private_key_generator.h"
-
-#include <tempo_command/command_help.h>
-#include <tempo_command/command_parser.h>
-#include <tempo_security/certificate_key_pair.h>
-#include <tempo_security/ecdsa_private_key_generator.h>
-#include <tempo_security/generate_utils.h>
-#include <tempo_security/rsa_private_key_generator.h>
+#include <tempo_command/command.h>
 #include <tempo_config/base_conversions.h>
 #include <tempo_config/enum_conversions.h>
+#include <tempo_security/certificate_key_pair.h>
+#include <tempo_security/ecdsa_private_key_generator.h>
+#include <tempo_security/ed25519_private_key_generator.h>
+#include <tempo_security/generate_utils.h>
+#include <tempo_security/rsa_private_key_generator.h>
 #include <tempo_utils/log_stream.h>
 #include <tempo_utils/url.h>
+
 
 enum class KeyType { Ecdsa, Ed25519, Rsa, };
 
@@ -67,166 +66,95 @@ run(int argc, const char *argv[])
         {"sha3_512", tempo_security::DigestId::SHA3_512},
     }, tempo_security::DigestId::None);
 
-    std::vector<tempo_command::Default> defaults = {
-        {"keyType", "private key type", "TYPE"},
-        {"digestId", "message digest id", "ID"},
-        {"outputDirectory", "the output directory", "DIR"},
-        {"signingCertificate", "signing certificate file", "FILE"},
-        {"signingPrivateKey", "signing private key file", "FILE"},
-        {"fileName", "the keypair file name prefix", "NAME"},
-        {"organization", "the subject organization name", "NAME"},
-        {"organizationalUnit", "the subject organizational unit name", "NAME"},
-        {"commonName", "the subject common name", "NAME"},
-        {"validitySeconds", "the duration in which the certificate is valid", "SECONDS"},
-        {"serialNumber", "the certificate serial number", "SERIAL"},
-        {"pathlen", "the path length constraint on the CA certificate", "LENGTH"},
-        {"isCA", "the certificate should be a CA"},
-        {"isSelfSigned", "the certificate should be self-signed"},
-    };
+    tempo_command::Command command("tempo-generate-keypair");
 
-    std::vector<tempo_command::Grouping> groupings = {
-        {"keyType", {"-t", "--key-type"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"digestId", {"--digest-id"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"outputDirectory", {"-o", "--output-directory"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"signingCertificate", {"--signing-certificate"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"signingPrivateKey", {"--signing-private-key"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"fileName", {"--file-name"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"organization", {"--organization"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"organizationalUnit", {"--organizational-unit"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"commonName", {"--common-name"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"validitySeconds", {"--validity"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"serialNumber", {"--serial"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"pathlen", {"--path-length"}, tempo_command::GroupingType::SINGLE_ARGUMENT},
-        {"isCA", {"--ca"}, tempo_command::GroupingType::NO_ARGUMENT},
-        {"isSelfSigned", {"--self-signed"}, tempo_command::GroupingType::NO_ARGUMENT},
-        {"help", {"-h", "--help"}, tempo_command::GroupingType::HELP_FLAG},
-        {"version", {"--version"}, tempo_command::GroupingType::VERSION_FLAG},
-    };
+    command.addOption("keyType", {"-t", "--key-type"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "Private key type", "TYPE");
+    command.addOption("digestId", {"--digest-id"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "Message digest ID", "ID");
+    command.addOption("outputDirectory", {"-o", "--output-directory"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The output directory", "DIR");
+    command.addOption("signingCertificate", {"--signing-certificate"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "Signing certificate file", "FILE");
+    command.addOption("signingPrivateKey", {"--signing-private-key"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "Signing private key file", "FILE");
+    command.addOption("fileName", {"--file-name"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The keypair filename prefix", "NAME");
+    command.addOption("organization", {"--organization"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The subject organization name", "NAME");
+    command.addOption("organizationalUnit", {"--organizational-unit"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The subject organizational unit name", "NAME");
+    command.addOption("commonName", {"--common-name"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The subject common name", "NAME");
+    command.addOption("validitySeconds", {"--validity"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The duration in which the certificate is valid", "SECONDS");
+    command.addOption("serialNumber", {"--serial"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The certificate serial number", "SERIAL");
+    command.addOption("pathlen", {"--path-length"}, tempo_command::MappingType::ZERO_OR_ONE_INSTANCE,
+        "The path length constraint on the CA certificate", "LENGTH");
+    command.addFlag("isCA", {"--ca"}, tempo_command::MappingType::TRUE_IF_INSTANCE,
+        "The certificate should be a CA");
+    command.addFlag("isSelfSigned", {"--self-signed"}, tempo_command::MappingType::TRUE_IF_INSTANCE,
+        "The certificate should be self-signed");
+    command.addHelpOption("help", {"-h", "--help"}, "Generate a key-pair");
 
-    std::vector<tempo_command::Mapping> optMappings = {
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "keyType"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "digestId"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "outputDirectory"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "signingCertificate"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "signingPrivateKey"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "fileName"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "organization"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "organizationalUnit"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "commonName"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "validitySeconds"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "serialNumber"},
-        {tempo_command::MappingType::ZERO_OR_ONE_INSTANCE, "pathlen"},
-        {tempo_command::MappingType::TRUE_IF_INSTANCE, "isCA"},
-        {tempo_command::MappingType::TRUE_IF_INSTANCE, "isSelfSigned"},
-    };
-
-    std::vector<tempo_command::Mapping> argMappings;
-
-    tempo_command::OptionsHash options;
-    tempo_command::ArgumentVector arguments;
-    tempo_command::CommandConfig config;
-
-    // parse argv array into a vector of tokens
-    auto tokenizeResult = tempo_command::tokenize_argv(argc - 1, &argv[1]);
-    if (tokenizeResult.isStatus())
-        tempo_command::display_status_and_exit(tokenizeResult.getStatus());
-    auto tokens = tokenizeResult.getResult();
-
-    // parse remaining options and arguments
-    auto status = tempo_command::parse_completely(tokens, groupings, options, arguments);
-    if (status.notOk()) {
-        tempo_command::CommandStatus commandStatus;
-        if (!status.convertTo(commandStatus))
-            return status;
-        switch (commandStatus.getCondition()) {
-            case tempo_command::CommandCondition::kHelpRequested:
-                tempo_command::display_help_and_exit({"tempo-generate-keypair"},
-                    "generate a key-pair",
-                    {}, groupings, optMappings, argMappings, defaults);
-            default:
-                return status;
-        }
-    }
-
-    // convert options to config
-    status = convert_options(options, optMappings, config);
-    if (!status.isOk())
-        return status;
-
-    // convert arguments to config
-    status = convert_arguments(arguments, argMappings, config);
-    if (!status.isOk())
-        return status;
-
-    TU_LOG_INFO << "config:\n" << tempo_command::command_config_to_string(config);
+    TU_RETURN_IF_NOT_OK (command.parse(argc - 1, &argv[1]));
 
     // determine the key type
     KeyType keyType;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(keyType, keyTypeParser,
-        config, "keyType"));
+    TU_RETURN_IF_NOT_OK (command.convert(keyType, keyTypeParser, "keyType"));
 
     // determine the digest id
     tempo_security::DigestId digestId;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(digestId, digestIdParser,
-        config, "digestId"));
+    TU_RETURN_IF_NOT_OK (command.convert(digestId, digestIdParser, "digestId"));
 
     // determine the output directory
     std::filesystem::path outputDirectory;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(outputDirectory, outputDirectoryParser,
-        config, "outputDirectory"));
+    TU_RETURN_IF_NOT_OK (command.convert(outputDirectory, outputDirectoryParser, "outputDirectory"));
 
     // determine the signing certificate path
     std::filesystem::path signingCertificateFile;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(signingCertificateFile, signingCertificateParser,
-        config, "signingCertificate"));
+    TU_RETURN_IF_NOT_OK (command.convert(signingCertificateFile, signingCertificateParser, "signingCertificate"));
 
     // determine the signing key path
     std::filesystem::path signingPrivateKeyFile;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(signingPrivateKeyFile, signingPrivateKeyParser,
-        config, "signingPrivateKey"));
+    TU_RETURN_IF_NOT_OK (command.convert(signingPrivateKeyFile, signingPrivateKeyParser, "signingPrivateKey"));
 
     // determine the file name stem
     std::string fileName;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(fileName, fileNameParser,
-        config, "fileName"));
+    TU_RETURN_IF_NOT_OK (command.convert(fileName, fileNameParser, "fileName"));
 
     // determine the organization
     std::string organization;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(organization, organizationParser,
-        config, "organization"));
+    TU_RETURN_IF_NOT_OK (command.convert(organization, organizationParser, "organization"));
 
     // determine the organizational unit
     std::string organizationalUnit;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(organizationalUnit, organizationalUnitParser,
-        config, "organizationalUnit"));
+    TU_RETURN_IF_NOT_OK (command.convert(organizationalUnit, organizationalUnitParser, "organizationalUnit"));
 
     // determine the common name
     std::string commonName;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(commonName, commonNameParser,
-        config, "commonName"));
+    TU_RETURN_IF_NOT_OK (command.convert(commonName, commonNameParser, "commonName"));
 
     // determine the validity
     int validitySeconds;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(validitySeconds, validitySecondsParser,
-        config, "validitySeconds"));
+    TU_RETURN_IF_NOT_OK (command.convert(validitySeconds, validitySecondsParser, "validitySeconds"));
 
     // determine the serial number
     int serialNumber;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(serialNumber, serialNumberParser,
-        config, "serialNumber"));
+    TU_RETURN_IF_NOT_OK (command.convert(serialNumber, serialNumberParser, "serialNumber"));
 
     // determine the serial number
     int pathlen;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(pathlen, pathlenParser, config, "pathlen"));
+    TU_RETURN_IF_NOT_OK (command.convert(pathlen, pathlenParser, "pathlen"));
 
     // determine if CA
     bool isCA;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(isCA, isCAParser, config, "isCA"));
+    TU_RETURN_IF_NOT_OK (command.convert(isCA, isCAParser, "isCA"));
 
     // determine if self signed
     bool isSelfSigned;
-    TU_RETURN_IF_NOT_OK (tempo_command::parse_command_config(isSelfSigned, isSelfSignedParser,
-        config, "isSelfSigned"));
+    TU_RETURN_IF_NOT_OK (command.convert(isSelfSigned, isSelfSignedParser, "isSelfSigned"));
 
     // construct the key generator based on the key type
     auto keygen = create_key_generator(keyType);

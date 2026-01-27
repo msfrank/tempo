@@ -14,8 +14,13 @@ tempo_command::display_help_and_exit(
     const std::vector<Grouping> &commandGroupings,
     const std::vector<Mapping> &optMappings,
     const std::vector<Mapping> &argMappings,
-    const std::vector<Default> &configDefaults)
+    const std::vector<Help> &commandHelp)
 {
+    // construct help index keyed on id
+    absl::flat_hash_map<std::string,Help> cmdHelp;
+    for (const auto &help: commandHelp) {
+        cmdHelp[help.id] = help;
+    }
 
     // construct option indexes keyed on id
     absl::flat_hash_map<std::string,Mapping> optMap;
@@ -26,10 +31,6 @@ tempo_command::display_help_and_exit(
     for (const auto &grouping: commandGroupings) {
         optGrp[grouping.id] = grouping;
     }
-    absl::flat_hash_map<std::string,Default> optDfl;
-    for (const auto &dfl: configDefaults) {
-        optDfl[dfl.id] = dfl;
-    }
 
     // construct argument indexes keyed on id
     absl::flat_hash_map<std::string,Mapping> argMap;
@@ -39,10 +40,6 @@ tempo_command::display_help_and_exit(
     absl::flat_hash_map<std::string,Grouping> argGrp;
     for (const auto &grouping: commandGroupings) {
         argGrp[grouping.id] = grouping;
-    }
-    absl::flat_hash_map<std::string,Default> argDfl;
-    for (const auto &dfl: configDefaults) {
-        argDfl[dfl.id] = dfl;
     }
 
     std::vector<std::pair<std::string,std::string>> cmdLines;
@@ -62,20 +59,20 @@ tempo_command::display_help_and_exit(
     // construct vector of option description rows
     for (const auto &map : optMappings) {
         const auto &grp = optGrp[map.id];
-        const auto &dfl = optDfl[map.id];
+        const auto &help = cmdHelp[map.id];
         std::pair<std::string,std::string> line;
-        line.first = absl::StrJoin(grp.matches, ",") + (dfl.meta.empty()? "" : " " + dfl.meta);
-        line.second = dfl.description.empty()? "" : dfl.description;
+        line.first = absl::StrJoin(grp.matches, ",") + (map.meta.empty()? "" : " " + map.meta);
+        line.second = help.description.empty()? "" : help.description;
         optLines.push_back(line);
         firstColumnWidth = std::max(firstColumnWidth, static_cast<int>(line.first.size()));
     }
 
     // construct vector of argument description rows
     for (const auto &map : argMappings) {
-        const auto &dfl = argDfl[map.id];
+        const auto &help = cmdHelp[map.id];
         std::pair<std::string,std::string> line;
-        line.first = dfl.meta;
-        line.second = dfl.description.empty()? "" : dfl.description;
+        line.first = map.meta;
+        line.second = help.description.empty()? "" : help.description;
         argLines.push_back(line);
         firstColumnWidth = std::max(firstColumnWidth, static_cast<int>(line.first.size()));
     }
@@ -89,7 +86,6 @@ tempo_command::display_help_and_exit(
     // print each option on the usage line if any are specified
     for (const auto &map : optMappings) {
         const auto &grp = optGrp[map.id];
-        const auto &dfl = optDfl[map.id];
 
         auto opt = grp.matches.front();
         switch (grp.type) {
@@ -99,10 +95,10 @@ tempo_command::display_help_and_exit(
                 std::cout << " " << opt;
                 break;
             case GroupingType::SINGLE_ARGUMENT:
-                std::cout << " " << opt << " " << dfl.meta;
+                std::cout << " " << opt << " " << map.meta;
                 break;
             case GroupingType::MULTI_ARGUMENT:
-                std::cout << " " << opt << " " << dfl.meta << "...";
+                std::cout << " " << opt << " " << map.meta << "...";
                 break;
             case GroupingType::KV_ARGUMENT:
                 std::cout << " " << opt << " [KEY VALUE]";
@@ -118,23 +114,22 @@ tempo_command::display_help_and_exit(
 
     // print each argument on the usage line if any are specified
     for (const auto &map : argMappings) {
-        const auto &dfl = argDfl[map.id];
         switch (map.type) {
             case MappingType::ONE_INSTANCE:
             case MappingType::INSTANCE_HASH:
-                std::cout << " " << dfl.meta;
+                std::cout << " " << map.meta;
                 break;
             case MappingType::ZERO_OR_ONE_INSTANCE:
             case MappingType::TRUE_IF_INSTANCE:
             case MappingType::FALSE_IF_INSTANCE:
-                std::cout << " [" << dfl.meta << "]";
+                std::cout << " [" << map.meta << "]";
                 break;
             case MappingType::ONE_OR_MORE_INSTANCES:
-                std::cout << " " << dfl.meta << "...";
+                std::cout << " " << map.meta << "...";
                 break;
             case MappingType::ANY_INSTANCES:
             case MappingType::COUNT_INSTANCES:
-                std::cout << " [" << dfl.meta << "...]";
+                std::cout << " [" << map.meta << "...]";
                 break;
             case MappingType::INVALID:
                 break;

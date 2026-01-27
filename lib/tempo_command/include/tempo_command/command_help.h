@@ -7,13 +7,12 @@
 
 namespace tempo_command {
 
-    struct Default {
+    struct Help {
         std::string id;
         std::string description;
-        std::string meta;
     };
 
-    typedef std::vector<Default> DefaultsVector;
+    typedef std::vector<Help> HelpVector;
 
     void display_help_and_exit(
         const std::vector<std::string> &commandPath,
@@ -22,7 +21,7 @@ namespace tempo_command {
         const std::vector<Grouping> &commandGroupings,
         const std::vector<Mapping> &optMappings,
         const std::vector<Mapping> &argMappings,
-        const std::vector<Default> &configDefaults = {});
+        const std::vector<Help> &commandHelp = {});
 
     void display_version_and_exit(const char *versionString);
 

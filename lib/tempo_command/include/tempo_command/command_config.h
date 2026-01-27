@@ -26,8 +26,9 @@ namespace tempo_command {
     };
 
     struct Mapping {
-        MappingType type;
         std::string id;
+        MappingType type;
+        std::string meta;
     };
 
     typedef std::vector<Mapping> MappingVector;

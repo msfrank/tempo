@@ -14,7 +14,7 @@ on:
         required: true
       CONAN_CREDENTIALS_JSON:
         required: true
-      PAT_ACTIONS_RW_EXOCORTIC:
+      PAT_CONTENTS_RW_EXOCORTIC:
         required: true
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
       - name: Trigger integration workflow
         run: |
           curl -X POST \
-            -H "Authorization: token ${{ secrets.PAT_ACTIONS_RW_EXOCORTIC }}" \
+            -H "Authorization: token ${{ secrets.PAT_CONTENTS_RW_EXOCORTIC }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{"event_type": "integrate-dependency","client_payload": {"requires":"${{ steps.get-parameters.outputs.package-ref }}"}}' \
             https://api.github.com/repos/msfrank/exocortic/dispatches

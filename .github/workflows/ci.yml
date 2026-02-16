@@ -1,10 +1,9 @@
-name: promote-package.yml
+name: ci.yml
+run-name: Trigger Integration
+
 on:
   workflow_call:
     inputs:
-      build_runner:
-        required: true
-        type: string
       conan_profile:
         required: true
         type: string
@@ -15,20 +14,12 @@ on:
         required: true
       CONAN_CREDENTIALS_JSON:
         required: true
-
-permissions:
-  id-token: write
-  contents: read
-  attestations: write
-
-env:
-  ACTIONS_STEP_DEBUG: true
+      PAT_ACTIONS_RW_EXOCORTIC:
+        required: true
 
 jobs:
-
-  build-package:
-    name: Promote Tempo package
-    runs-on: ${{ inputs.build_runner }}
+  trigger-integration:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -59,7 +50,7 @@ jobs:
             --conan-home ${{ steps.setup-conan.outputs.conan-home }} \
             ${{ steps.configure-conan-storage.outputs.storage-path }}
 
-      - name: Get recipe parameters
+      - name: Get package parameters
         id: get-parameters
         env:
           COMMIT_ID: ${{ github.sha }}
@@ -71,17 +62,10 @@ jobs:
           echo "package-version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "package-ref=$NAME/$VERSION#$COMMIT_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Download package from build remote
+      - name: Trigger integration workflow
         run: |
-          conan remote enable build
-          conan download -cc core:non_interactive=True --remote build '${{ steps.get-parameters.outputs.package-ref }}'
-          
-
-      - name: Upload package to integ remote
-        run: |
-          conan remote enable integ
-          conan upload -cc core:non_interactive=True --remote integ -c '${{ steps.get-parameters.outputs.package-ref }}'
-
-      - name: Remove outdated revisions
-        run: |
-          conan remove -cc core:non_interactive=True --remote integ -c 'tempo/*:*#!latest'
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.PAT_ACTIONS_RW_EXOCORTIC }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"event_type": "integrate-dependency","client_payload": {"requires":"${{ steps.get-parameters.outputs.package-ref }}"}}' \
+            https://api.github.com/repos/msfrank/exocortic/dispatches

@@ -42,7 +42,5 @@ jobs:
     needs: promote-to-integ
 
     secrets: inherit
-    with:
-      conan_profile: ${{ matrix.platform.conan_profile }}
 
     name: "Trigger Integration"

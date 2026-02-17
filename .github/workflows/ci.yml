@@ -3,10 +3,6 @@ run-name: Trigger Integration
 
 on:
   workflow_call:
-    inputs:
-      conan_profile:
-        required: true
-        type: string
     secrets:
       CONAN_CLIENT_CERT:
         required: true

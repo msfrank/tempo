@@ -20,6 +20,7 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/big_endian.h
     include/tempo_utils/fault_handler.h
     include/tempo_utils/file_appender.h
+    include/tempo_utils/file_lock.h
     include/tempo_utils/file_reader.h
     include/tempo_utils/file_result.h
     include/tempo_utils/file_utilities.h
@@ -75,6 +76,7 @@ target_sources(tempo_utils
     src/big_endian.cpp
     src/fault_handler.cpp
     src/file_appender.cpp
+    src/file_lock.cpp
     src/file_reader.cpp
     src/file_result.cpp
     src/file_utilities.cpp

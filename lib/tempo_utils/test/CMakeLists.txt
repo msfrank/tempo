@@ -18,6 +18,7 @@ set(TEST_CASES
     bytes_iterator_tests.cpp
     big_endian_tests.cpp
     date_time_tests.cpp
+    file_lock_tests.cpp
     hdr_histogram_tests.cpp
     ieee754_tests.cpp
     logging_tests.cpp

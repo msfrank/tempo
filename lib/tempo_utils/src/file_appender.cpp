@@ -4,6 +4,7 @@
 #include <tempo_utils/big_endian.h>
 #include <tempo_utils/file_appender.h>
 #include <tempo_utils/file_result.h>
+#include <tempo_utils/log_message.h>
 #include <tempo_utils/posix_result.h>
 
 #define POSIX_NUM_CLOSE_TRIES   3

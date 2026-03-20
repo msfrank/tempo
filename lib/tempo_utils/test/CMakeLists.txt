@@ -41,7 +41,7 @@ set(TEST_CASES
 
 # define test suite driver
 
-add_executable(tempo_utils_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
+add_executable(tempo_utils_testsuite ${TEST_CASES})
 target_link_libraries(tempo_utils_testsuite PUBLIC
     tempo::tempo_utils
     gtest::gtest

@@ -11,15 +11,15 @@ namespace tempo_utils {
     class DefaultLogSink : public AbstractLogSink {
     public:
         explicit DefaultLogSink(bool displayShortForm = false, bool logToStdout = false);
-        bool openSink() override;
-        bool writeLog(
+        Status openSink() override;
+        void writeLog(
             const absl::Time &ts,
             LogSeverity severity,
             const char *filePath,
             int lineNr,
             std::string_view message) override;
-        bool flushSink() override;
-        bool closeSink() override;
+        void flushSink() override;
+        void closeSink() override;
     private:
         bool m_displayShortForm;
         std::FILE *m_sink;
@@ -34,15 +34,15 @@ namespace tempo_utils {
             const std::filesystem::path &logFilePath,
             bool displayShortForm = false);
         ~LogFileSink() override;
-        bool openSink() override;
-        bool writeLog(
+        Status openSink() override;
+        void writeLog(
             const absl::Time &ts,
             LogSeverity severity,
             const char *filePath,
             int lineNr,
             std::string_view message) override;
-        bool flushSink() override;
-        bool closeSink() override;
+        void flushSink() override;
+        void closeSink() override;
     private:
         std::filesystem::path m_logFilePath;
         bool m_displayShortForm;

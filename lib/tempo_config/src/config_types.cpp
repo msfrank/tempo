@@ -515,6 +515,12 @@ tempo_config::ConfigSeq::ConfigSeq(std::shared_ptr<ConfigNodeData> data)
 }
 
 bool
+tempo_config::ConfigSeq::seqEmpty() const
+{
+    return m_data->seq.empty();
+}
+
+bool
 tempo_config::ConfigSeq::seqContains(int index) const
 {
     return 0 <= index && index < static_cast<int>(m_data->seq.size());
@@ -652,6 +658,12 @@ tempo_config::ConfigMap::ConfigMap(
 tempo_config::ConfigMap::ConfigMap(std::shared_ptr<ConfigNodeData> data)
     : ConfigNode(std::move(data))
 {
+}
+
+bool
+tempo_config::ConfigMap::mapEmpty() const
+{
+    return m_data->map.empty();
 }
 
 bool

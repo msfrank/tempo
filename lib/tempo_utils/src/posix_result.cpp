@@ -1,4 +1,5 @@
 
+#include <tempo_utils/log_message.h>
 #include <tempo_utils/posix_result.h>
 
 tempo_utils::PosixStatus::PosixStatus(

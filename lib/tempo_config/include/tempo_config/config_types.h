@@ -187,6 +187,7 @@ namespace tempo_config {
             std::initializer_list<ConfigNode> elements,
             const ConfigLocation &location = {});
 
+        bool seqEmpty() const;
         bool seqContains(int index) const;
         bool seqGet(int index, ConfigNode &node) const;
         ConfigNode seqAt(int index) const;
@@ -222,6 +223,7 @@ namespace tempo_config {
             std::initializer_list<std::pair<std::string,ConfigNode>> entries,
             const ConfigLocation &location = {});
 
+        bool mapEmpty() const;
         bool mapContains(std::string_view key) const;
         bool mapGet(std::string_view key, ConfigNode &node) const;
         ConfigNode mapAt(std::string_view key) const;

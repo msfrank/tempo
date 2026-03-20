@@ -27,7 +27,7 @@ static bool loggingFinished = false;
  *   case, if initialization has already run, then this function does nothing and returns
  *   true.
  */
-bool
+tempo_utils::Status
 tempo_utils::init_logging(
     const LoggingConfiguration &config,
     std::unique_ptr<AbstractLogSink> &&logSink)
@@ -38,14 +38,13 @@ tempo_utils::init_logging(
         currentSink.reset();
     }
     loggingFinished = false;
-    if (!logSink->openSink())
-        return false;
+    TU_RETURN_IF_NOT_OK (logSink->openSink());
     if (initialBuffer) {
         initialBuffer->flushTo(logSink.get());
         initialBuffer.reset();
     }
     currentSink = std::move(logSink);
-    return true;
+    return {};
 }
 
 /**
@@ -58,7 +57,7 @@ tempo_utils::init_logging(
  *   case, if initialization has already run, then this function does nothing and returns
  *   true.
  */
-bool
+tempo_utils::Status
 tempo_utils::init_logging(
     const LoggingConfiguration &config,
     bool displayShortForm,
@@ -162,10 +161,9 @@ tempo_utils::write_log(
     }
 
     // write log to sink, and flush if requested
-    if (currentSink->writeLog(ts, severity, filePath, lineNr, message)) {
-        if (currentConfiguration.flushEveryMessage) {
-            currentSink->flushSink();
-        }
+    currentSink->writeLog(ts, severity, filePath, lineNr, message);
+    if (currentConfiguration.flushEveryMessage) {
+        currentSink->flushSink();
     }
 
     return true;

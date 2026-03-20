@@ -44,6 +44,7 @@ target_include_directories(tempo_test PUBLIC
 
 target_link_libraries(tempo_test
     PUBLIC
+    tempo::tempo_command
     tempo::tempo_tracing
     tempo::tempo_utils
     gtest::gtest

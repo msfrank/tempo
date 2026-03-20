@@ -20,6 +20,7 @@ set(TEST_CASES
 add_executable(tempo_security_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
 target_link_libraries(tempo_security_testsuite PUBLIC
     tempo::tempo_security
+    tempo::tempo_test
     OpenSSL::SSL
     OpenSSL::Crypto
     gtest::gtest
@@ -31,6 +32,7 @@ gtest_discover_tests(tempo_security_testsuite)
 add_library(TempoSecurityTestSuite OBJECT ${TEST_CASES})
 target_link_libraries(TempoSecurityTestSuite PUBLIC
     tempo::tempo_security
+    tempo::tempo_test
     OpenSSL::SSL
     OpenSSL::Crypto
     gtest::gtest

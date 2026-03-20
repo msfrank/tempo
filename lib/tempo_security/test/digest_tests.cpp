@@ -4,7 +4,8 @@
 #include <gmock/gmock.h>
 
 #include <tempo_utils/file_utilities.h>
-#include <tempo_utils/log_stream.h>
+#include <tempo_utils/log_console.h>
+#include <tempo_utils/log_message.h>
 #include <tempo_utils/memory_bytes.h>
 
 #include <tempo_security/certificate_key_pair.h>

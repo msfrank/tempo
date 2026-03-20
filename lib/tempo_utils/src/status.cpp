@@ -255,13 +255,6 @@ tempo_utils::Status::orThrow() const
         throw StatusException(*this);
 }
 
-tempo_utils::LogMessage&&
-tempo_utils::operator<<(tempo_utils::LogMessage &&message, const Status &status)
-{
-    std::forward<tempo_utils::LogMessage>(message) << status.toString();
-    return std::move(message);
-}
-
 tempo_utils::StatusException::StatusException(Status status) noexcept
     : m_status(status)
 {

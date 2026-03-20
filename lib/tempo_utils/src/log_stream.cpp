@@ -106,3 +106,9 @@ tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const ab
     message.m_buffer << absl::StrCat(hex);
     return std::move(message);
 }
+
+tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const Status &status)
+{
+    std::forward<LogMessage>(message) << status.toString();
+    return std::move(message);
+}

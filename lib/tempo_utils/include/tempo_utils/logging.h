@@ -6,6 +6,8 @@
 
 #include <absl/time/time.h>
 
+#include "status.h"
+
 namespace tempo_utils {
 
     enum class LogSeverity {
@@ -45,15 +47,15 @@ namespace tempo_utils {
     class AbstractLogSink {
     public:
         virtual ~AbstractLogSink() = default;
-        virtual bool openSink() = 0;
-        virtual bool writeLog(
+        virtual Status openSink() = 0;
+        virtual void writeLog(
             const absl::Time &ts,
             LogSeverity severity,
             const char *filePath,
             int lineNr,
             std::string_view message) = 0;
-        virtual bool flushSink() = 0;
-        virtual bool closeSink() = 0;
+        virtual void flushSink() = 0;
+        virtual void closeSink() = 0;
     };
 
     struct LoggingConfiguration {
@@ -67,11 +69,11 @@ namespace tempo_utils {
         const char *category() const;
     };
 
-    bool init_logging(
+    Status init_logging(
         const LoggingConfiguration &config,
         std::unique_ptr<AbstractLogSink> &&logSink);
 
-    bool init_logging(
+    Status init_logging(
         const LoggingConfiguration &config,
         bool displayShortForm = false,
         bool logToStdout = false);

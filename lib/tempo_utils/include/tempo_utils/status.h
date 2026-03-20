@@ -6,8 +6,6 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
-#include "integer_types.h"
-#include "log_message.h"
 #include "tracing.h"
 
 namespace tempo_utils {
@@ -132,8 +130,6 @@ namespace tempo_utils {
             return status.getCondition() == condition;
         };
     };
-
-    tempo_utils::LogMessage&& operator<<(tempo_utils::LogMessage &&message, const Status &status);
 
     template <typename ConditionType>
     class TypedStatus : public Status {

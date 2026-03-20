@@ -3,9 +3,9 @@
 
 #include <tempo_config/config_builder.h>
 #include <tempo_config/config_editor.h>
+#include <tempo_config/config_utils.h>
 #include <tempo_test/tempo_test.h>
-
-#include "tempo_config/config_utils.h"
+#include <tempo_utils/log_console.h>
 
 class ConfigEditor : public ::testing::Test {};
 

@@ -3,6 +3,7 @@
 #include <boost/circular_buffer.hpp>
 
 #include <tempo_utils/log_sink.h>
+#include <tempo_utils/posix_result.h>
 
 tempo_utils::DefaultLogSink::DefaultLogSink(bool displayShortForm, bool logToStdout)
     : m_displayShortForm(displayShortForm)
@@ -10,13 +11,13 @@ tempo_utils::DefaultLogSink::DefaultLogSink(bool displayShortForm, bool logToStd
     m_sink = logToStdout? stdout : stderr;
 }
 
-bool
+tempo_utils::Status
 tempo_utils::DefaultLogSink::openSink()
 {
-    return true;
+    return {};
 }
 
-bool
+void
 tempo_utils::DefaultLogSink::writeLog(
     const absl::Time &ts,
     LogSeverity severity,
@@ -36,19 +37,18 @@ tempo_utils::DefaultLogSink::writeLog(
             " ", message, "\n");
         std::fwrite(longForm.data(), longForm.size(), 1, m_sink);
     }
-    return true;
 }
 
-bool
+void
 tempo_utils::DefaultLogSink::flushSink()
 {
-    return std::fflush(m_sink) == 0;
+    std::fflush(m_sink);
 }
 
-bool
+void
 tempo_utils::DefaultLogSink::closeSink()
 {
-    return std::fflush(m_sink) == 0;
+    std::fflush(m_sink);
 }
 
 tempo_utils::LogFileSink::LogFileSink(
@@ -65,14 +65,16 @@ tempo_utils::LogFileSink::~LogFileSink()
     LogFileSink::closeSink();
 }
 
-bool
+tempo_utils::Status
 tempo_utils::LogFileSink::openSink()
 {
     m_sink = std::fopen(m_logFilePath.c_str(), "w+");
-    return m_sink != nullptr;
+    if (m_sink == nullptr)
+        return PosixStatus::last("failed to open log file");
+    return {};
 }
 
-bool
+void
 tempo_utils::LogFileSink::writeLog(
     const absl::Time &ts,
     LogSeverity severity,
@@ -92,16 +94,15 @@ tempo_utils::LogFileSink::writeLog(
             " ", message, "\n");
         std::fwrite(longForm.data(), longForm.size(), 1, m_sink);
     }
-    return true;
 }
 
-bool
+void
 tempo_utils::LogFileSink::flushSink()
 {
-    return std::fflush(m_sink) == 0;
+    std::fflush(m_sink);
 }
 
-bool
+void
 tempo_utils::LogFileSink::closeSink()
 {
     if (m_sink) {
@@ -109,5 +110,4 @@ tempo_utils::LogFileSink::closeSink()
         std::fclose(m_sink);
         m_sink = nullptr;
     }
-    return true;
 }

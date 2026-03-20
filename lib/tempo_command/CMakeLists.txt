@@ -13,10 +13,12 @@ set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
 set(TEMPO_COMMAND_INCLUDES
     include/tempo_command/command.h
     include/tempo_command/command_config.h
+    include/tempo_command/command_conversions.h
     include/tempo_command/command_help.h
     include/tempo_command/command_parser.h
     include/tempo_command/command_result.h
     include/tempo_command/command_tokenizer.h
+    include/tempo_command/logging_environment.h
     include/tempo_command/tempo_command.h
     )
 set_target_properties(tempo_command PROPERTIES PUBLIC_HEADER "${TEMPO_COMMAND_INCLUDES}")
@@ -25,10 +27,12 @@ target_sources(tempo_command
     PRIVATE
     src/command.cpp
     src/command_config.cpp
+    src/command_conversions.cpp
     src/command_help.cpp
     src/command_parser.cpp
     src/command_result.cpp
     src/command_tokenizer.cpp
+    src/logging_environment.cpp
     )
 
 # set the library version

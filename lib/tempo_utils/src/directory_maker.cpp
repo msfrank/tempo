@@ -2,6 +2,7 @@
 
 #include <tempo_utils/directory_maker.h>
 #include <tempo_utils/file_result.h>
+#include <tempo_utils/log_message.h>
 #include <tempo_utils/posix_result.h>
 
 static tempo_utils::Status

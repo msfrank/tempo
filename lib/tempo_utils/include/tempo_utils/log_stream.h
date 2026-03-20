@@ -41,6 +41,8 @@ namespace tempo_utils {
 
     LogMessage&& operator<<(LogMessage &&message, const absl::Hex &hex);
 
+    LogMessage&& operator<<(LogMessage &&message, const Status &status);
+
     template<class T>
     LogMessage&& operator<<(LogMessage &&message, const std::vector<T> &vec)
     {

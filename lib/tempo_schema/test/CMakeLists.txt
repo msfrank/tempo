@@ -15,6 +15,7 @@ set(TEST_CASES
 add_executable(tempo_schema_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
 target_link_libraries(tempo_schema_testsuite PUBLIC
     tempo::tempo_schema
+    tempo::tempo_test
     gtest::gtest
     )
 gtest_discover_tests(tempo_schema_testsuite)
@@ -25,5 +26,6 @@ add_library(TempoSchemaTestSuite OBJECT ${TEST_CASES})
 add_dependencies(TempoSchemaTestSuite process-runner-child)
 target_link_libraries(TempoSchemaTestSuite PUBLIC
     tempo::tempo_schema
+    tempo::tempo_test
     gtest::gtest
     )

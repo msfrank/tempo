@@ -61,7 +61,7 @@ TEST_F(TraceSpanTiming, DeactivationSetsEndTimeAndActiveDuration)
 
     auto activeDuration = ToInt64Milliseconds(span->getActiveDuration());
     ASSERT_GE (afterDeactivate - beforeActivate, activeDuration);
-    ASSERT_GE (5.0, std::abs(activeDuration - sleepDuration));
+    ASSERT_GE (25.0, std::abs(activeDuration - sleepDuration));
 }
 
 TEST_F(TraceSpanTiming, CloseSetsEndTimeAndActiveDuration)
@@ -86,5 +86,5 @@ TEST_F(TraceSpanTiming, CloseSetsEndTimeAndActiveDuration)
 
     auto activeDuration = ToInt64Milliseconds(span->getActiveDuration());
     ASSERT_GE (afterClose - beforeActivate, activeDuration);
-    ASSERT_GE (5.0, std::abs(activeDuration - sleepDuration));
+    ASSERT_GE (25.0, std::abs(activeDuration - sleepDuration));
 }

@@ -11,10 +11,11 @@ set(TEST_CASES
 
 # define test suite driver
 
-add_executable(tempo_allocator_testsuite ${TEST_CASES} ${TEST_MAIN_CPP})
+add_executable(tempo_allocator_testsuite ${TEST_CASES})
 target_link_libraries(tempo_allocator_testsuite PUBLIC
     tempo::tempo_allocator
     tempo::tempo_test
+    tempo::tempo_test_main
     gtest::gtest
     )
 gtest_discover_tests(tempo_allocator_testsuite)

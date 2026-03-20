@@ -24,7 +24,6 @@ set(TEST_CASES
 add_executable(tempo_tracing_testsuite
     ${TEST_CASES}
     base_tracing_fixture.cpp base_tracing_fixture.h
-    ${TEST_MAIN_CPP}
     )
 target_include_directories(tempo_tracing_testsuite PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
@@ -32,6 +31,7 @@ target_include_directories(tempo_tracing_testsuite PRIVATE
     )
 target_link_libraries(tempo_tracing_testsuite PUBLIC
     tempo::tempo_test
+    tempo::tempo_test_main
     tempo::tempo_tracing
     flatbuffers::flatbuffers
     gtest::gtest

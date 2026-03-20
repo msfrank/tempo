@@ -152,16 +152,18 @@ parse_logging_config(
 tempo_utils::Status
 tempo_command::init_logging_from_environment(
     const std::filesystem::path &loggingConfigFile,
+    const tempo_config::ConfigMap &loggingOverrides,
     bool displayShortForm,
     bool logToStdout)
 {
     tempo_config::ConfigMap configMap;
     TU_ASSIGN_OR_RETURN (configMap, load_logging_config_file(loggingConfigFile));
 
-    tempo_config::ConfigMap overrideMap;
-    TU_ASSIGN_OR_RETURN (overrideMap, load_logging_override_config());
+    tempo_config::ConfigMap envMap;
+    TU_ASSIGN_OR_RETURN (envMap, load_logging_override_config());
 
-    auto loggingMap = tempo_config::merge_map(configMap, overrideMap);
+    auto loggingMap = tempo_config::merge_map(
+        tempo_config::merge_map(configMap, envMap), loggingOverrides);
 
     tempo_utils::LoggingConfiguration loggingConfig;
     std::unique_ptr<tempo_utils::AbstractLogSink> logSink;

@@ -13,6 +13,7 @@ namespace tempo_command {
 
     tempo_utils::Status init_logging_from_environment(
         const std::filesystem::path &loggingConfigFile,
+        const tempo_config::ConfigMap &loggingOverrides = {},
         bool displayShortForm = false,
         bool logToStdout = false);
 

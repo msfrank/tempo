@@ -50,8 +50,20 @@ target_link_libraries(tempo_test
     gtest::gtest
     )
 
+add_library(tempo_test_main STATIC)
+add_library(tempo::tempo_test_main ALIAS tempo_test_main)
+
+target_sources(tempo_test_main PRIVATE src/test_main.cpp)
+
+target_link_libraries(tempo_test_main PRIVATE
+    tempo::tempo_command
+    tempo::tempo_config
+    tempo::tempo_utils
+    gtest::gtest
+    )
+
 # install targets
-install(TARGETS tempo_test EXPORT tempo-targets
+install(TARGETS tempo_test tempo_test_main EXPORT tempo-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tempo_test
     )

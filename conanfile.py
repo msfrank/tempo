@@ -24,6 +24,7 @@ class Tempo(ConanFile):
         'docker_platform_id': ['ANY', None],
         'docker_base_image_registry': ['ANY', None],
         'docker_registry': ['ANY', None],
+        'disable_testing': [True, False, None],
     }
     default_options = {
         'enable_sanitizer': None,
@@ -35,6 +36,7 @@ class Tempo(ConanFile):
         'docker_platform_id': None,
         'docker_base_image_registry': None,
         'docker_registry': None,
+        'disable_testing': None,
     }
 
     exports = ('meta/*')
@@ -112,6 +114,9 @@ class Tempo(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+        if not self.options.disable_testing:
+            cmake.build(target='run-full-testsuite')
 
     def package(self):
         cmake = CMake(self)

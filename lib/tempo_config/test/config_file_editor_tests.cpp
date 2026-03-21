@@ -5,27 +5,31 @@
 #include <tempo_config/config_editor.h>
 #include <tempo_test/tempo_test.h>
 
-#include "tempo_config/config_file_editor.h"
-#include "tempo_config/config_utils.h"
-#include "tempo_utils/tempfile_maker.h"
+#include <tempo_config/config_file_editor.h>
+#include <tempo_config/config_utils.h>
+#include <tempo_utils/tempfile_maker.h>
 
-class ConfigEditor : public ::testing::Test {
+class ConfigFileEditor : public ::testing::Test {
 protected:
-    std::filesystem::path configFilePath;
+    std::unique_ptr<tempo_utils::TempfileMaker> configFile;
     void SetUp() override {
         tempo_config::ConfigMap emptyMap;
-        tempo_utils::TempfileMaker configFile(std::filesystem::current_path(),
-            "config.XXXXXXXX", emptyMap.toString());
-        TU_RAISE_IF_NOT_OK (configFile.getStatus());
-        configFilePath = configFile.getTempfile();
+        configFile = std::make_unique<tempo_utils::TempfileMaker>(
+            std::filesystem::current_path(), "config.XXXXXXXX", emptyMap.toString());
+        TU_RAISE_IF_NOT_OK (configFile->getStatus());
     }
     void TearDown() override {
-        std::filesystem::remove(configFilePath);
+        auto configFilePath = configFile->getTempfile();
+        if (std::filesystem::exists(configFilePath)) {
+            std::filesystem::remove(configFilePath);
+        }
     }
 };
 
-TEST_F(ConfigEditor, InsertNodeAndWriteOutput)
+TEST_F(ConfigFileEditor, InsertNodeAndWriteOutput)
 {
+    auto configFilePath = configFile->getTempfile();
+
     tempo_config::ConfigFileEditor fileEditor(configFilePath);
     ASSERT_THAT (fileEditor.getStatus(), tempo_test::IsOk());
 

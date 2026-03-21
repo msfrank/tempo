@@ -26,21 +26,25 @@ posix_create_tempfile(
                 tempo_utils::FileCondition::kSystemInvariant,
                 "failed to generate filename from template '{}'", tempname);
 
-        tempfile = base / filename;
-        tempo_utils::FileWriter tempfileMaker(tempfile.string(), std::string_view(data, size),
+        auto path = base / filename;
+        tempo_utils::FileWriter tempfileMaker(path, std::string_view(data, size),
             tempo_utils::FileWriterMode::CREATE_ONLY,
             std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
 
         auto status = tempfileMaker.getStatus();
         if (status.matchesCondition(tempo_utils::FileCondition::kFileExists))
-            break;
+            continue;
+
+        if (status.isOk()) {
+            tempfile = std::move(path);
+        }
         return status;
     }
 
     // exhausted retries
     return tempo_utils::FileStatus::forCondition(
         tempo_utils::FileCondition::kSystemInvariant,
-        "failed to generate unique directory");
+        "failed to generate unique temp file in {}", base.string());
 }
 
 tempo_utils::TempfileMaker::TempfileMaker(

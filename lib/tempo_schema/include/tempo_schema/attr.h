@@ -41,7 +41,23 @@ namespace tempo_schema {
         Handle,
     };
 
-    class AttrValue {
+    struct InvalidValue {};
+
+    typedef std::variant<
+        InvalidValue,
+        std::nullptr_t,
+        bool,
+        tu_int64,
+        double,
+        tu_uint64,
+        tu_uint32,
+        tu_uint16,
+        tu_uint8,
+        std::string,
+        AttrHandle
+    > ValueVariant;
+
+    class AttrValue final {
     public:
         AttrValue();
         explicit AttrValue(std::nullptr_t nil);
@@ -55,7 +71,7 @@ namespace tempo_schema {
         explicit AttrValue(const std::string &str);
         explicit AttrValue(std::string_view str);
         explicit AttrValue(const char *str);
-        explicit AttrValue(const AttrHandle handle);
+        explicit AttrValue(AttrHandle handle);
         AttrValue(const AttrValue &other);
         AttrValue(AttrValue &&other) noexcept;
 
@@ -79,21 +95,10 @@ namespace tempo_schema {
     private:
         struct Priv {
             ValueType type;
-            union {
-                bool b;
-                tu_int64 i64;
-                double f64;
-                tu_uint64 u64;
-                tu_uint32 u32;
-                tu_uint16 u16;
-                tu_uint8 u8;
-                const char *str;
-                AttrHandle handle;
-            } value;
-            Priv();
-            ~Priv();
+            ValueVariant value;
+            Priv(ValueType type, ValueVariant value);
         };
-        std::shared_ptr<Priv> m_priv;
+        std::shared_ptr<const Priv> m_priv;
     };
 
     typedef std::pair<AttrKey,AttrValue> Attr;

@@ -12,9 +12,16 @@ namespace tempo_utils {
 
     public:
         HdrHistogram();
-        HdrHistogram(tu_int64 lowest_trackable_value, tu_int64 highest_trackable_value, int significant_figures);
+        HdrHistogram(
+            tu_int64 lowestDiscernableValue,
+            tu_int64 highestTrackableValue,
+            int significantFigures);
         HdrHistogram(const HdrHistogram &other);
+        HdrHistogram(HdrHistogram &&other) noexcept;
         ~HdrHistogram();
+
+        HdrHistogram& operator=(const HdrHistogram &other);
+        HdrHistogram& operator=(HdrHistogram &&other) noexcept;
 
         bool isValid() const;
 

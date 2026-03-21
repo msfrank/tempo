@@ -7,37 +7,72 @@
 typedef struct hdr_histogram hdr_histogram_t;
 
 tempo_utils::HdrHistogram::HdrHistogram()
+    : m_histogram(nullptr)
 {
-    m_histogram = nullptr;
 }
 
 tempo_utils::HdrHistogram::HdrHistogram(
-    tu_int64 lowestTrackableValue,
+    tu_int64 lowestDiscernableValue,
     tu_int64 highestTrackableValue,
     int significantFigures)
+    : m_histogram(nullptr)
 {
-    TU_ASSERT(lowestTrackableValue > 0);
+    TU_ASSERT(lowestDiscernableValue > 0);
     TU_ASSERT(highestTrackableValue > 1);
     TU_ASSERT(1 <= significantFigures && significantFigures <= 5);
-    m_histogram = nullptr;
-    hdr_init(lowestTrackableValue, highestTrackableValue, significantFigures, (hdr_histogram_t **) &m_histogram);
+    hdr_init(lowestDiscernableValue, highestTrackableValue,
+        significantFigures, (hdr_histogram_t **) &m_histogram);
 }
 
 tempo_utils::HdrHistogram::HdrHistogram(const HdrHistogram &other)
 {
     if (other.m_histogram != nullptr) {
-        size_t size = hdr_get_memory_size((hdr_histogram_t *) other.m_histogram);
-        m_histogram = (hdr_histogram_t *) malloc(size);
-        memcpy(m_histogram, other.m_histogram, size);
+        auto *from = (hdr_histogram_t *) other.m_histogram;
+        hdr_init(from->lowest_discernible_value, from->highest_trackable_value,
+            from->significant_figures, (hdr_histogram_t **) &m_histogram);
+        hdr_add((hdr_histogram_t *) m_histogram, from);
     } else {
         m_histogram = nullptr;
     }
 }
 
+tempo_utils::HdrHistogram::HdrHistogram(HdrHistogram &&other) noexcept
+{
+    m_histogram = other.m_histogram;
+    other.m_histogram = nullptr;
+}
+
 tempo_utils::HdrHistogram::~HdrHistogram()
 {
-    if (m_histogram)
+    if (m_histogram) {
         free(m_histogram);
+    }
+}
+
+tempo_utils::HdrHistogram&
+tempo_utils::HdrHistogram::operator=(const HdrHistogram &other)
+{
+    if (this != &other) {
+        if (other.m_histogram != nullptr) {
+            auto *from = (hdr_histogram_t *) other.m_histogram;
+            hdr_init(from->lowest_discernible_value, from->highest_trackable_value,
+                from->significant_figures, (hdr_histogram_t **) &m_histogram);
+            hdr_add((hdr_histogram_t *) m_histogram, from);
+        } else {
+            m_histogram = nullptr;
+        }
+    }
+    return *this;
+}
+
+tempo_utils::HdrHistogram&
+tempo_utils::HdrHistogram::operator=(HdrHistogram &&other) noexcept
+{
+    if (this != &other) {
+        m_histogram = other.m_histogram;
+        other.m_histogram = nullptr;
+    }
+    return *this;
 }
 
 bool
@@ -105,6 +140,7 @@ tempo_utils::HdrHistogram::getStddev() const
 void
 tempo_utils::HdrHistogram::reset()
 {
-    if (m_histogram)
+    if (m_histogram) {
         hdr_reset((hdr_histogram_t *) m_histogram);
+    }
 }

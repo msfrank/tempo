@@ -44,7 +44,9 @@ set(TEST_CASES
 add_executable(tempo_utils_testsuite ${TEST_CASES})
 target_link_libraries(tempo_utils_testsuite PUBLIC
     tempo::tempo_utils
+    tempo::tempo_test_main
     gtest::gtest
+    Boost::headers
     utfcpp::utfcpp
     )
 add_dependencies(tempo_utils_testsuite logging-child process-runner-child program-location-child)
@@ -67,5 +69,6 @@ target_compile_definitions(TempoUtilsTestSuite PRIVATE
 target_link_libraries(TempoUtilsTestSuite PUBLIC
     tempo::tempo_utils
     gtest::gtest
+    Boost::headers
     utfcpp::utfcpp
     )

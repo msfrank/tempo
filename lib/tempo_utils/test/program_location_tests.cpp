@@ -1,6 +1,8 @@
 
 #include <gtest/gtest.h>
 
+#include <boost/predef.h>
+
 #include <tempo_utils/process_builder.h>
 #include <tempo_utils/process_runner.h>
 #include <tempo_utils/program_location.h>
@@ -75,6 +77,7 @@ TEST(ProgramLocation, GetProgramPathThroughMultipleSymlinks)
     ASSERT_EQ (0, runner.getExitStatus());
 }
 
+#if BOOST_OS_MACOS
 TEST(ProgramLocation, GetProgramPathFailsWhenExceedingMaxSymlinks)
 {
     std::filesystem::path executablePath(PROGRAM_LOCATION_CHILD_EXECUTABLE);
@@ -101,3 +104,4 @@ TEST(ProgramLocation, GetProgramPathFailsWhenExceedingMaxSymlinks)
     TU_CONSOLE_OUT << "output of " PROGRAM_LOCATION_CHILD_EXECUTABLE << " is: " << runner.getChildOutput();
     ASSERT_EQ (1, runner.getExitStatus());
 }
+#endif

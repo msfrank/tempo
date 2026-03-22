@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/predef.h>
+
 #include <tempo_utils/tempo_utils.h>
 
 TEST(Url, TestEmptyUrl)
@@ -245,11 +247,9 @@ TEST(Url, TestConstructUrlFromFilesystemPath)
     ASSERT_EQ (url.toString(), "file:///foo/bar/baz");
 }
 
+#if BOOST_OS_WINDOWS
 TEST(Url, TestConstructUrlFromFilesystemPathWithRootName)
 {
-    GTEST_SKIP();
-    // skipping this test for now since it requires windows
-
     std::filesystem::path path("C:/foo/bar/baz");
     auto url = tempo_utils::Url::fromFilesystemPath(path);
 
@@ -258,6 +258,7 @@ TEST(Url, TestConstructUrlFromFilesystemPathWithRootName)
 
     ASSERT_EQ (url.toString(), "file:///C:/foo/bar/baz");
 }
+#endif
 
 TEST(Url, TestTraverseAuthorityUrl)
 {

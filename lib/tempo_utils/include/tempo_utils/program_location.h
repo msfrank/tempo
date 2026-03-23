@@ -10,7 +10,7 @@ namespace tempo_utils {
     /**
      * Maximum number of levels of symlink indirection to follow.
      */
-    constexpr int kMaxSymlinks = 32;
+    constexpr int kMaxSymlinks = 16;
 
     Result<std::filesystem::path> get_program_path();
 

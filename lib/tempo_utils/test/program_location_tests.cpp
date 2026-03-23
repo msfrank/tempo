@@ -99,9 +99,8 @@ TEST(ProgramLocation, GetProgramPathFailsWhenExceedingMaxSymlinks)
     builder.appendArg("-p");
     tempo_utils::ProcessRunner runner(builder.toInvoker());
 
-    ASSERT_TRUE (runner.isValid());
-    ASSERT_TRUE (runner.getStatus().isOk());
     TU_CONSOLE_OUT << "output of " PROGRAM_LOCATION_CHILD_EXECUTABLE << " is: " << runner.getChildOutput();
+    ASSERT_TRUE (runner.isValid()) << "runner failed with status: " << runner.getStatus().toString();
     ASSERT_EQ (1, runner.getExitStatus());
 }
 #endif

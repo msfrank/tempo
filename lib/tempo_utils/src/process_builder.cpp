@@ -118,7 +118,7 @@ tempo_utils::ProcessInvoker::ProcessInvoker(const ProcessInvoker &other)
 tempo_utils::ProcessInvoker::~ProcessInvoker()
 {
     for (int i = 0; i < m_argc; i++) {
-        TU_ASSERT (m_argv[i] != nullptr);
+        TU_NOTNULL (m_argv[i]);
         free(m_argv[i]);
     }
     free(m_argv);

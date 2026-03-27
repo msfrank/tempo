@@ -8,9 +8,9 @@ tempo_utils::UrlOrigin::UrlOrigin()
 }
 
 tempo_utils::UrlOrigin::UrlOrigin(std::shared_ptr<internal::UrlData> priv)
-    : m_priv(priv)
+    : m_priv(std::move(priv))
 {
-    TU_ASSERT (m_priv != nullptr);
+    TU_NOTNULL (m_priv);
 }
 
 tempo_utils::UrlOrigin::UrlOrigin(const UrlOrigin &other)

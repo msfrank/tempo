@@ -16,7 +16,7 @@ posix_open_file(
     std::filesystem::perms perms,
     int *fd)
 {
-    TU_ASSERT (fd != nullptr);
+    TU_NOTNULL (fd);
 
     int _fd = -1;
     switch (mode) {

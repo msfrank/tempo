@@ -48,7 +48,7 @@ tempo_utils::LibraryLoader::symbolPointer() const
 static tempo_utils::Status
 load_library(const std::filesystem::path &path, const char *symbol, void **ptr)
 {
-    TU_ASSERT (ptr != nullptr);
+    TU_NOTNULL (ptr);
 
     if (!std::filesystem::exists(path))
         return tempo_utils::FileStatus::forCondition(

@@ -96,9 +96,8 @@ tempo_utils::Status::Status(StatusCode statusCode, std::string_view message)
 
 tempo_utils::Status::Status(StatusCode statusCode, std::shared_ptr<const Detail> detail)
     : m_statusCode(statusCode),
-      m_detail(detail)
+      m_detail(std::move(detail))
 {
-    TU_ASSERT (detail != nullptr);
 }
 
 tempo_utils::Status::Status(

@@ -44,7 +44,15 @@
 
 // construct assert log message if the specified condition is false
 
-#define TU_ASSERT(cond)                 tempo_utils::Assert(#cond, __FILE__, __LINE__, cond? false : true)
+#define TU_ASSERT(cond)                 do { bool enabled = (cond)? false : true; tempo_utils::Assert(#cond, __FILE__, __LINE__, enabled);\
+                                          if (enabled) __builtin_abort();\
+                                        } while (false)
+
+// construct assert log message if the specified lvalue is equal to nullptr
+
+#define TU_NOTNULL(lval)                do { bool enabled = (lval) == nullptr; tempo_utils::Assert(#lval " is non-null", __FILE__, __LINE__, enabled);\
+                                          if (enabled) __builtin_abort();\
+                                        } while (false)
 
 // assert that control flow is unreachable
 

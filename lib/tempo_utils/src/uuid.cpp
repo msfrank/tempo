@@ -13,14 +13,13 @@ struct tempo_utils::UUID::Priv {
 };
 
 tempo_utils::UUID::UUID()
-    : m_priv()
 {
 }
 
 tempo_utils::UUID::UUID(std::shared_ptr<Priv> priv)
     : m_priv(std::move(priv))
 {
-    TU_ASSERT (m_priv != nullptr);
+    TU_NOTNULL (m_priv);
 }
 
 bool

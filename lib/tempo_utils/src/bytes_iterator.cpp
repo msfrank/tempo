@@ -9,10 +9,10 @@
  * @param bytes The bytes to iterate over.
  */
 tempo_utils::BytesIterator::BytesIterator(std::shared_ptr<const ImmutableBytes> bytes)
-    : m_bytes(bytes),
+    : m_bytes(std::move(bytes)),
       m_offset(0)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
 }
 
 /**

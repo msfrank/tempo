@@ -11,7 +11,7 @@ tempo_utils::Slice::Slice()
 tempo_utils::Slice::Slice(std::shared_ptr<const ImmutableBytes> bytes)
     : m_bytes(std::move(bytes))
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     m_pos = 0;
     m_count = m_bytes->getSize();
 }
@@ -19,7 +19,7 @@ tempo_utils::Slice::Slice(std::shared_ptr<const ImmutableBytes> bytes)
 tempo_utils::Slice::Slice(std::shared_ptr<const ImmutableBytes> bytes, tu_uint32 pos)
     : m_bytes(std::move(bytes))
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     auto size = m_bytes->getSize();
     m_pos = pos < size? pos : size;
     m_count = size - m_pos;
@@ -28,7 +28,7 @@ tempo_utils::Slice::Slice(std::shared_ptr<const ImmutableBytes> bytes, tu_uint32
 tempo_utils::Slice::Slice(std::shared_ptr<const ImmutableBytes> bytes, tu_uint32 pos, tu_uint32 count)
     : m_bytes(std::move(bytes))
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     auto size = m_bytes->getSize();
     m_pos = pos < size? pos : size;
     m_count = m_pos + count <= size? count : size - m_pos;

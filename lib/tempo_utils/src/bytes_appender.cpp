@@ -13,14 +13,14 @@ tempo_utils::BytesAppender::BytesAppender(int initialCapacity)
 void
 tempo_utils::BytesAppender::appendU8(tu_uint8 u8)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     m_bytes->push_back((char) u8);
 }
 
 void
 tempo_utils::BytesAppender::appendU16(tu_uint16 u16)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     auto size = m_bytes->size();
     m_bytes->resize(size + 2);
     auto *ptr = ((tu_uint8 *) m_bytes->data()) + size;
@@ -30,7 +30,7 @@ tempo_utils::BytesAppender::appendU16(tu_uint16 u16)
 void
 tempo_utils::BytesAppender::appendU32(tu_uint32 u32)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     auto size = m_bytes->size();
     m_bytes->resize(size + 4);
     auto *ptr = ((tu_uint8 *) m_bytes->data()) + size;
@@ -40,7 +40,7 @@ tempo_utils::BytesAppender::appendU32(tu_uint32 u32)
 void
 tempo_utils::BytesAppender::appendU64(tu_uint64 u64)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     auto size = m_bytes->size();
     m_bytes->resize(size + 8);
     auto *ptr = ((tu_uint8 *) m_bytes->data()) + size;
@@ -50,14 +50,14 @@ tempo_utils::BytesAppender::appendU64(tu_uint64 u64)
 void
 tempo_utils::BytesAppender::appendBytes(std::span<const tu_uint8> bytes)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     m_bytes->insert(m_bytes->end(), bytes.begin(), bytes.end());
 }
 
 void
 tempo_utils::BytesAppender::appendBytes(std::string_view str)
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     m_bytes->insert(m_bytes->end(), str.begin(), str.end());
 }
 
@@ -76,21 +76,21 @@ tempo_utils::BytesAppender::getData() const
 tu_uint32
 tempo_utils::BytesAppender::getSize() const
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     return m_bytes->size();
 }
 
 std::vector<tu_uint8>::const_iterator
 tempo_utils::BytesAppender::bytesBegin() const
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     return m_bytes->cbegin();
 }
 
 std::vector<tu_uint8>::const_iterator
 tempo_utils::BytesAppender::bytesEnd() const
 {
-    TU_ASSERT (m_bytes != nullptr);
+    TU_NOTNULL (m_bytes);
     return m_bytes->cend();
 }
 

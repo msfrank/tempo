@@ -10,9 +10,9 @@ tempo_utils::UrlAuthority::UrlAuthority()
 }
 
 tempo_utils::UrlAuthority::UrlAuthority(std::shared_ptr<internal::UrlData> priv)
-    : m_priv(priv)
+    : m_priv(std::move(priv))
 {
-    TU_ASSERT (m_priv != nullptr);
+    TU_NOTNULL (m_priv);
 }
 
 tempo_utils::UrlAuthority::UrlAuthority(const UrlAuthority &other)

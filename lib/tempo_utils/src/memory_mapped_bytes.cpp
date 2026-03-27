@@ -12,7 +12,7 @@ struct tempo_utils::MemoryMappedBytes::Priv {
 tempo_utils::MemoryMappedBytes::MemoryMappedBytes(std::unique_ptr<Priv> &&priv)
     : m_priv(std::move(priv))
 {
-    TU_ASSERT (m_priv != nullptr);
+    TU_NOTNULL (m_priv);
 }
 
 const tu_uint8 *

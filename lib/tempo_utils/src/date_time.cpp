@@ -26,7 +26,7 @@ tempo_utils::Duration::Duration()
 tempo_utils::Duration::Duration(std::shared_ptr<Priv> priv)
     : m_priv(std::move(priv))
 {
-    TU_ASSERT (m_priv != nullptr);
+    TU_NOTNULL (m_priv);
 }
 
 tempo_utils::Duration::Duration(const Duration &other)
@@ -160,9 +160,9 @@ tempo_utils::Timezone::Timezone()
 }
 
 tempo_utils::Timezone::Timezone(std::shared_ptr<Priv> priv)
-    : m_priv(priv)
+    : m_priv(std::move(priv))
 {
-    TU_ASSERT (m_priv != nullptr);
+    TU_NOTNULL (m_priv);
 }
 
 tempo_utils::Timezone::Timezone(const Timezone &other)

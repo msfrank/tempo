@@ -17,6 +17,7 @@ class Tempo(ConanFile):
     options = {
         'enable_sanitizer': [True, False, None],
         'sanitizer': ['address', 'thread', 'memory', 'ub', 'leak', None],
+        'libcpp_hardening_mode': ['fast', 'extensive', 'debug', None],
         'enable_profiler': [True, False, None],
         'enable_docker_build': [True, False, None],
         'docker_program': ['ANY', None],
@@ -29,6 +30,7 @@ class Tempo(ConanFile):
     default_options = {
         'enable_sanitizer': None,
         'sanitizer': None,
+        'libcpp_hardening_mode': None,
         'enable_profiler': None,
         'enable_docker_build': None,
         'docker_program': None,
@@ -93,6 +95,8 @@ class Tempo(ConanFile):
             tc.cache_variables['ENABLE_SANITIZER'] = self.options.enable_sanitizer
         if self.options.sanitizer:
             tc.cache_variables['SANITIZER'] = self.options.sanitizer
+        if self.options.libcpp_hardening_mode:
+            tc.cache_variables['LIBCPP_HARDENING_MODE'] = self.options.libcpp_hardening_mode
         if self.options.enable_profiler:
             tc.cache_variables['ENABLE_PROFILER'] = self.options.enable_profiler
         if self.options.enable_docker_build:

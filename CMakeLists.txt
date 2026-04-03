@@ -66,6 +66,10 @@ set(SANITIZER_IGNORELIST "" CACHE PATH
 
 option(ENABLE_PROFILER "Enable gperftools profiler." OFF)
 
+option(ENABLE_CLANG_TIDY "Enable clang-tidy linting." OFF)
+
+option(ENABLE_IWYU "Enable include-what-you-use linting." OFF)
+
 set(LIBCPP_HARDENING_MODE ""
     CACHE STRING
     "Specify the libcpp hardening mode. Must be one of 'fast', 'extensive', or 'debug'."
@@ -147,7 +151,7 @@ if (LIBCPP_HARDENING_MODE)
         message(WARNING "skipping unknown libcpp hardening mode: ${LIBCPP_HARDENING_MODE}")
     endif ()
 else ()
-    message(STATUS "libcpp hardening mode disabled")
+    message(STATUS "libcpp hardening mode not enabled")
 endif ()
 
 # set compiler flags based on options
@@ -221,6 +225,22 @@ if (${ENABLE_PROFILER})
 else()
     message(STATUS "gperftools profiler not enabled")
 endif(${ENABLE_PROFILER})
+
+if (${ENABLE_CLANG_TIDY})
+    find_program(CLANG_TIDY clang-tidy REQUIRED DOC "Path to clang-tidy program.")
+    set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY})
+    message(STATUS "enabling clang-tidy linter")
+else ()
+    message(STATUS "clang-tidy linter not enabled")
+endif ()
+
+if (${ENABLE_IWYU})
+    find_program(IWYU include-what-you-use REQUIRED DOC "Path to include-what-you-use program.")
+    set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU})
+    message(STATUS "enabling include-what-you-use linter")
+else ()
+    message(STATUS "include-what-you-use linter not enabled")
+endif ()
 
 # include needed CMake features
 include(CMakePackageConfigHelpers)

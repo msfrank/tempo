@@ -11,6 +11,8 @@ namespace tempo_config {
 
     tempo_utils::Result<ConfigNode> read_config_string(std::string_view utf8, std::shared_ptr<ConfigSource> source = {});
 
+    tempo_utils::Result<ConfigMap> read_config_map_string(std::string_view utf8, std::shared_ptr<ConfigSource> source = {});
+
     tempo_utils::Result<ConfigNode> read_config_file(const std::filesystem::path &path);
 
     tempo_utils::Result<ConfigMap> read_config_map_file(const std::filesystem::path &path);

@@ -22,7 +22,8 @@
 /**
  * Parse the given string as UTF-8 encoded JSON and deserialize it into a ConfigNode.
  *
- * @param bytes The source string containing UTF-8 encoded JSON.
+ * @param utf8 The source string containing UTF-8 encoded JSON.
+ * @param source The source location.
  * @return A `tempo_config::Result` containing a ConfigNode if parsing was successful,
  *     otherwise a Result containing a Status describing the failure.
  */
@@ -36,6 +37,27 @@ tempo_config::read_config_string(std::string_view utf8, std::shared_ptr<ConfigSo
     ConfigParser parser(options);
     auto recorder = tempo_tracing::TraceRecorder::create();
     return parser.parseString(utf8, std::move(source), recorder);
+}
+/**
+ * Read the config file at the specified path and parse its contents as a UTF-8 encoded
+ * JSON object, then deserialize it into a ConfigMap.
+ *
+ * @param utf8 The source string containing UTF-8 encoded JSON.
+ * @param source The source location.
+ * @return A `tempo_config::Result` containing a ConfigMap if parsing was successful,
+ *     otherwise a Result containing a Status describing the failure.
+ */
+tempo_utils::Result<tempo_config::ConfigMap>
+tempo_config::read_config_map_string(std::string_view utf8, std::shared_ptr<ConfigSource> source)
+{
+    ConfigNode rootConfig;
+    TU_ASSIGN_OR_RETURN (rootConfig, read_config_string(utf8, std::move(source)));
+
+    if (rootConfig.getNodeType() != ConfigNodeType::kMap)
+        return ConfigStatus::forCondition(
+            ConfigCondition::kParseError,
+            "invalid config in string: root config value must be a map");
+    return rootConfig.toMap();
 }
 
 /**
@@ -66,10 +88,8 @@ tempo_config::read_config_file(const std::filesystem::path &path)
 tempo_utils::Result<tempo_config::ConfigMap>
 tempo_config::read_config_map_file(const std::filesystem::path &path)
 {
-    auto readConfigFileResult = read_config_file(path);
-    if (readConfigFileResult.isStatus())
-        return readConfigFileResult.getStatus();
-    auto rootConfig = readConfigFileResult.getResult();
+    ConfigNode rootConfig;
+    TU_ASSIGN_OR_RETURN (rootConfig, read_config_file(path));
 
     if (rootConfig.getNodeType() != ConfigNodeType::kMap)
         return ConfigStatus::forCondition(

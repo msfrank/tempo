@@ -17,14 +17,22 @@ namespace tempo_utils {
         bool isValid() const;
         bool isNil() const;
 
-        std::string toString() const;
+        std::vector<tu_uint8> toBytes() const;
+        std::span<const tu_uint8> bytesView() const;
+
+        std::string toRfc4122String() const;
+        std::string toCompactString() const;
+        std::string toEnclosedString() const;
+        std::string toEnclosedCompactString() const;
 
         static UUID nilUUID();
         static UUID randomUUID();
         static UUID parse(std::string_view s);
 
+        int compare(const UUID &other) const;
         bool operator==(const UUID &other) const;
         bool operator!=(const UUID &other) const;
+        bool operator<(const UUID &other) const;
 
         template <typename H>
         friend H AbslHashValue(H state, const UUID &uuid)

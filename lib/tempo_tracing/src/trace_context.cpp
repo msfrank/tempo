@@ -77,7 +77,7 @@ tempo_tracing::TraceContext::makeContext(std::string_view name)
     std::string contextName;
     if (name.empty()) {
         auto uuid = tempo_utils::UUID::randomUUID();
-        contextName = uuid.toString();
+        contextName = uuid.toRfc4122String();
     } else {
         contextName = name;
     }
@@ -137,7 +137,7 @@ tempo_tracing::TraceContext::makeUnownedContext(
     std::string contextName;
     if (name.empty()) {
         auto uuid = tempo_utils::UUID::randomUUID();
-        contextName = uuid.toString();
+        contextName = uuid.toRfc4122String();
     } else {
         contextName = name;
     }

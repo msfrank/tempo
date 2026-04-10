@@ -16,7 +16,7 @@ tempo_security::Sha256Hash::~Sha256Hash()
 }
 
 bool
-tempo_security::Sha256Hash::addData(std::string_view data)
+tempo_security::Sha256Hash::addData(const tu_uint8 *data, size_t size)
 {
     auto *ctx = (EVP_MD_CTX *) m_ctx;
     if (m_dirty) {
@@ -24,9 +24,33 @@ tempo_security::Sha256Hash::addData(std::string_view data)
             return false;
         m_dirty = false;
     }
-    if (EVP_DigestUpdate(ctx, data.data(), data.size()) == 0)
+    if (EVP_DigestUpdate(ctx, data, size) == 0)
         return false;
     return true;
+}
+
+bool
+tempo_security::Sha256Hash::addData(const char *data, size_t size)
+{
+    return addData((const tu_uint8 *) data, size);
+}
+
+bool
+tempo_security::Sha256Hash::addData(std::string_view data)
+{
+    return addData((const tu_uint8 *) data.data(), data.size());
+}
+
+bool
+tempo_security::Sha256Hash::addData(std::span<const tu_uint8> data)
+{
+    return addData(data.data(), data.size());
+}
+
+bool
+tempo_security::Sha256Hash::addData(const std::vector<tu_uint8> &data)
+{
+    return addData(data.data(), data.size());
 }
 
 std::string

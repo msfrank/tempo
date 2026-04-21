@@ -16,12 +16,11 @@ target_link_libraries(program-location-child tempo::tempo_utils)
 set(TEST_CASES
     bytes_appender_tests.cpp
     bytes_iterator_tests.cpp
-    big_endian_tests.cpp
-    date_time_tests.cpp
+        date_time_tests.cpp
+    file_appender_tests.cpp
     file_lock_tests.cpp
     hdr_histogram_tests.cpp
-    ieee754_tests.cpp
-    logging_tests.cpp
+        logging_tests.cpp
     memory_bytes_tests.cpp
     memory_mapped_bytes_tests.cpp
     prehashed_value_tests.cpp
@@ -43,8 +42,9 @@ set(TEST_CASES
 
 add_executable(tempo_utils_testsuite ${TEST_CASES})
 target_link_libraries(tempo_utils_testsuite PUBLIC
-    tempo::tempo_utils
+    tempo::tempo_test
     tempo::tempo_test_main
+    tempo::tempo_utils
     gtest::gtest
     Boost::headers
     utfcpp::utfcpp
@@ -67,6 +67,7 @@ target_compile_definitions(TempoUtilsTestSuite PRIVATE
     "PROGRAM_LOCATION_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/program-location-child\""
     )
 target_link_libraries(TempoUtilsTestSuite PUBLIC
+    tempo::tempo_test
     tempo::tempo_utils
     gtest::gtest
     Boost::headers

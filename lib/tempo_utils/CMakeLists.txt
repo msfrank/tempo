@@ -17,7 +17,6 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/date_time.h
     include/tempo_utils/directory_maker.h
     include/tempo_utils/either_template.h
-    include/tempo_utils/big_endian.h
     include/tempo_utils/fault_handler.h
     include/tempo_utils/file_appender.h
     include/tempo_utils/file_lock.h
@@ -27,7 +26,6 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/file_writer.h
     include/tempo_utils/fp_compensation.h
     include/tempo_utils/hdr_histogram.h
-    include/tempo_utils/ieee754.h
     include/tempo_utils/immutable_bytes.h
     include/tempo_utils/integer_types.h
     include/tempo_utils/iterator_template.h
@@ -73,7 +71,6 @@ target_sources(tempo_utils
     src/compressed_bitmap.cpp
     src/date_time.cpp
     src/directory_maker.cpp
-    src/big_endian.cpp
     src/fault_handler.cpp
     src/file_appender.cpp
     src/file_lock.cpp
@@ -83,7 +80,6 @@ target_sources(tempo_utils
     src/file_writer.cpp
     src/fp_compensation.cpp
     src/hdr_histogram.cpp
-    src/ieee754.cpp
     src/library_loader.cpp
     src/library_result.cpp
     src/logging.cpp

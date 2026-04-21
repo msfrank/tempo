@@ -108,3 +108,27 @@ tempo_utils::FileReader::getBytes() const
 {
     return m_bytes;
 }
+
+std::span<const tu_uint8>
+tempo_utils::FileReader::getSpan() const
+{
+    if (m_bytes)
+        return m_bytes->getSpan();
+    return {};
+}
+
+std::string_view
+tempo_utils::FileReader::getStringView() const
+{
+    if (m_bytes)
+        return m_bytes->getStringView();
+    return {};
+}
+
+std::string
+tempo_utils::FileReader::toString() const
+{
+    if (m_bytes)
+        return m_bytes->toString();
+    return {};
+}

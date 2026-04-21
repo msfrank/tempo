@@ -19,6 +19,9 @@ namespace tempo_utils {
 
         std::filesystem::path getAbsolutePath() const;
         std::shared_ptr<const ImmutableBytes> getBytes() const;
+        std::span<const tu_uint8> getSpan() const;
+        std::string_view getStringView() const;
+        std::string toString() const;
 
     private:
         std::filesystem::path m_absolutePath;

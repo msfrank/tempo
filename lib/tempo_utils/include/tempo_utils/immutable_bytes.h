@@ -3,12 +3,14 @@
 
 #include <span>
 #include <string_view>
+#include <string>
 
 #include "integer_types.h"
 
 namespace tempo_utils {
 
-    class ImmutableBytes {
+    class ImmutableBytes
+    {
     public:
         virtual ~ImmutableBytes() = default;
         virtual const tu_uint8 *getData() const = 0;
@@ -22,6 +24,11 @@ namespace tempo_utils {
         std::string_view getStringView() const
         {
             return std::string_view((const char *) getData(), getSize());
+        }
+
+        std::string toString() const
+        {
+            return std::string((const char *) getData(), getSize());
         }
     };
 }

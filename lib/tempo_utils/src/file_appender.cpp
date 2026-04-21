@@ -1,13 +1,15 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
-#include <tempo_utils/big_endian.h>
+#include <boost/endian/buffers.hpp>
+
 #include <tempo_utils/file_appender.h>
 #include <tempo_utils/file_result.h>
 #include <tempo_utils/log_message.h>
 #include <tempo_utils/posix_result.h>
 
-#define POSIX_NUM_CLOSE_TRIES   3
+#define BYTES_BUFFERED_BEFORE_FLUSH     512
+#define POSIX_NUM_CLOSE_TRIES           3
 
 static tempo_utils::Status
 posix_open_file(
@@ -58,7 +60,7 @@ posix_open_file(
 }
 
 static tempo_utils::Status
-posix_write(int fd, const char *data, tu_uint32 len)
+posix_write(int fd, const tu_uint8 *data, tu_uint32 len)
 {
     TU_ASSERT (fd >= 0);
 
@@ -140,35 +142,167 @@ tempo_utils::FileAppender::getMode()
 tempo_utils::Status
 tempo_utils::FileAppender::appendU8(tu_uint8 u8)
 {
-    if (m_status.isOk()) {
-        m_status = posix_write(m_fd, (const char *) &u8, 1);
-    }
+    TU_RETURN_IF_NOT_OK (m_status);
+    m_status = posix_write(m_fd, &u8, 1);
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS8(tu_int8 s8)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    m_status = posix_write(m_fd, (const tu_uint8 *) &s8, 1);
     return m_status;
 }
 
 tempo_utils::Status
 tempo_utils::FileAppender::appendU16(tu_uint16 u16)
 {
-    if (m_status.isOk()) {
-        u16 = H_TO_BE16(u16);
-        m_status = posix_write(m_fd, (const char *) &u16, sizeof(u16));
-    }
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_uint16_buf_t buf(u16);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendU16LE(tu_uint16 u16)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_uint16_buf_t buf(u16);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS16(tu_int16 s16)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_int16_buf_t buf(s16);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS16LE(tu_int16 s16)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_int16_buf_t buf(s16);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
     return m_status;
 }
 
 tempo_utils::Status
 tempo_utils::FileAppender::appendU32(tu_uint32 u32)
 {
-    if (m_status.isOk()) {
-        auto _u32 = H_TO_BE32(u32);
-        m_status = posix_write(m_fd, (const char *) &_u32, sizeof(_u32));
-    }
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_uint32_buf_t buf(u32);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
     return m_status;
 }
 
 tempo_utils::Status
-tempo_utils::FileAppender::appendBytes(std::shared_ptr<const ImmutableBytes> bytes)
+tempo_utils::FileAppender::appendU32LE(tu_uint32 u32)
 {
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_uint32_buf_t buf(u32);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS32(tu_int32 s32)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_int32_buf_t buf(s32);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS32LE(tu_int32 s32)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_int32_buf_t buf(s32);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendU64(tu_uint64 u64)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_uint64_buf_t buf(u64);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendU64LE(tu_uint64 u64)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_uint64_buf_t buf(u64);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS64(tu_int64 s64)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_int64_buf_t buf(s64);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendS64LE(tu_int64 s64)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_int64_buf_t buf(s64);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendF32(float f32)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_float32_buf_t buf(f32);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendF32LE(float f32)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_float32_buf_t buf(f32);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendF64(double f64)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::big_float64_buf_t buf(f64);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendF64LE(double f64)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
+    boost::endian::little_float64_buf_t buf(f64);
+    m_status = posix_write(m_fd, buf.data(), sizeof(buf));
+    return m_status;
+}
+
+tempo_utils::Status
+tempo_utils::FileAppender::appendBytes(const std::shared_ptr<const ImmutableBytes> &bytes)
+{
+    TU_RETURN_IF_NOT_OK (m_status);
     if (bytes == nullptr)
         return {};
     return appendBytes(bytes->getSpan());
@@ -177,24 +311,23 @@ tempo_utils::FileAppender::appendBytes(std::shared_ptr<const ImmutableBytes> byt
 tempo_utils::Status
 tempo_utils::FileAppender::appendBytes(std::span<const tu_uint8> bytes)
 {
-    if (m_status.isOk()) {
-        m_status = posix_write(m_fd, (const char *) bytes.data(), bytes.size());
-    }
+    TU_RETURN_IF_NOT_OK (m_status);
+    m_status = posix_write(m_fd, bytes.data(), bytes.size());
     return m_status;
 }
 
 tempo_utils::Status
 tempo_utils::FileAppender::appendBytes(std::string_view str)
 {
-    if (m_status.isOk()) {
-        m_status = posix_write(m_fd, str.data(), str.size());
-    }
+    TU_RETURN_IF_NOT_OK (m_status);
+    m_status = posix_write(m_fd, (const tu_uint8 *) str.data(), str.size());
     return m_status;
 }
 
 tempo_utils::Status
 tempo_utils::FileAppender::finish()
 {
+    TU_RETURN_IF_NOT_OK (m_status);
     if (m_fd < 0)
         return m_status;
     m_status = posix_close(m_fd);

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "log_message.h"
+#include "rope_chunk.h"
 
 namespace tempo_utils {
 
@@ -21,71 +22,6 @@ namespace tempo_utils {
         virtual size_t getDepth() const = 0;
 
         bool isBalanced() const;
-    };
-
-    /**
-     *
-     * @tparam ElementType
-     */
-    template<class ElementType>
-    class SharedElementVector {
-    public:
-        SharedElementVector() = default;
-
-        explicit SharedElementVector(std::vector<ElementType> &&elements)
-            : m_priv(std::make_unique<Priv>(std::move(elements)))
-        {
-        }
-
-        SharedElementVector(SharedElementVector &&other) noexcept
-            : m_priv(std::move(other.m_priv))
-        {
-        }
-
-        SharedElementVector(const SharedElementVector &other)
-            : m_priv(other.m_priv)
-        {
-        }
-
-        SharedElementVector& operator=(SharedElementVector &&other) noexcept
-        {
-            if (this != &other) {
-                m_priv = std::move(other.m_priv);
-            }
-            return *this;
-        }
-
-        SharedElementVector& operator=(const SharedElementVector &other)
-        {
-            if (this != &other) {
-                m_priv = other.m_priv;
-            }
-            return *this;
-        }
-
-        size_t numElements() const { return m_priv? m_priv->elements.size() : 0 ; }
-
-        ElementType& elementAt(size_t index) const { return m_priv->elements.at(index); }
-
-        std::pair<SharedElementVector,SharedElementVector> split(size_t index)
-        {
-            TU_ASSERT (index < m_priv->elements.size());
-            std::vector<ElementType> lhs, rhs;
-            for (const auto &e : m_priv->elements) {
-                if (index <= lhs.size()) {
-                    rhs.push_back(e);
-                } else {
-                    lhs.push_back(e);
-                }
-            }
-            return std::pair(SharedElementVector(std::move(lhs)), SharedElementVector(std::move(rhs)));
-        }
-
-    private:
-        struct Priv {
-            std::vector<ElementType> elements;
-        };
-        std::shared_ptr<Priv> m_priv;
     };
 
     /**
@@ -133,7 +69,7 @@ namespace tempo_utils {
 
         RopeNodeType getType() const { return m_type; }
 
-        virtual ElementType& elementAt(size_t index) = 0;
+        virtual const ElementType& elementAt(size_t index) const = 0;
 
         virtual SharedRopeNode<ElementType> splitAt(
             size_t index,
@@ -151,38 +87,40 @@ namespace tempo_utils {
     class LeafRopeNode : public RopeNode<ElementType>, public std::enable_shared_from_this<RopeNode<ElementType>> {
     public:
         LeafRopeNode() = default;
-        explicit LeafRopeNode(SharedElementVector<ElementType> vec)
+        explicit LeafRopeNode(RopeChunk<ElementType> chunk)
             : RopeNode<ElementType>(RopeNodeType::LEAF),
-              m_vec(std::move(vec))
+              m_chunk(std::move(chunk))
         {
         }
 
-        size_t getWeight() const override { return m_vec.numElements(); }
+        RopeChunk<ElementType> getChunk() const { return m_chunk; }
 
-        size_t getSize() const override { return m_vec.numElements(); }
+        size_t getWeight() const override { return m_chunk.numElements(); }
+
+        size_t getSize() const override { return m_chunk.numElements(); }
 
         size_t getDepth() const override { return 0; }
 
-        ElementType& elementAt(size_t index) override { return m_vec.elementAt(index); }
+        const ElementType& elementAt(size_t index) const override { return m_chunk.elementAt(index); }
 
         SharedRopeNode<ElementType> splitAt(
             size_t index,
             std::vector<std::shared_ptr<LeafRopeNode<ElementType>>> &leaves) override
         {
             if (index == 0) {
-                leaves.push_back(std::make_shared<LeafRopeNode<ElementType>>(m_vec));
+                leaves.push_back(std::make_shared<LeafRopeNode<ElementType>>(m_chunk));
                 return {};
             }
-            if (m_vec.numElements() <= index) {
-                return std::make_shared<LeafRopeNode<ElementType>>(m_vec);
+            if (m_chunk.numElements() <= index) {
+                return std::make_shared<LeafRopeNode<ElementType>>(m_chunk);
             }
-            auto split = m_vec.split(index);
+            auto split = m_chunk.split(index);
             leaves.push_back(std::make_shared<LeafRopeNode>(split.second));
             return std::make_shared<LeafRopeNode>(split.first);
         }
 
     private:
-        SharedElementVector<ElementType> m_vec;
+        RopeChunk<ElementType> m_chunk;
     };
 
     /**
@@ -220,7 +158,7 @@ namespace tempo_utils {
 
         size_t getDepth() const override { return 1 + std::max(m_left->getDepth(), m_right->getDepth()); }
 
-        ElementType& elementAt(size_t index) override
+        const ElementType& elementAt(size_t index) const override
         {
             if (index < m_weight)
                 return m_left->elementAt(index);
@@ -272,7 +210,7 @@ namespace tempo_utils {
     template<class ElementType>
     SharedRopeNode<ElementType> make_rope(std::vector<ElementType> &&elements)
     {
-        SharedElementVector<ElementType> vec(std::move(elements));
+        RopeChunk<ElementType> vec(std::move(elements));
         auto node = std::make_shared<LeafRopeNode<ElementType>>(std::move(vec));
         return std::static_pointer_cast<RopeNode<ElementType>>(node);
     }

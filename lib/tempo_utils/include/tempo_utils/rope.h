@@ -1,9 +1,15 @@
 #ifndef TEMPO_UTILS_ROPE_H
 #define TEMPO_UTILS_ROPE_H
 
+#include <stack>
+
 #include "rope_operations.h"
 
 namespace tempo_utils {
+
+    // forward declarations
+    template<class ElementType> class RopeChunkIterator;
+    template<class ElementType> class RopeElementIterator;
 
     /**
      *
@@ -67,7 +73,7 @@ namespace tempo_utils {
          * @param index
          * @return
          */
-        ElementType &elementAt(size_t index)
+        const ElementType &elementAt(size_t index)
         {
             return m_rope->elementAt(index);
         }
@@ -134,6 +140,26 @@ namespace tempo_utils {
             return std::pair(Rope(pair.first), Rope(pair.second));
         }
 
+        /**
+         * Iterate over the chunks of the rope.
+         *
+         * @return
+         */
+        RopeChunkIterator<ElementType> iterateChunks() const
+        {
+            return RopeChunkIterator<ElementType>(m_rope);
+        }
+
+        /**
+         * Iterate over the elements of the rope.
+         *
+         * @return
+         */
+        RopeElementIterator<ElementType> iterateElements() const
+        {
+            return RopeElementIterator<ElementType>(m_rope);
+        }
+
         size_t getDepth() const
         {
             if (m_rope == nullptr)
@@ -147,10 +173,131 @@ namespace tempo_utils {
         explicit Rope(SharedRopeNode<ElementType> rope) : m_rope(std::move(rope)) {}
     };
 
-    // template<class ElementType>
-    // class RopeIterator {
-    // public:
-    // };
+    /**
+     *
+     * @tparam ElementType
+     */
+    template<class ElementType>
+    class RopeChunkIterator {
+    public:
+        explicit RopeChunkIterator(SharedRopeNode<ElementType> rope)
+            : m_priv(std::make_shared<Priv>(std::move(rope)))
+        {
+            load(m_priv->root);
+        }
+
+        /**
+         * Returns whether the iterator has another chunk available.
+         *
+         * @return true if another chunk is available, otherwise false.
+         */
+        bool hasNext() const
+        {
+            return !m_priv->stack.empty();
+        }
+
+        /**
+         * Return the next chunk if one is available, otherwise nullptr;
+         *
+         * @return
+         */
+        bool getNext(RopeChunk<ElementType> &chunk)
+        {
+            if (m_priv->stack.empty())
+                return false;
+
+            auto curr = m_priv->stack.top();
+            TU_ASSERT (curr->getType() == RopeNodeType::LEAF);
+            m_priv->stack.pop();
+
+            while (!m_priv->stack.empty()) {
+                auto parent = m_priv->stack.top();
+                m_priv->stack.pop();
+                TU_ASSERT (parent->getType() == RopeNodeType::CONCAT);
+                auto concat = std::static_pointer_cast<ConcatRopeNode<ElementType>>(parent);
+                auto right = concat->getRightNode();
+                if (right != nullptr) {
+                    load(right);
+                    TU_ASSERT (m_priv->stack.top()->getType() == RopeNodeType::LEAF);
+                    break;
+                }
+            }
+
+            auto leaf = std::static_pointer_cast<LeafRopeNode<ElementType>>(curr);
+            chunk = leaf->getChunk();
+            return true;
+        }
+
+    private:
+        struct Priv {
+            SharedRopeNode<ElementType> root;
+            std::stack<SharedRopeNode<ElementType>> stack;
+        };
+        std::shared_ptr<Priv> m_priv;
+
+        void load(SharedRopeNode<ElementType> node)
+        {
+            if (node == nullptr)
+                return;
+            while (node != nullptr) {
+                switch (node->getType()) {
+                    case RopeNodeType::LEAF: {
+                        m_priv->stack.push(std::move(node));
+                        return;
+                    }
+                    case RopeNodeType::CONCAT: {
+                        auto concat = std::static_pointer_cast<ConcatRopeNode<ElementType>>(node);
+                        m_priv->stack.push(node);
+                        node = concat->getLeftNode();
+                        break;
+                    }
+                    default:
+                        TU_UNREACHABLE();
+                }
+            }
+        }
+    };
+
+    template<class ElementType>
+    class RopeElementIterator {
+    public:
+        explicit RopeElementIterator(SharedRopeNode<ElementType> rope)
+            : m_priv(std::make_shared<Priv>(RopeChunkIterator(rope)))
+        {
+            m_priv->done = !m_priv->it.getNext(m_priv->chunk);
+        }
+
+        bool hasNext() const
+        {
+            return !m_priv->done;
+        }
+
+        bool getNext(ElementType &element)
+        {
+            if (m_priv->done)
+                return false;
+
+            auto chunk = m_priv->chunk;
+            auto index = m_priv->index;
+
+            if (chunk.numElements() <= ++m_priv->index) {
+                m_priv->index = 0;
+                m_priv->done = !m_priv->it.getNext(m_priv->chunk);
+            }
+
+            element = chunk.elementAt(index);
+            return true;
+        }
+
+    private:
+        struct Priv {
+            RopeChunkIterator<ElementType> it;
+            RopeChunk<ElementType> chunk;
+            size_t index = 0;
+            bool done = true;
+        };
+        std::shared_ptr<Priv> m_priv;
+    };
 }
 
 #endif //TEMPO_UTILS_ROPE_H

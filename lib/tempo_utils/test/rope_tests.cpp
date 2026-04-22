@@ -102,3 +102,147 @@ TEST_F(Rope, SplitRopeWithConcatOfTwoConcatfNodes)
     ASSERT_EQ (5, right.numElements());
     ASSERT_EQ (6, right.getElement(2));
 }
+
+TEST_F(Rope, IterateRopeChunksWithSingleLeafNode)
+{
+    tempo_utils::Rope<int> rope{1, 2, 3, 4, 5};
+
+    auto it = rope.iterateChunks();
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk1;
+    ASSERT_TRUE (it.getNext(chunk1));
+    ASSERT_EQ (5, chunk1.numElements());
+    ASSERT_FALSE (it.hasNext());
+}
+
+TEST_F(Rope, IterateRopeChunksWithConcatOfTwoLeafNodes)
+{
+    tempo_utils::Rope<int> rope1{1, 2, 3};
+    tempo_utils::Rope<int> rope2{4, 5};
+    auto rope = rope1.append(rope2);
+
+    auto it = rope.iterateChunks();
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk1;
+    ASSERT_TRUE (it.getNext(chunk1));
+    ASSERT_EQ (3, chunk1.numElements());
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk2;
+    ASSERT_TRUE (it.getNext(chunk2));
+    ASSERT_EQ (2, chunk2.numElements());
+    ASSERT_FALSE (it.hasNext());
+}
+
+TEST_F(Rope, IterateRopeChunksWithConcatOfTwoConcatfNodes)
+{
+    tempo_utils::Rope<int> rope1{1, 2};
+    tempo_utils::Rope<int> rope2{3, 4};
+    tempo_utils::Rope<int> rope3{5, 6};
+    tempo_utils::Rope<int> rope4{7, 8};
+    auto concat1 = rope1.append(rope2);
+    auto concat2 = rope3.append(rope4);
+    auto rope = concat1.append(concat2);
+
+    auto it = rope.iterateChunks();
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk1;
+    ASSERT_TRUE (it.getNext(chunk1));
+    ASSERT_EQ (2, chunk1.numElements());
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk2;
+    ASSERT_TRUE (it.getNext(chunk2));
+    ASSERT_EQ (2, chunk2.numElements());
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk3;
+    ASSERT_TRUE (it.getNext(chunk3));
+    ASSERT_EQ (2, chunk3.numElements());
+
+    ASSERT_TRUE (it.hasNext());
+    tempo_utils::RopeChunk<int> chunk4;
+    ASSERT_TRUE (it.getNext(chunk4));
+    ASSERT_EQ (2, chunk4.numElements());
+    ASSERT_FALSE (it.hasNext());
+}
+
+TEST_F(Rope, IterateRopeElementsWithSingleLeafNode)
+{
+    tempo_utils::Rope<int> rope{1, 2, 3, 4, 5};
+
+    auto it = rope.iterateElements();
+
+    int i1, i2, i3, i4, i5;
+    ASSERT_TRUE (it.hasNext());
+
+    ASSERT_TRUE (it.getNext(i1));
+    ASSERT_EQ (1, i1);
+    ASSERT_TRUE (it.getNext(i2));
+    ASSERT_EQ (2, i2);
+    ASSERT_TRUE (it.getNext(i3));
+    ASSERT_EQ (3, i3);
+    ASSERT_TRUE (it.getNext(i4));
+    ASSERT_EQ (4, i4);
+    ASSERT_TRUE (it.getNext(i5));
+    ASSERT_EQ (5, i5);
+
+    ASSERT_FALSE (it.hasNext());
+}
+
+TEST_F(Rope, IterateRopeElementsWithConcatOfTwoLeafNodes)
+{
+    tempo_utils::Rope<int> rope1{1, 2, 3};
+    tempo_utils::Rope<int> rope2{4, 5};
+    auto rope = rope1.append(rope2);
+
+    auto it = rope.iterateElements();
+
+    int i1, i2, i3, i4, i5;
+    ASSERT_TRUE (it.hasNext());
+
+    ASSERT_TRUE (it.getNext(i1));
+    ASSERT_EQ (1, i1);
+    ASSERT_TRUE (it.getNext(i2));
+    ASSERT_EQ (2, i2);
+    ASSERT_TRUE (it.getNext(i3));
+    ASSERT_EQ (3, i3);
+    ASSERT_TRUE (it.getNext(i4));
+    ASSERT_EQ (4, i4);
+    ASSERT_TRUE (it.getNext(i5));
+    ASSERT_EQ (5, i5);
+
+    ASSERT_FALSE (it.hasNext());
+}
+
+TEST_F(Rope, IterateRopeElementsWithConcatOfTwoConcatfNodes)
+{
+    tempo_utils::Rope<int> rope1{1, 2};
+    tempo_utils::Rope<int> rope2{3};
+    tempo_utils::Rope<int> rope3{4};
+    tempo_utils::Rope<int> rope4{5};
+    auto concat1 = rope1.append(rope2);
+    auto concat2 = rope3.append(rope4);
+    auto rope = concat1.append(concat2);
+
+    auto it = rope.iterateElements();
+
+    int i1, i2, i3, i4, i5;
+    ASSERT_TRUE (it.hasNext());
+
+    ASSERT_TRUE (it.getNext(i1));
+    ASSERT_EQ (1, i1);
+    ASSERT_TRUE (it.getNext(i2));
+    ASSERT_EQ (2, i2);
+    ASSERT_TRUE (it.getNext(i3));
+    ASSERT_EQ (3, i3);
+    ASSERT_TRUE (it.getNext(i4));
+    ASSERT_EQ (4, i4);
+    ASSERT_TRUE (it.getNext(i5));
+    ASSERT_EQ (5, i5);
+
+    ASSERT_FALSE (it.hasNext());
+}

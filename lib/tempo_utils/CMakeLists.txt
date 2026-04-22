@@ -47,6 +47,7 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/process_runner.h
     include/tempo_utils/program_location.h
     include/tempo_utils/result.h
+    include/tempo_utils/rope_chunk.h
     include/tempo_utils/rope_operations.h
     include/tempo_utils/rope.h
     include/tempo_utils/slice.h

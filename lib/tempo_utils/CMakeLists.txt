@@ -47,6 +47,8 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/process_runner.h
     include/tempo_utils/program_location.h
     include/tempo_utils/result.h
+    include/tempo_utils/rope_operations.h
+    include/tempo_utils/rope.h
     include/tempo_utils/slice.h
     include/tempo_utils/status.h
     include/tempo_utils/tempdir_maker.h
@@ -95,6 +97,7 @@ target_sources(tempo_utils
     src/process_builder.cpp
     src/process_runner.cpp
     src/program_location.cpp
+    src/rope_operations.cpp
     src/slice.cpp
     src/status.cpp
     src/tempdir_maker.cpp

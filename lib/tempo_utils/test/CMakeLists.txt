@@ -16,16 +16,18 @@ target_link_libraries(program-location-child tempo::tempo_utils)
 set(TEST_CASES
     bytes_appender_tests.cpp
     bytes_iterator_tests.cpp
-        date_time_tests.cpp
+    date_time_tests.cpp
     file_appender_tests.cpp
     file_lock_tests.cpp
     hdr_histogram_tests.cpp
-        logging_tests.cpp
+    logging_tests.cpp
     memory_bytes_tests.cpp
     memory_mapped_bytes_tests.cpp
     prehashed_value_tests.cpp
     process_runner_tests.cpp
     program_location_tests.cpp
+    rope_operations_tests.cpp
+    rope_tests.cpp
     slice_tests.cpp
     status_tests.cpp
     tempdir_maker_tests.cpp

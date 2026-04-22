@@ -405,7 +405,7 @@ namespace tempo_utils {
         std::vector<std::shared_ptr<LeafRopeNode<ElementType>>> leaves;
         auto lhs = rope->splitAt(index, leaves);
         auto rhs = merge_leaves(leaves);
-        return SharedRopeNodeSplit(lhs, rhs);
+        return SharedRopeNodeSplit<ElementType>(lhs, rhs);
     }
 }
 

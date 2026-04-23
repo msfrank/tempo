@@ -20,6 +20,8 @@ namespace tempo_utils {
     public:
         Rope() = default;
 
+        Rope(SharedRopeNode<ElementType> node) : m_rope(std::move(node)) {}
+
         template<class InputIt>
         Rope(InputIt begin, InputIt end)
         {
@@ -29,10 +31,7 @@ namespace tempo_utils {
             }
         }
 
-        Rope(std::initializer_list<ElementType> init)
-            : Rope(init.begin(), init.end())
-        {
-        }
+        Rope(std::initializer_list<ElementType> init) : Rope(init.begin(), init.end()) {}
 
         /**
          * Returns whether the rope is empty.
@@ -141,6 +140,29 @@ namespace tempo_utils {
         }
 
         /**
+         * Construct a new rope which is a subspan of the rope. The first element of the subspan is specified by
+         * offset, and the maximum number of elements in the subspan is specified by count. If the count
+         * specifies more elements than are available, the resulting subspan will contain the maximum number
+         * of elements available.
+         *
+         * @param offset
+         * @param count
+         * @return
+         */
+        Rope<ElementType> subspan(size_t offset, size_t count = std::numeric_limits<size_t>::max())
+        {
+            if (count == 0)
+                return {};
+            std::vector<std::shared_ptr<LeafRopeNode<ElementType>>> leaves;
+            auto end = offset + count;
+            if (end < offset) {
+                end = count;
+            }
+            collect_leaves(m_rope, offset, end, leaves);
+            return Rope(merge_leaves(leaves));
+        }
+
+        /**
          * Iterate over the chunks of the rope.
          *
          * @return
@@ -169,8 +191,6 @@ namespace tempo_utils {
 
     private:
         SharedRopeNode<ElementType> m_rope;
-
-        explicit Rope(SharedRopeNode<ElementType> rope) : m_rope(std::move(rope)) {}
     };
 
     /**

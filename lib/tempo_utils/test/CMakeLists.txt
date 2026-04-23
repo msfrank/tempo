@@ -42,7 +42,10 @@ set(TEST_CASES
 
 # define test suite driver
 
-add_executable(tempo_utils_testsuite ${TEST_CASES})
+add_executable(tempo_utils_testsuite
+    ${TEST_CASES}
+    rope_test_parameters.cpp rope_test_parameters.h
+    )
 target_link_libraries(tempo_utils_testsuite PUBLIC
     tempo::tempo_test
     tempo::tempo_test_main
@@ -61,7 +64,10 @@ gtest_discover_tests(tempo_utils_testsuite)
 
 # define test suite static library
 
-add_library(TempoUtilsTestSuite OBJECT ${TEST_CASES})
+add_library(TempoUtilsTestSuite OBJECT
+    ${TEST_CASES}
+    rope_test_parameters.cpp rope_test_parameters.h
+    )
 add_dependencies(TempoUtilsTestSuite logging-child process-runner-child program-location-child)
 target_compile_definitions(TempoUtilsTestSuite PRIVATE
     "LOGGING_CHILD_EXECUTABLE=\"${CMAKE_CURRENT_BINARY_DIR}/logging-child\""

@@ -22,6 +22,12 @@ namespace tempo_utils {
         {
         }
 
+        template<class InputIt>
+        RopeChunk(InputIt begin, InputIt end)
+            : m_priv(std::make_unique<Priv>(std::vector(begin, end)))
+        {
+        }
+
         RopeChunk(RopeChunk &&other) noexcept
             : m_priv(std::move(other.m_priv))
         {
@@ -76,6 +82,19 @@ namespace tempo_utils {
                 }
             }
             return std::pair(RopeChunk(std::move(lhs)), RopeChunk(std::move(rhs)));
+        }
+
+        std::span<ElementType> subspan(size_t offset, size_t count)
+        {
+            auto size = m_priv->elements.size();
+            if (size <= offset)
+                return {};
+            return std::span(m_priv->elements.data() + offset, std::min(count, size - offset));
+        }
+
+        std::span<ElementType> subspan(size_t offset)
+        {
+            return subspan(offset, m_priv->elements.size() - offset);
         }
 
     private:

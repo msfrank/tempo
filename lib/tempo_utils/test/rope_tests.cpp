@@ -1,7 +1,14 @@
 
+#include <ostream>
+
+#include <absl/strings/str_cat.h>
+
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <tempo_utils/rope.h>
+
+#include "rope_test_parameters.h"
 
 class Rope : public ::testing::Test {};
 
@@ -103,40 +110,7 @@ TEST_F(Rope, SplitRopeWithConcatOfTwoConcatfNodes)
     ASSERT_EQ (6, right.getElement(2));
 }
 
-TEST_F(Rope, IterateRopeChunksWithSingleLeafNode)
-{
-    tempo_utils::Rope<int> rope{1, 2, 3, 4, 5};
-
-    auto it = rope.iterateChunks();
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk1;
-    ASSERT_TRUE (it.getNext(chunk1));
-    ASSERT_EQ (5, chunk1.numElements());
-    ASSERT_FALSE (it.hasNext());
-}
-
-TEST_F(Rope, IterateRopeChunksWithConcatOfTwoLeafNodes)
-{
-    tempo_utils::Rope<int> rope1{1, 2, 3};
-    tempo_utils::Rope<int> rope2{4, 5};
-    auto rope = rope1.append(rope2);
-
-    auto it = rope.iterateChunks();
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk1;
-    ASSERT_TRUE (it.getNext(chunk1));
-    ASSERT_EQ (3, chunk1.numElements());
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk2;
-    ASSERT_TRUE (it.getNext(chunk2));
-    ASSERT_EQ (2, chunk2.numElements());
-    ASSERT_FALSE (it.hasNext());
-}
-
-TEST_F(Rope, IterateRopeChunksWithConcatOfTwoConcatfNodes)
+TEST_F(Rope, SubspanOfRopeWithConcatOfTwoConcatfNodes)
 {
     tempo_utils::Rope<int> rope1{1, 2};
     tempo_utils::Rope<int> rope2{3, 4};
@@ -146,103 +120,109 @@ TEST_F(Rope, IterateRopeChunksWithConcatOfTwoConcatfNodes)
     auto concat2 = rope3.append(rope4);
     auto rope = concat1.append(concat2);
 
-    auto it = rope.iterateChunks();
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk1;
-    ASSERT_TRUE (it.getNext(chunk1));
-    ASSERT_EQ (2, chunk1.numElements());
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk2;
-    ASSERT_TRUE (it.getNext(chunk2));
-    ASSERT_EQ (2, chunk2.numElements());
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk3;
-    ASSERT_TRUE (it.getNext(chunk3));
-    ASSERT_EQ (2, chunk3.numElements());
-
-    ASSERT_TRUE (it.hasNext());
-    tempo_utils::RopeChunk<int> chunk4;
-    ASSERT_TRUE (it.getNext(chunk4));
-    ASSERT_EQ (2, chunk4.numElements());
-    ASSERT_FALSE (it.hasNext());
+    auto sub = rope.subspan(3, 3);
+    ASSERT_EQ (3, sub.numElements());
+    ASSERT_EQ (4, sub.getElement(0));
+    ASSERT_EQ (5, sub.getElement(1));
+    ASSERT_EQ (6, sub.getElement(2));
 }
 
-TEST_F(Rope, IterateRopeElementsWithSingleLeafNode)
+class RopeLayouts : public ::testing::Test, public ::testing::WithParamInterface<RopeTestParameter> {};
+
+INSTANTIATE_TEST_SUITE_P(
+    Operations,
+    RopeLayouts,
+    ::testing::Values(
+        leaf_node_containing_1_element(),
+        leaf_node_containing_5_elements(),
+        concat_of_leaf_nodes(),
+        concat_of_two_concats_of_leaf_nodes()
+        ),
+    [](const testing::TestParamInfo<RopeLayouts::ParamType>& p) {
+      return p.param.paramName.empty()? absl::StrCat("param#", p.index) : p.param.paramName;
+    }
+);
+
+TEST_P(RopeLayouts, IterateRopeChunks)
 {
-    tempo_utils::Rope<int> rope{1, 2, 3, 4, 5};
+    auto &param = GetParam();
 
-    auto it = rope.iterateElements();
+    auto it = param.rope.iterateChunks();
 
-    int i1, i2, i3, i4, i5;
-    ASSERT_TRUE (it.hasNext());
-
-    ASSERT_TRUE (it.getNext(i1));
-    ASSERT_EQ (1, i1);
-    ASSERT_TRUE (it.getNext(i2));
-    ASSERT_EQ (2, i2);
-    ASSERT_TRUE (it.getNext(i3));
-    ASSERT_EQ (3, i3);
-    ASSERT_TRUE (it.getNext(i4));
-    ASSERT_EQ (4, i4);
-    ASSERT_TRUE (it.getNext(i5));
-    ASSERT_EQ (5, i5);
+    for (const auto &expected : param.totalChunks) {
+        ASSERT_TRUE (it.hasNext());
+        tempo_utils::RopeChunk<std::string> chunk;
+        ASSERT_TRUE (it.getNext(chunk));
+        std::vector actual(chunk.cbegin(), chunk.cend());
+        ASSERT_THAT (actual, ::testing::ElementsAreArray(expected));
+    }
 
     ASSERT_FALSE (it.hasNext());
 }
 
-TEST_F(Rope, IterateRopeElementsWithConcatOfTwoLeafNodes)
+TEST_P(RopeLayouts, IterateRopeElements)
 {
-    tempo_utils::Rope<int> rope1{1, 2, 3};
-    tempo_utils::Rope<int> rope2{4, 5};
-    auto rope = rope1.append(rope2);
+    auto &param = GetParam();
 
-    auto it = rope.iterateElements();
+    auto it = param.rope.iterateElements();
 
-    int i1, i2, i3, i4, i5;
-    ASSERT_TRUE (it.hasNext());
-
-    ASSERT_TRUE (it.getNext(i1));
-    ASSERT_EQ (1, i1);
-    ASSERT_TRUE (it.getNext(i2));
-    ASSERT_EQ (2, i2);
-    ASSERT_TRUE (it.getNext(i3));
-    ASSERT_EQ (3, i3);
-    ASSERT_TRUE (it.getNext(i4));
-    ASSERT_EQ (4, i4);
-    ASSERT_TRUE (it.getNext(i5));
-    ASSERT_EQ (5, i5);
+    for (const auto &expected : param.totalElements) {
+        ASSERT_TRUE (it.hasNext());
+        std::string actual;
+        ASSERT_TRUE (it.getNext(actual));
+        ASSERT_EQ (expected, actual);
+    }
 
     ASSERT_FALSE (it.hasNext());
 }
 
-TEST_F(Rope, IterateRopeElementsWithConcatOfTwoConcatfNodes)
+TEST_P(RopeLayouts, SplitRope)
 {
-    tempo_utils::Rope<int> rope1{1, 2};
-    tempo_utils::Rope<int> rope2{3};
-    tempo_utils::Rope<int> rope3{4};
-    tempo_utils::Rope<int> rope4{5};
-    auto concat1 = rope1.append(rope2);
-    auto concat2 = rope3.append(rope4);
-    auto rope = concat1.append(concat2);
+    auto &param = GetParam();
 
-    auto it = rope.iterateElements();
+    auto rope = param.rope;
 
-    int i1, i2, i3, i4, i5;
-    ASSERT_TRUE (it.hasNext());
+    auto size = param.totalElements.size();
+    for (int i = 0; i < size; ++i) {
+        auto split = rope.split(i);
 
-    ASSERT_TRUE (it.getNext(i1));
-    ASSERT_EQ (1, i1);
-    ASSERT_TRUE (it.getNext(i2));
-    ASSERT_EQ (2, i2);
-    ASSERT_TRUE (it.getNext(i3));
-    ASSERT_EQ (3, i3);
-    ASSERT_TRUE (it.getNext(i4));
-    ASSERT_EQ (4, i4);
-    ASSERT_TRUE (it.getNext(i5));
-    ASSERT_EQ (5, i5);
+        auto leftRope = split.first;
+        ASSERT_EQ (i, leftRope.numElements());
+        for (int j = 0; j < i; ++j) {
+            std::string element = leftRope.elementAt(j);
+            ASSERT_THAT (element, ::testing::Eq(param.totalElements[j]))
+                << "left rope element " << j << "does not match";
+        }
 
-    ASSERT_FALSE (it.hasNext());
+        auto rightRope = split.second;
+        ASSERT_EQ (size - i, rightRope.numElements());
+        for (int j = 0; j < size - i; ++j) {
+            std::string element = rightRope.elementAt(j);
+            ASSERT_THAT (element, ::testing::Eq(param.totalElements[i + j]))
+                << "right rope element " << j << "does not match";
+        }
+    }
+}
+
+TEST_P(RopeLayouts, SubspanOfRope)
+{
+    auto &param = GetParam();
+
+    auto rope = param.rope;
+
+    auto size = param.totalElements.size();
+    for (int offset = 0; offset < size; ++offset)
+    {
+        for (int count = 0; count < size - offset; ++count) {
+            auto sub = rope.subspan(offset, count);
+
+            ASSERT_EQ (count, sub.numElements());
+            for (int i = 0; i < count; ++i) {
+                std::string element = sub.elementAt(i);
+                ASSERT_THAT (element, ::testing::Eq(param.totalElements[offset + i]))
+                    << "subspan rope element " << i << " does not match"
+                    << " (size=" << size << " offset=" << offset << " count=" << count << ")";
+            }
+        }
+    }
 }

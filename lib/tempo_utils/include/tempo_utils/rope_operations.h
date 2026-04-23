@@ -84,14 +84,24 @@ namespace tempo_utils {
      * @tparam ElementType
      */
     template<typename ElementType>
-    class LeafRopeNode : public RopeNode<ElementType>, public std::enable_shared_from_this<RopeNode<ElementType>> {
+    class LeafRopeNode : public RopeNode<ElementType> {
     public:
-        LeafRopeNode() = default;
+        LeafRopeNode() : RopeNode<ElementType>(RopeNodeType::LEAF), m_chunk() {}
+
         explicit LeafRopeNode(RopeChunk<ElementType> chunk)
             : RopeNode<ElementType>(RopeNodeType::LEAF),
               m_chunk(std::move(chunk))
         {
         }
+
+        template<class InputIt>
+        LeafRopeNode(InputIt begin, InputIt end)
+            : RopeNode<ElementType>(RopeNodeType::LEAF),
+              m_chunk(begin, end)
+        {
+        }
+
+        LeafRopeNode(std::initializer_list<ElementType> init) : LeafRopeNode(init.begin(), init.end()) {}
 
         RopeChunk<ElementType> getChunk() const { return m_chunk; }
 
@@ -109,7 +119,7 @@ namespace tempo_utils {
         {
             if (index == 0) {
                 leaves.push_back(std::make_shared<LeafRopeNode<ElementType>>(m_chunk));
-                return {};
+                return std::make_shared<LeafRopeNode<ElementType>>();
             }
             if (m_chunk.numElements() <= index) {
                 return std::make_shared<LeafRopeNode<ElementType>>(m_chunk);
@@ -249,6 +259,102 @@ namespace tempo_utils {
      *
      * @tparam ElementType
      * @param rope
+     * @param begin
+     * @param end
+     * @param offset
+     * @param nread
+     * @param leaves
+     */
+    template<class ElementType>
+    void collect_leaves(
+        SharedRopeNode<ElementType> rope,
+        const size_t begin,
+        const size_t end,
+        size_t &offset,
+        size_t &nread,
+        std::vector<std::shared_ptr<LeafRopeNode<ElementType>>> &leaves)
+    {
+        TU_NOTNULL (rope);
+        TU_ASSERT (begin <= end);
+
+        switch (rope->getType()) {
+
+            case RopeNodeType::LEAF: {
+                auto leaf = std::static_pointer_cast<LeafRopeNode<ElementType>>(rope);
+                auto size = leaf->getSize();
+
+                // leaf chunk is past the collection interval
+                if (offset >= end)
+                    return;
+                // leaf is prior to the collection interval
+                if (offset + size <= begin)
+                    return;
+
+                //
+                // count is the number of elements remaining to collect
+                auto count = end - (begin + nread);
+
+                // if leaf is larger than the number of elements needed, then we construct a new leaf from
+                // a subspan, otherwise we collect the entire leaf. size is then updated with the number of
+                // elements collected.
+                if (offset < begin || count < size) {
+                    auto chunk = leaf->getChunk();
+                    auto subspan = chunk.subspan(offset < begin? begin - offset : 0, std::min(count, size));
+                    auto node = std::make_shared<LeafRopeNode<ElementType>>(subspan.begin(), subspan.end());
+                    leaves.push_back(std::move(node));
+                    nread += subspan.size();
+                } else {
+                    leaves.push_back(std::move(leaf));
+                    nread += size;
+                }
+
+                offset += size;
+                return;
+            }
+
+            case RopeNodeType::CONCAT: {
+                auto concat = std::static_pointer_cast<ConcatRopeNode<ElementType>>(rope);
+                auto weight = concat->getWeight();
+                if (std::max(begin, offset) < weight + offset) {
+                    collect_leaves(concat->getLeftNode(), begin, end, offset, nread, leaves);
+                } else {
+                    offset += weight;
+                }
+                if (nread == end - begin)
+                    return;
+                collect_leaves(concat->getRightNode(), begin, end, offset, nread, leaves);
+                return;
+            }
+
+            default:
+                TU_UNREACHABLE();
+        }
+    }
+
+    /**
+     *
+     * @tparam ElementType
+     * @param rope
+     * @param begin
+     * @param end
+     * @param leaves
+     */
+    template<class ElementType>
+    void collect_leaves(
+        SharedRopeNode<ElementType> rope,
+        size_t begin,
+        size_t end,
+        std::vector<std::shared_ptr<LeafRopeNode<ElementType>>> &leaves)
+    {
+        size_t offset = 0;
+        size_t nread = 0;
+        collect_leaves(rope, begin, end, offset, nread, leaves);
+    }
+
+    /**
+     *
+     * @tparam ElementType
+     * @param rope
      * @param leaves
      */
     template<class ElementType>
@@ -256,22 +362,7 @@ namespace tempo_utils {
         SharedRopeNode<ElementType> rope,
         std::vector<std::shared_ptr<LeafRopeNode<ElementType>>> &leaves)
     {
-        TU_NOTNULL (rope);
-        switch (rope->getType()) {
-            case RopeNodeType::LEAF: {
-                auto leaf = std::static_pointer_cast<LeafRopeNode<ElementType>>(rope);
-                leaves.push_back(std::move(leaf));
-                break;
-            }
-            case RopeNodeType::CONCAT: {
-                auto concat = std::static_pointer_cast<ConcatRopeNode<ElementType>>(rope);
-                collect_leaves(concat->getLeftNode(), leaves);
-                collect_leaves(concat->getRightNode(), leaves);
-                break;
-            }
-            default:
-                TU_UNREACHABLE();
-        }
+        collect_leaves(rope, 0, std::numeric_limits<size_t>::max(), leaves);
     }
 
     /**
@@ -345,6 +436,7 @@ namespace tempo_utils {
         auto rhs = merge_leaves(leaves);
         return SharedRopeNodeSplit<ElementType>(lhs, rhs);
     }
+
 }
 
 #endif // TEMPO_UTILS_ROPE_OPERATIONS_H

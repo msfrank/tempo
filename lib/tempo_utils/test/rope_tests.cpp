@@ -32,107 +32,13 @@ TEST_F(Rope, MakeRopeWithMultipleElements)
     ASSERT_EQ (0, rope.getDepth());
 }
 
-TEST_F(Rope, AppendRope)
-{
-    tempo_utils::Rope<int> rope1{1, 2, 3};
-    tempo_utils::Rope<int> rope2{4, 5};
-
-    auto rope = rope1.append(rope2);
-
-    ASSERT_EQ (5, rope.numElements());
-    ASSERT_EQ (4, rope.getElement(3));
-    ASSERT_EQ (4, rope.elementAt(3));
-    ASSERT_EQ (1, rope.getDepth());
-}
-
-TEST_F(Rope, PrependRope)
-{
-    tempo_utils::Rope<int> rope1{1, 2, 3};
-    tempo_utils::Rope<int> rope2{4, 5};
-
-    auto rope = rope1.prepend(rope2);
-
-    ASSERT_EQ (5, rope.numElements());
-    ASSERT_EQ (2, rope.getElement(3));
-    ASSERT_EQ (2, rope.elementAt(3));
-    ASSERT_EQ (1, rope.getDepth());
-}
-
-TEST_F(Rope, SplitRopeWithSingleLeafNode)
-{
-    tempo_utils::Rope<int> rope{1, 2, 3, 4, 5};
-    auto pair = rope.split(2);
-
-    auto &left = pair.first;
-    ASSERT_EQ (2, left.numElements());
-    ASSERT_EQ (2, left.getElement(1));
-
-    auto &right = pair.second;
-    ASSERT_EQ (3, right.numElements());
-    ASSERT_EQ (4, right.getElement(1));
-}
-
-TEST_F(Rope, SplitRopeWithConcatOfTwoLeafNodes)
-{
-    tempo_utils::Rope<int> rope1{1, 2, 3};
-    tempo_utils::Rope<int> rope2{4, 5};
-    auto rope = rope1.append(rope2);
-
-    auto pair = rope.split(2);
-
-    auto &left = pair.first;
-    ASSERT_EQ (2, left.numElements());
-    ASSERT_EQ (2, left.getElement(1));
-
-    auto &right = pair.second;
-    ASSERT_EQ (3, right.numElements());
-    ASSERT_EQ (4, right.getElement(1));
-}
-
-TEST_F(Rope, SplitRopeWithConcatOfTwoConcatfNodes)
-{
-    tempo_utils::Rope<int> rope1{1, 2};
-    tempo_utils::Rope<int> rope2{3, 4};
-    tempo_utils::Rope<int> rope3{5, 6};
-    tempo_utils::Rope<int> rope4{7, 8};
-    auto concat1 = rope1.append(rope2);
-    auto concat2 = rope3.append(rope4);
-    auto rope = concat1.append(concat2);
-
-    auto pair = rope.split(3);
-
-    auto &left = pair.first;
-    ASSERT_EQ (3, left.numElements());
-    ASSERT_EQ (2, left.getElement(1));
-
-    auto &right = pair.second;
-    ASSERT_EQ (5, right.numElements());
-    ASSERT_EQ (6, right.getElement(2));
-}
-
-TEST_F(Rope, SubspanOfRopeWithConcatOfTwoConcatfNodes)
-{
-    tempo_utils::Rope<int> rope1{1, 2};
-    tempo_utils::Rope<int> rope2{3, 4};
-    tempo_utils::Rope<int> rope3{5, 6};
-    tempo_utils::Rope<int> rope4{7, 8};
-    auto concat1 = rope1.append(rope2);
-    auto concat2 = rope3.append(rope4);
-    auto rope = concat1.append(concat2);
-
-    auto sub = rope.subspan(3, 3);
-    ASSERT_EQ (3, sub.numElements());
-    ASSERT_EQ (4, sub.getElement(0));
-    ASSERT_EQ (5, sub.getElement(1));
-    ASSERT_EQ (6, sub.getElement(2));
-}
-
 class RopeLayouts : public ::testing::Test, public ::testing::WithParamInterface<RopeTestParameter> {};
 
 INSTANTIATE_TEST_SUITE_P(
     Operations,
     RopeLayouts,
     ::testing::Values(
+        empty_rope(),
         leaf_node_containing_1_element(),
         leaf_node_containing_5_elements(),
         concat_of_leaf_nodes(),
@@ -142,6 +48,68 @@ INSTANTIATE_TEST_SUITE_P(
       return p.param.paramName.empty()? absl::StrCat("param#", p.index) : p.param.paramName;
     }
 );
+
+TEST_P(RopeLayouts, PrependRope)
+{
+    auto &param = GetParam();
+
+    std::vector<std::string> prependElements{"a", "b", "c"};
+
+    auto rope = param.rope;
+    tempo_utils::Rope<std::string> other(prependElements.cbegin(), prependElements.cend());
+
+    auto prepend = rope.prepend(other);
+    ASSERT_EQ (param.totalElements.size() + other.numElements(), prepend.numElements());
+
+    auto expectedElements = param.totalElements;
+    expectedElements.insert(expectedElements.cbegin(), prependElements.cbegin(), prependElements.cend());
+    auto actualElements = prepend.toVector();
+    ASSERT_THAT (actualElements, ::testing::ContainerEq(expectedElements));
+}
+
+TEST_P(RopeLayouts, AppendRope)
+{
+    auto &param = GetParam();
+
+    std::vector<std::string> appendElements{"a", "b", "c"};
+
+    auto rope = param.rope;
+    tempo_utils::Rope<std::string> other(appendElements.cbegin(), appendElements.cend());
+
+    auto append = rope.append(other);
+    ASSERT_EQ (param.totalElements.size() + other.numElements(), append.numElements());
+
+    auto expectedElements = param.totalElements;
+    expectedElements.insert(expectedElements.cend(), appendElements.cbegin(), appendElements.cend());
+    auto actualElements = append.toVector();
+    ASSERT_THAT (actualElements, ::testing::ContainerEq(expectedElements));
+}
+
+TEST_P(RopeLayouts, InsertRope)
+{
+    auto &param = GetParam();
+
+    std::vector<std::string> insertElements{"a", "b", "c"};
+
+    auto rope = param.rope;
+    tempo_utils::Rope<std::string> other(insertElements.cbegin(), insertElements.cend());
+
+    auto size = param.totalElements.size();
+
+    for (int offset = 0; offset < size; ++offset) {
+        auto insert = rope.insert(offset, other);
+
+        ASSERT_EQ (size + other.numElements(), insert.numElements());
+
+        auto expectedElements = param.totalElements;
+        auto it = expectedElements.cbegin();
+        std::advance(it, offset);
+        expectedElements.insert(it, insertElements.cbegin(), insertElements.cend());
+
+        auto actualElements = insert.toVector();
+        ASSERT_THAT (actualElements, ::testing::ContainerEq(expectedElements));
+    }
+}
 
 TEST_P(RopeLayouts, IterateRopeChunks)
 {
@@ -188,19 +156,23 @@ TEST_P(RopeLayouts, SplitRope)
 
         auto leftRope = split.first;
         ASSERT_EQ (i, leftRope.numElements());
-        for (int j = 0; j < i; ++j) {
-            std::string element = leftRope.elementAt(j);
-            ASSERT_THAT (element, ::testing::Eq(param.totalElements[j]))
-                << "left rope element " << j << "does not match";
-        }
+
+        auto leftBegin = param.totalElements.cbegin();
+        auto leftEnd = param.totalElements.cbegin();
+        std::advance(leftEnd, i);
+        std::vector leftExpected(leftBegin, leftEnd);
+        auto leftActual = leftRope.toVector();
+        ASSERT_THAT (leftActual, ::testing::ContainerEq(leftExpected));
 
         auto rightRope = split.second;
         ASSERT_EQ (size - i, rightRope.numElements());
-        for (int j = 0; j < size - i; ++j) {
-            std::string element = rightRope.elementAt(j);
-            ASSERT_THAT (element, ::testing::Eq(param.totalElements[i + j]))
-                << "right rope element " << j << "does not match";
-        }
+
+        auto rightBegin = param.totalElements.cbegin();
+        std::advance(rightBegin, i);
+        auto rightEnd = param.totalElements.cend();
+        std::vector rightExpected(rightBegin, rightEnd);
+        auto rightActual = rightRope.toVector();
+        ASSERT_THAT (rightActual, ::testing::ContainerEq(rightExpected));
     }
 }
 
@@ -217,12 +189,42 @@ TEST_P(RopeLayouts, SubspanOfRope)
             auto sub = rope.subspan(offset, count);
 
             ASSERT_EQ (count, sub.numElements());
-            for (int i = 0; i < count; ++i) {
-                std::string element = sub.elementAt(i);
-                ASSERT_THAT (element, ::testing::Eq(param.totalElements[offset + i]))
-                    << "subspan rope element " << i << " does not match"
-                    << " (size=" << size << " offset=" << offset << " count=" << count << ")";
-            }
+
+            auto first = param.totalElements.cbegin();
+            std::advance(first, offset);
+            auto last = param.totalElements.cbegin();
+            std::advance(last, offset + count);
+            std::vector expectedElements(first, last);
+
+            auto actualElements = sub.toVector();
+            ASSERT_THAT (actualElements, ::testing::ContainerEq(expectedElements));
+        }
+    }
+}
+
+TEST_P(RopeLayouts, RemoveFromRope)
+{
+    auto &param = GetParam();
+
+    auto rope = param.rope;
+
+    auto size = param.totalElements.size();
+    for (int offset = 0; offset < size; ++offset)
+    {
+        for (int count = 0; count < size - offset; ++count) {
+            auto rem = rope.remove(offset, count);
+
+            ASSERT_EQ (size - count, rem.numElements());
+
+            auto expectedElements = param.totalElements;
+            auto first = expectedElements.cbegin();
+            std::advance(first, offset);
+            auto last = expectedElements.cbegin();
+            std::advance(last, offset + count);
+            expectedElements.erase(first, last);
+
+            auto actualElements = rem.toVector();
+            ASSERT_THAT (actualElements, ::testing::ContainerEq(expectedElements));
         }
     }
 }

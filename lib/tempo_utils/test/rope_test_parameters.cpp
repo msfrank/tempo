@@ -67,6 +67,13 @@ static void parse_rope_from_config(
     p.rope = tempo_utils::Rope<std::string>(p.ropeNode);
 }
 
+RopeTestParameter empty_rope()
+{
+    RopeTestParameter p{"EmptyRope"};
+    return p;
+
+}
+
 RopeTestParameter
 leaf_node_containing_1_element()
 {

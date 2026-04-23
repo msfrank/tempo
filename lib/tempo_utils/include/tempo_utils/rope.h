@@ -34,6 +34,18 @@ namespace tempo_utils {
         Rope(std::initializer_list<ElementType> init) : Rope(init.begin(), init.end()) {}
 
         /**
+         * Construct a rope with the specified element.
+         *
+         * @param element
+         * @return
+         */
+        static Rope<ElementType> of(ElementType element)
+        {
+            auto node = make_rope(element);
+            return Rope(node);
+        }
+
+        /**
          * Returns whether the rope is empty.
          *
          * @return true if the rope is empty, otherwise false.
@@ -61,7 +73,7 @@ namespace tempo_utils {
          * @param index
          * @return
          */
-        ElementType getElement(size_t index)
+        ElementType getElement(size_t index) const
         {
             return m_rope->elementAt(index);
         }
@@ -72,7 +84,7 @@ namespace tempo_utils {
          * @param index
          * @return
          */
-        const ElementType &elementAt(size_t index)
+        const ElementType &elementAt(size_t index) const
         {
             return m_rope->elementAt(index);
         }
@@ -83,7 +95,7 @@ namespace tempo_utils {
          * @param other
          * @return
          */
-        Rope<ElementType> append(Rope<ElementType> other)
+        Rope<ElementType> append(Rope<ElementType> other) const
         {
             if (isEmpty())
                 return other;
@@ -103,7 +115,7 @@ namespace tempo_utils {
          * @param other
          * @return
          */
-        Rope<ElementType> prepend(Rope<ElementType> other)
+        Rope<ElementType> prepend(Rope<ElementType> other) const
         {
             if (isEmpty())
                 return other;
@@ -118,6 +130,39 @@ namespace tempo_utils {
         }
 
         /**
+         * Insert `other` at the offset specified by `offset` and return the new rope. If offset is greater
+         * than the size of this rope then the operation is treated as an append.
+         *
+         * @param offset
+         * @param other
+         * @return
+         */
+        Rope<ElementType> insert(size_t offset, Rope<ElementType> other) const
+        {
+            if (offset == 0)
+                return prepend(other);
+            if (offset >= m_rope->getSize())
+                return append(other);
+            auto s1 = split_rope(m_rope, offset);
+            auto c1 = concat_rope(s1.first, other.m_rope);
+            auto node = concat_rope(c1, s1.second);
+            return Rope(node);
+        }
+
+        Rope<ElementType> remove(size_t offset, size_t count) const
+        {
+            auto s1 = split_rope(m_rope, offset);
+            auto s2 = split_rope(m_rope, offset + count);
+            auto node = rebalance_rope(concat_rope(s1.first, s2.second));
+            return Rope(node);
+        }
+
+        Rope<ElementType> remove(size_t offset) const
+        {
+            return remove(offset, offset + 1);
+        }
+
+        /**
          * Split the rope at the specified index and return a pair whose first member is the rope containing
          * elements 0 to index - 1, and whose second member is the rope containing elements index to size - 1.
          *
@@ -128,7 +173,7 @@ namespace tempo_utils {
          * @param index
          * @return
          */
-        std::pair<Rope<ElementType>,Rope<ElementType>> split(size_t index)
+        std::pair<Rope<ElementType>,Rope<ElementType>> split(size_t index) const
         {
             if (isEmpty())
                 return std::pair(Rope(), Rope());
@@ -149,7 +194,7 @@ namespace tempo_utils {
          * @param count
          * @return
          */
-        Rope<ElementType> subspan(size_t offset, size_t count = std::numeric_limits<size_t>::max())
+        Rope<ElementType> subspan(size_t offset, size_t count = std::numeric_limits<size_t>::max()) const
         {
             if (count == 0)
                 return {};
@@ -160,6 +205,22 @@ namespace tempo_utils {
             }
             collect_leaves(m_rope, offset, end, leaves);
             return Rope(merge_leaves(leaves));
+        }
+
+        /**
+         * Construct a vector containing the elements of the rope.
+         *
+         * @return
+         */
+        std::vector<ElementType> toVector() const
+        {
+            std::vector<ElementType> vec;
+            auto it = iterateChunks();
+            RopeChunk<ElementType> chunk;
+            while (it.getNext(chunk)) {
+                vec.insert(vec.end(), chunk.cbegin(), chunk.cend());
+            }
+            return vec;
         }
 
         /**
@@ -320,4 +381,4 @@ namespace tempo_utils {
     };
 }
 
-#endif //TEMPO_UTILS_ROPE_H
+#endif // TEMPO_UTILS_ROPE_H

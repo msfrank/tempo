@@ -13,6 +13,8 @@ struct RopeTestParameter {
     std::vector<std::string> totalElements;
 };
 
+RopeTestParameter empty_rope();
+
 RopeTestParameter leaf_node_containing_1_element();
 
 RopeTestParameter leaf_node_containing_5_elements();

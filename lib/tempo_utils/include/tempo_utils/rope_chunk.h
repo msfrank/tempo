@@ -56,7 +56,9 @@ namespace tempo_utils {
 
         bool isEmpty() const { return m_priv->elements.empty(); }
 
-        size_t numElements() const { return m_priv->elements.size(); }
+        const ElementType *data() const { return m_priv->elements.data(); }
+
+        size_t size() const { return m_priv->elements.size(); }
 
         const ElementType& elementAt(size_t index) const { return m_priv->elements.at(index); }
 

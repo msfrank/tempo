@@ -105,9 +105,9 @@ namespace tempo_utils {
 
         RopeChunk<ElementType> getChunk() const { return m_chunk; }
 
-        size_t getWeight() const override { return m_chunk.numElements(); }
+        size_t getWeight() const override { return m_chunk.size(); }
 
-        size_t getSize() const override { return m_chunk.numElements(); }
+        size_t getSize() const override { return m_chunk.size(); }
 
         size_t getDepth() const override { return 0; }
 
@@ -121,7 +121,7 @@ namespace tempo_utils {
                 leaves.push_back(std::make_shared<LeafRopeNode<ElementType>>(m_chunk));
                 return std::make_shared<LeafRopeNode<ElementType>>();
             }
-            if (m_chunk.numElements() <= index) {
+            if (m_chunk.size() <= index) {
                 return std::make_shared<LeafRopeNode<ElementType>>(m_chunk);
             }
             auto split = m_chunk.split(index);

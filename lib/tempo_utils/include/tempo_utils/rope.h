@@ -361,7 +361,7 @@ namespace tempo_utils {
             auto chunk = m_priv->chunk;
             auto index = m_priv->index;
 
-            if (chunk.numElements() <= ++m_priv->index) {
+            if (chunk.size() <= ++m_priv->index) {
                 m_priv->index = 0;
                 m_priv->done = !m_priv->it.getNext(m_priv->chunk);
             }

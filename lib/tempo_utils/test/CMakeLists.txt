@@ -19,6 +19,7 @@ set(TEST_CASES
     date_time_tests.cpp
     file_appender_tests.cpp
     file_lock_tests.cpp
+    gap_buffer_tests.cpp
     hdr_histogram_tests.cpp
     logging_tests.cpp
     memory_bytes_tests.cpp

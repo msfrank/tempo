@@ -25,6 +25,7 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/file_utilities.h
     include/tempo_utils/file_writer.h
     include/tempo_utils/fp_compensation.h
+    include/tempo_utils/gap_buffer.h
     include/tempo_utils/hdr_histogram.h
     include/tempo_utils/immutable_bytes.h
     include/tempo_utils/integer_types.h

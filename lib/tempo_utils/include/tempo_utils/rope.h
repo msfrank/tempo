@@ -192,7 +192,7 @@ namespace tempo_utils {
          *
          * @param offset
          * @param count
-         * @return
+         * @return A Rope containing the subspan.
          */
         Rope<ElementType> subspan(size_t offset, size_t count = std::numeric_limits<size_t>::max()) const
         {
@@ -210,7 +210,7 @@ namespace tempo_utils {
         /**
          * Construct a vector containing the elements of the rope.
          *
-         * @return
+         * @return The vector.
          */
         std::vector<ElementType> toVector() const
         {
@@ -226,7 +226,7 @@ namespace tempo_utils {
         /**
          * Iterate over the chunks of the rope.
          *
-         * @return
+         * @return The RopeChunkIterator.
          */
         RopeChunkIterator<ElementType> iterateChunks() const
         {
@@ -236,7 +236,7 @@ namespace tempo_utils {
         /**
          * Iterate over the elements of the rope.
          *
-         * @return
+         * @return The RopeElementIterator.
          */
         RopeElementIterator<ElementType> iterateElements() const
         {

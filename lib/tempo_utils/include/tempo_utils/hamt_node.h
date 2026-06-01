@@ -191,11 +191,11 @@ namespace tempo_utils {
         HamtEntry<KeyType,ValueType> find(const KeyType &key, const KeyHash &hash) const override
         {
             if (m_hash == hash.getInit() && KeyEqual()(key, m_entry.entryKey())) {
-                TU_LOG_INFO << "found entry for key " << m_entry.entryKey()
+                TU_LOG_VV << "found entry for key " << m_entry.entryKey()
                             << " with hash " << Bin((tu_uint64) m_hash);
                 return m_entry;
             }
-            TU_LOG_INFO << "entry not found for key " << key;
+            TU_LOG_VV << "entry not found for key " << key;
             return {};
         }
 
@@ -267,7 +267,7 @@ namespace tempo_utils {
         {
             TU_ASSERT (!hash.needsRehash());
 
-            TU_LOG_INFO << "searching for key " << key
+            TU_LOG_VV << "searching for key " << key
                         << " hash=" << hash.toString()
                         << " bitsRemaining=" << hash.getBitsRemaining()
                         << " level=" << hash.getLevel();
@@ -277,12 +277,12 @@ namespace tempo_utils {
 
             // if table element at index is nullptr then key is not present in map
             if (child == nullptr) {
-                TU_LOG_INFO << "entry not found for key " << key << " at index " << index;
+                TU_LOG_VV << "entry not found for key " << key << " at index " << index;
                 return {};
             }
 
             // otherwise continue search in child node
-            TU_LOG_INFO << "continuing search at index " << index;
+            TU_LOG_VV << "continuing search at index " << index;
             return child->find(key, hash.next());
         }
 
@@ -319,7 +319,7 @@ namespace tempo_utils {
 
             // case 1: table value at index is nullptr, so key is not present in map
             if (child == nullptr) {
-                TU_LOG_INFO << "inserting entry for key " << key
+                TU_LOG_VV << "inserting entry for key " << key
                             << " at index " << (tu_uint8) childIndex
                             << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
                             << " level=" << hash.getLevel();
@@ -333,7 +333,7 @@ namespace tempo_utils {
                 case HamtNodeType::VALUE: {
                     auto childNode = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(child);
                     if (HamtNode<KeyType,ValueType,Hash,KeyEqual>::isEqual(childNode->entryKey(), key)) {
-                        TU_LOG_INFO << "replacing entry for key " << key
+                        TU_LOG_VV << "replacing entry for key " << key
                                     << " at index " << (tu_uint8) childIndex
                                     << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
                                     << " level=" << hash.getLevel();
@@ -342,7 +342,7 @@ namespace tempo_utils {
                     } else {
                         // otherwise replace the slot with an index node containing both the existing key and the new key
                         auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(child);
-                        TU_LOG_INFO << "splitting entry at index " << (tu_uint8) childIndex
+                        TU_LOG_VV << "splitting entry at index " << (tu_uint8) childIndex
                                     << " level=" << hash.getLevel();
                         m_table[childIndex] = hamt_split(existing, key, value, hash.next());
                     }
@@ -351,7 +351,7 @@ namespace tempo_utils {
                 // case 3: table value at index is an index node
                 case HamtNodeType::INDEX: {
                     auto childNode = std::static_pointer_cast<HamtIndexNode>(child);
-                        TU_LOG_INFO << "continuing insert for key " << key << " at index " << (tu_uint8) childIndex;
+                        TU_LOG_VV << "continuing insert for key " << key << " at index " << (tu_uint8) childIndex;
                         childNode->insert(key, value, hash.next());
                     return;
                 }
@@ -389,6 +389,10 @@ namespace tempo_utils {
 
             // case 1: table value at index is nullptr, so key is not present in trie
             if (child == nullptr) {
+                TU_LOG_VV << "inserting entry for key " << key
+                            << " at index " << (tu_uint8) index
+                            << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
+                            << " level=" << hash.getLevel();
                 auto added = HamtValueNode<KeyType,ValueType,Hash,KeyEqual>::create(key, value, hash.getInit());
                 table[index] = added;
                 return HamtIndexNode::create(std::move(table));
@@ -400,7 +404,7 @@ namespace tempo_utils {
                 case HamtNodeType::VALUE: {
                     auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(child);
                     if (HamtNode<KeyType,ValueType,Hash,KeyEqual>::isEqual(existing->entryKey(), key)) {
-                        TU_LOG_INFO << "updating entry for key " << key
+                        TU_LOG_VV << "updating entry for key " << key
                                     << " at index " << (tu_uint8) index
                                     << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
                                     << " level=" << hash.getLevel();
@@ -419,6 +423,71 @@ namespace tempo_utils {
                 case HamtNodeType::INDEX: {
                         auto existing = std::static_pointer_cast<HamtIndexNode>(child);
                         return existing->update(key, value, hash.next());
+                }
+
+                default:
+                    TU_UNREACHABLE();
+            }
+        }
+
+        /**
+         *
+         * @param key
+         * @param hash
+         * @return
+         */
+        std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>> remove(const KeyType &key, const KeyHash &hash)
+        {
+            TU_ASSERT (!hash.needsRehash());
+
+            tu_uint32 index = hash.getIndex();
+            auto child = m_table.at(index);
+
+            // case 1: table value at index is nullptr, so key is not present
+            if (child == nullptr)
+                return nullptr;
+
+            switch (child->getType())
+            {
+                // case 2: table value at index is a value node
+                case HamtNodeType::VALUE: {
+                    auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(child);
+
+                    // if key does not match existing value, then return nullptr indicating the key is not present
+                    if (!HamtNode<KeyType,ValueType,Hash,KeyEqual>::isEqual(existing->entryKey(), key))
+                        return nullptr;
+
+                    // otherwise we create a copy of the index node with the value removed
+                    HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table;
+                    for (tu_uint32 i = 0; i < m_table.size(); ++i) {
+                        if (i != index) {
+                            table[i] = m_table[i];
+                        }
+                    }
+                    return HamtIndexNode::create(std::move(table));
+                }
+
+                // case 3: table value at index is an index node
+                case HamtNodeType::INDEX: {
+                    auto existing = std::static_pointer_cast<HamtIndexNode>(child);
+
+                    child = existing->remove(key, hash.next());
+
+                    // propagate the nullptr if the key is not present
+                    if (child == nullptr)
+                        return nullptr;
+
+                    // insert the new child into the removed node
+                    HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table;
+                    table[index] = child;
+
+                    // copy all slots into removed node except the node at index
+                    for (tu_uint32 i = 0; i < m_table.size(); i++) {
+                        if (i != index) {
+                            table[i] = m_table[i];
+                        }
+                    }
+                    return HamtIndexNode::create(std::move(table));
                 }
 
                 default:
@@ -471,13 +540,13 @@ namespace tempo_utils {
         HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table;
 
         if (hash.getIndex() != existingHash.getIndex()) {
-            TU_LOG_INFO << "reinserting entry for existing key " << existing->getEntry().entryKey()
+            TU_LOG_VV << "reinserting entry for existing key " << existing->getEntry().entryKey()
                         << " at index " << existingHash.getIndex()
                         << " hash=" << Bin(static_cast<tu_uint64>(existingHash.getInit()))
                         << " level=" << existingHash.getLevel();
             table[existingHash.getIndex()] = existing;
             auto added = HamtValueNode<KeyType,ValueType,Hash,KeyEqual>::create(key, value, hash.getInit());
-            TU_LOG_INFO << "inserting entry for key " << key
+            TU_LOG_VV << "inserting entry for key " << key
                         << " at index " << hash.getIndex()
                         << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
                         << " level=" << hash.getLevel();
@@ -485,7 +554,7 @@ namespace tempo_utils {
             return HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>::create(std::move(table));
         }
 
-        TU_LOG_INFO << "splitting entry at index " << hash.getIndex()
+        TU_LOG_VV << "splitting entry at index " << hash.getIndex()
                     << " level=" << hash.getLevel();
         table[hash.getIndex()] = hamt_split(existing, key, value, hash.next());
         return HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>::create(std::move(table));

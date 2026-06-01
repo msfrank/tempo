@@ -153,6 +153,36 @@ namespace tempo_utils {
         }
 
         /**
+         * Returns a new trie containing the entries from the existing trie excluding the entry specified by `key`.
+         * If the trie does not contain `key` then the existing trie is returned.
+         *
+         * @param key The key of the entry to remove.
+         * @return The new trie if the entry was removed, otherwise the existing trie.
+         */
+        HashArrayMappedTrie remove(const KeyType &key)
+        {
+            if (m_root == nullptr)
+                return {};
+            KeyHash hash(Hash()(key));
+            switch (m_root->getType()) {
+                case HamtNodeType::VALUE: {
+                    auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(m_root);
+                    auto entry = existing->find(key, hash);
+                    if (entry.isValid())
+                        return {};
+                    return *this;
+                }
+                case HamtNodeType::INDEX: {
+                    auto existing = std::static_pointer_cast<HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>>(m_root);
+                    auto root = existing->remove(key, hash);
+                    return HashArrayMappedTrie(root);
+                }
+            default:
+                return HashArrayMappedTrie();
+            }
+        }
+
+        /**
          *
          * @param key
          * @return

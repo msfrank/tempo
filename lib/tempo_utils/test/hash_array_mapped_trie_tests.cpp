@@ -132,3 +132,18 @@ TEST_F(HashArrayMappedTrie, ExistingEntryReplacedOnUpdate)
     ASSERT_TRUE (trie.contains("2"));
     ASSERT_TRUE (trie.contains("3"));
 }
+
+TEST_F(HashArrayMappedTrie, ExistingEntryRemoved)
+{
+    tempo_utils::HashArrayMappedTrie<std::string,std::string> trie({
+            { "1", "one"},
+            { "2", "two"},
+            { "3", "three"},
+    });
+    ASSERT_EQ (3, trie.numEntries());
+
+    trie = trie.remove("2");
+    ASSERT_EQ (2, trie.numEntries());
+    ASSERT_TRUE (trie.contains("1"));
+    ASSERT_TRUE (trie.contains("3"));
+}

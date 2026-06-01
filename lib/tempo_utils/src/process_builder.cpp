@@ -180,18 +180,16 @@ tempo_utils::ProcessInvoker::toString() const
     return s;
 }
 
-tempo_utils::LogMessage&& tempo_utils::operator<<(
-    tempo_utils::LogMessage &&message,
-    const tempo_utils::ProcessInvoker &invoker)
+tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const ProcessInvoker &invoker)
 {
     if (invoker.isValid()) {
-        message.m_buffer << "ProcessInvoker(" << invoker.getArg(0);
+        message.buffer << "ProcessInvoker(" << invoker.getArg(0);
         for (int i = 1; i < invoker.getArgc(); i++) {
-            message.m_buffer << " " << invoker.getArg(i);
+            message.buffer << " " << invoker.getArg(i);
         }
-        message.m_buffer << ")";
+        message.buffer << ")";
     } else {
-        message.m_buffer << "ProcessInvoker()";
+        message.buffer << "ProcessInvoker()";
     }
     return std::move(message);
 }

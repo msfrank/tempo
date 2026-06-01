@@ -14,6 +14,20 @@ TEST(Logging, TestLoggingStreamTypes)
     TU_LOG_INFO << "bool ... " << true;
 }
 
+static std::string testSinkOutput;
+
+struct TestSink : tempo_utils::LogMessage {
+    ~TestSink() {
+        testSinkOutput.append(buffer.str());
+    }
+};
+
+TEST(Logging, BinHelper)
+{
+    TestSink() << tempo_utils::Bin(64);
+    ASSERT_EQ ("hello", testSinkOutput);
+}
+
 TEST(Logging, TestLoggingPipeline)
 {
     TU_LOG_INFO << "hello, " << "info!";

@@ -733,6 +733,6 @@ tempo_utils::Url::withFragment(std::string_view fragment) const
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(tempo_utils::LogMessage &&message, const tempo_utils::Url &uri)
 {
-    message.m_buffer << uri.toString();
+    message.buffer << uri.toString();
     return std::move(message);
 }

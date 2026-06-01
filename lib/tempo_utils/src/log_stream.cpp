@@ -12,7 +12,7 @@
  */
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const char *str)
 {
-    message.m_buffer << str;
+    message.buffer << str;
     return std::move(message);
 }
 
@@ -25,85 +25,85 @@ tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const ch
  */
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const std::string &str)
 {
-    message.m_buffer << str;
+    message.buffer << str;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, std::string_view view)
 {
-    message.m_buffer << view;
+    message.buffer << view;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const void *p)
 {
-    message.m_buffer << absl::Substitute("$0", p);
+    message.buffer << absl::Substitute("$0", p);
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, tu_int16 i16)
 {
-    message.m_buffer << i16;
+    message.buffer << i16;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, tu_uint16 u16)
 {
-    message.m_buffer << u16;
+    message.buffer << u16;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, tu_int32 i32)
 {
-    message.m_buffer << i32;
+    message.buffer << i32;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, tu_uint32 u32)
 {
-    message.m_buffer << u32;
+    message.buffer << u32;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, tu_int64 i64)
 {
-    message.m_buffer << i64;
+    message.buffer << i64;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, tu_uint64 u64)
 {
-    message.m_buffer << u64;
+    message.buffer << u64;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, float flt)
 {
-    message.m_buffer << flt;
+    message.buffer << flt;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, double dbl)
 {
-    message.m_buffer << dbl;
+    message.buffer << dbl;
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, bool b)
 {
-    message.m_buffer << (b? "true" : "false");
+    message.buffer << (b? "true" : "false");
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const absl::Dec &dec)
 {
-    message.m_buffer << absl::StrCat(dec);
+    message.buffer << absl::StrCat(dec);
     return std::move(message);
 }
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(LogMessage &&message, const absl::Hex &hex)
 {
-    message.m_buffer << absl::StrCat(hex);
+    message.buffer << absl::StrCat(hex);
     return std::move(message);
 }
 

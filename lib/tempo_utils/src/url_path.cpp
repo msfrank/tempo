@@ -372,6 +372,6 @@ tempo_utils::UrlPath::fromString(std::string_view s)
 
 tempo_utils::LogMessage&& tempo_utils::operator<<(tempo_utils::LogMessage &&message, const tempo_utils::UrlPath &path)
 {
-    message.m_buffer << path.toString();
+    message.buffer << path.toString();
     return std::move(message);
 }

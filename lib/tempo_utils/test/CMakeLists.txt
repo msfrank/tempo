@@ -20,7 +20,9 @@ set(TEST_CASES
     file_appender_tests.cpp
     file_lock_tests.cpp
     gap_buffer_tests.cpp
+    hash_array_mapped_trie_tests.cpp
     hdr_histogram_tests.cpp
+    log_helper_tests.cpp
     logging_tests.cpp
     memory_bytes_tests.cpp
     memory_mapped_bytes_tests.cpp

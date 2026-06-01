@@ -63,17 +63,37 @@
 namespace tempo_utils {
 
     /**
+     * Base log message implementation which contains only the buffer.
+     */
+    struct LogMessage {
+        std::ostringstream buffer;
+        LogMessage() = default;
+        LogMessage(LogMessage &&other) noexcept;
+        LogMessage& operator=(LogMessage &&other) noexcept;
+    };
+
+    /**
      *
      */
-    class LogMessage {
-    public:
-        LogMessage(char const *filePath, int lineNr, LogSeverity severity, bool enabled);
-        LogMessage(char const *filePath, int lineNr, LogSeverity severity, LogCategory const *category, bool enabled);
-        LogMessage(LogMessage &&other) noexcept = default;
-        ~LogMessage();
-        LogMessage& operator=(LogMessage &&other) noexcept;
+    struct LogToString : LogMessage {
+        explicit LogToString(std::string *output);
+        LogToString(LogToString &&other) noexcept;
+        ~LogToString();
+        LogToString& operator=(LogToString &&other) noexcept;
 
-        std::ostringstream m_buffer;
+    private:
+        std::string *m_output;
+    };
+
+    /**
+     * Conditional log message.
+     */
+    struct ConditionalLogMessage : LogMessage {
+        ConditionalLogMessage(char const *filePath, int lineNr, LogSeverity severity, bool enabled);
+        ConditionalLogMessage(char const *filePath, int lineNr, LogSeverity severity, LogCategory const *category, bool enabled);
+        ~ConditionalLogMessage();
+        ConditionalLogMessage(ConditionalLogMessage &&other) noexcept = default;
+        ConditionalLogMessage& operator=(ConditionalLogMessage &&other) noexcept;
 
     protected:
         char const *m_filePath;
@@ -87,40 +107,37 @@ namespace tempo_utils {
     /**
      *
      */
-    struct LogFatal : public LogMessage {
+    struct LogFatal : ConditionalLogMessage {
         LogFatal(char const *filePath, int lineNr, bool enabled)
-            : LogMessage(filePath, lineNr, LogSeverity::kFatal, enabled) {};
+            : ConditionalLogMessage(filePath, lineNr, LogSeverity::kFatal, enabled) {}
     };
 
-    struct LogError : public LogMessage {
+    struct LogError : ConditionalLogMessage {
         LogError(char const *filePath, int lineNr, bool enabled)
-            : LogMessage(filePath, lineNr, LogSeverity::kError, enabled) {};
+            : ConditionalLogMessage(filePath, lineNr, LogSeverity::kError, enabled) {}
     };
 
-    struct LogWarn : public LogMessage {
+    struct LogWarn : ConditionalLogMessage {
         LogWarn(char const *filePath, int lineNr, bool enabled)
-            : LogMessage(filePath, lineNr, LogSeverity::kWarn, enabled) {};
+            : ConditionalLogMessage(filePath, lineNr, LogSeverity::kWarn, enabled) {}
     };
 
-    struct LogInfo : public LogMessage {
+    struct LogInfo : ConditionalLogMessage {
         LogInfo(char const *filePath, int lineNr, bool enabled)
-            : LogMessage(filePath, lineNr, LogSeverity::kInfo, enabled) {};
+            : ConditionalLogMessage(filePath, lineNr, LogSeverity::kInfo, enabled) {}
     };
 
-    class LogVerbose : public LogMessage {
-    public:
+    struct LogVerbose : ConditionalLogMessage {
         LogVerbose(char const *filePath, int lineNr, bool enabled);
         ~LogVerbose();
     };
 
-    class LogVeryVerbose : public LogMessage {
-    public:
+    struct LogVeryVerbose : ConditionalLogMessage {
         LogVeryVerbose(char const *filePath, int lineNr, bool enabled);
         ~LogVeryVerbose();
     };
 
-    class LogAssert : public LogMessage {
-    public:
+    struct LogAssert : ConditionalLogMessage {
         LogAssert(char const *assertCode, char const *filePath, int lineNr, bool enabled);
         ~LogAssert();
     };
@@ -129,7 +146,6 @@ namespace tempo_utils {
      *
      */
     struct DiscardMessage {
-    public:
         DiscardMessage([[maybe_unused]] char const *filePath,
                        [[maybe_unused]] const int lineNr,
                        [[maybe_unused]] bool enabled) {};

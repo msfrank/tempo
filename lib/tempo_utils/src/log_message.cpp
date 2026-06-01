@@ -1,14 +1,53 @@
-#include <chrono>
-#include <iostream>
-#include <mutex>
 
 #include <absl/time/clock.h>
 
-#include <tempo_utils/logging.h>
 #include <tempo_utils/log_message.h>
 
-tempo_utils::LogMessage::LogMessage(char const *filePath, int lineNr, LogSeverity severity, bool enabled)
-    : m_filePath(filePath),
+tempo_utils::LogMessage::LogMessage(LogMessage &&other) noexcept
+{
+    buffer = std::move(other.buffer);
+}
+
+tempo_utils::LogMessage&
+tempo_utils::LogMessage::operator=(LogMessage &&other) noexcept
+{
+    if (this != &other) {
+        buffer = std::move(other.buffer);
+    }
+    return *this;
+}
+
+tempo_utils::LogToString::LogToString(std::string *output)
+    : LogMessage(),
+      m_output(output)
+{
+    TU_NOTNULL (output);
+}
+
+tempo_utils::LogToString::LogToString(LogToString &&other) noexcept
+{
+    m_output = other.m_output;
+    other.m_output = nullptr;
+}
+
+tempo_utils::LogToString::~LogToString()
+{
+    m_output->append(buffer.str());
+}
+
+tempo_utils::LogToString&
+tempo_utils::LogToString::operator=(LogToString &&other) noexcept
+{
+    if (this != &other) {
+        m_output = other.m_output;
+        other.m_output = nullptr;
+    }
+    return *this;
+}
+
+tempo_utils::ConditionalLogMessage::ConditionalLogMessage(char const *filePath, int lineNr, LogSeverity severity, bool enabled)
+    : LogMessage(),
+      m_filePath(filePath),
       m_lineNr(lineNr),
       m_severity(severity),
       m_category(nullptr),
@@ -17,13 +56,14 @@ tempo_utils::LogMessage::LogMessage(char const *filePath, int lineNr, LogSeverit
 {
 }
 
-tempo_utils::LogMessage::LogMessage(
+tempo_utils::ConditionalLogMessage::ConditionalLogMessage(
     char const *filePath,
     int lineNr,
     LogSeverity severity,
     LogCategory const *category,
     bool enabled)
-    : m_filePath(filePath),
+    : LogMessage(),
+      m_filePath(filePath),
       m_lineNr(lineNr),
       m_severity(severity),
       m_category(category),
@@ -32,23 +72,24 @@ tempo_utils::LogMessage::LogMessage(
 {
 }
 
-tempo_utils::LogMessage&
-tempo_utils::LogMessage::operator=(LogMessage &&other) noexcept
+tempo_utils::ConditionalLogMessage&
+tempo_utils::ConditionalLogMessage::operator=(ConditionalLogMessage &&other) noexcept
 {
-    m_filePath = other.m_filePath;
-    m_lineNr = other.m_lineNr;
-    m_severity = other.m_severity;
-    m_category = other.m_category;
-    m_enabled = other.m_enabled;
-    m_ts = other.m_ts;
-    m_buffer = std::move(other.m_buffer);
+    if (this != &other) {
+        m_filePath = other.m_filePath;
+        m_lineNr = other.m_lineNr;
+        m_severity = other.m_severity;
+        m_category = other.m_category;
+        m_enabled = other.m_enabled;
+        m_ts = other.m_ts;
+    }
     return *this;
 }
 
-tempo_utils::LogMessage::~LogMessage()
+tempo_utils::ConditionalLogMessage::~ConditionalLogMessage()
 {
     if (m_enabled) {
-        auto log = std::move(*m_buffer.rdbuf());
+        auto log = std::move(*buffer.rdbuf());
         write_log(m_ts, m_severity, m_filePath, m_lineNr, log.str());
         if (m_severity == LogSeverity::kFatal)
             std::abort();
@@ -56,7 +97,7 @@ tempo_utils::LogMessage::~LogMessage()
 }
 
 tempo_utils::LogVerbose::LogVerbose(char const *filePath, int lineNr, bool enabled)
-    : LogMessage(filePath, lineNr, LogSeverity::kVerbose, enabled)
+    : ConditionalLogMessage(filePath, lineNr, LogSeverity::kVerbose, enabled)
 {
 }
 
@@ -65,7 +106,7 @@ tempo_utils::LogVerbose::~LogVerbose()
 }
 
 tempo_utils::LogVeryVerbose::LogVeryVerbose(char const *filePath, int lineNr, bool enabled)
-    : LogMessage(filePath, lineNr, LogSeverity::kVeryVerbose, enabled)
+    : ConditionalLogMessage(filePath, lineNr, LogSeverity::kVeryVerbose, enabled)
 {
 }
 
@@ -74,10 +115,10 @@ tempo_utils::LogVeryVerbose::~LogVeryVerbose()
 }
 
 tempo_utils::LogAssert::LogAssert(char const *assertCode, char const *filePath, int lineNr, bool enabled)
-    : LogMessage(filePath, lineNr, LogSeverity::kFatal, enabled)
+    : ConditionalLogMessage(filePath, lineNr, LogSeverity::kFatal, enabled)
 {
     if (m_enabled) {
-        m_buffer << "ASSERT FAILED: " << assertCode;
+        buffer << "ASSERT FAILED: " << assertCode;
     }
 }
 

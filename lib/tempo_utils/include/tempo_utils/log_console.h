@@ -11,20 +11,18 @@
 
 namespace tempo_utils {
 
-    class LogStdout : public LogMessage {
-    public:
+    struct LogStdout : ConditionalLogMessage {
         LogStdout(bool enabled)
-            : LogMessage(nullptr,
+            : ConditionalLogMessage(nullptr,
                          0,
                          enabled? LogSeverity::kConsoleStdout : LogSeverity::kFatal,
                          false) {};
         ~LogStdout();
     };
 
-    class LogStderr : public LogMessage {
-    public:
+    struct LogStderr : ConditionalLogMessage {
         LogStderr(bool enabled)
-            : LogMessage(nullptr,
+            : ConditionalLogMessage(nullptr,
                          0,
                          enabled? LogSeverity::kConsoleStderr : LogSeverity::kFatal,
                          false) {};

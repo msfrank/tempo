@@ -26,6 +26,9 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/file_writer.h
     include/tempo_utils/fp_compensation.h
     include/tempo_utils/gap_buffer.h
+    include/tempo_utils/hamt_node.h
+    include/tempo_utils/hashing.h
+    include/tempo_utils/hash_array_mapped_trie.h
     include/tempo_utils/hdr_histogram.h
     include/tempo_utils/immutable_bytes.h
     include/tempo_utils/integer_types.h
@@ -83,6 +86,7 @@ target_sources(tempo_utils
     src/file_utilities.cpp
     src/file_writer.cpp
     src/fp_compensation.cpp
+    src/hashing.cpp
     src/hdr_histogram.cpp
     src/library_loader.cpp
     src/library_result.cpp

@@ -99,3 +99,36 @@ TEST_F(HashArrayMappedTrie, ContainsReturnsFalseWhenKeyIsAbsent)
     ASSERT_FALSE (trie.contains("foo"));
     ASSERT_FALSE (trie.contains("abcdefghijklmnopqrstuvwxyz"));
 }
+
+TEST_F(HashArrayMappedTrie, NewEntryInsertedOnUpdate)
+{
+    tempo_utils::HashArrayMappedTrie<std::string,std::string> trie({
+            { "1", "one"},
+            { "2", "two"},
+            { "3", "three"},
+    });
+    ASSERT_EQ (3, trie.numEntries());
+
+    trie = trie.update("4", "four");
+    ASSERT_EQ (4, trie.numEntries());
+    ASSERT_TRUE (trie.contains("1"));
+    ASSERT_TRUE (trie.contains("2"));
+    ASSERT_TRUE (trie.contains("3"));
+    ASSERT_TRUE (trie.contains("4"));
+}
+
+TEST_F(HashArrayMappedTrie, ExistingEntryReplacedOnUpdate)
+{
+    tempo_utils::HashArrayMappedTrie<std::string,std::string> trie({
+            { "1", "one"},
+            { "2", "two"},
+            { "3", "three"},
+    });
+    ASSERT_EQ (3, trie.numEntries());
+
+    trie = trie.update("2", "dos");
+    ASSERT_EQ (3, trie.numEntries());
+    ASSERT_TRUE (trie.contains("1"));
+    ASSERT_TRUE (trie.contains("2"));
+    ASSERT_TRUE (trie.contains("3"));
+}

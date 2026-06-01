@@ -21,6 +21,14 @@ namespace tempo_utils {
         return numSlots;
     }
 
+    // forward declarations
+    template<class KeyType, class ValueType, class Hash, class KeyEqual>
+    class HamtNode;
+    template<class KeyType, class ValueType, class Hash, class KeyEqual>
+    class HamtValueNode;
+    template<class KeyType, class ValueType, class Hash, class KeyEqual>
+    class HamtIndexNode;
+
     /**
      * KeyHash encapsulates the state used when searching and modifying the trie.
      */
@@ -91,8 +99,8 @@ namespace tempo_utils {
     /**
      * Immutable value class containing an entry key-value pair.
      *
-     * @tparam KeyType
-     * @tparam ValueType
+     * @tparam KeyType The key type.
+     * @tparam ValueType The value type.
      */
     template<class KeyType, class ValueType>
     class HamtEntry {
@@ -112,15 +120,21 @@ namespace tempo_utils {
         std::shared_ptr<const std::pair<KeyType,ValueType>> m_entry;
     };
 
-    // forward declarations
+    /**
+     * Fixed size array containing node pointers.
+     */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
-    class HamtValueNode;
+    using HamtIndexTable = std::array<
+        std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>>,
+        table_slots(kHamtBitsPerLevel)>;
 
     /**
      * The HAMT base node.
      *
-     * @tparam KeyType
-     * @tparam ValueType
+     * @tparam KeyType The key type.
+     * @tparam ValueType The value type.
+     * @tparam Hash The hash functor type.
+     * @tparam Hash The key equals functor type.
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
     class HamtNode {
@@ -130,7 +144,7 @@ namespace tempo_utils {
 
         HamtNodeType getType() const { return m_type; }
 
-        virtual HamtEntry<KeyType,ValueType> find(const KeyType &key, KeyHash hash) const = 0;
+        virtual HamtEntry<KeyType,ValueType> find(const KeyType &key, const KeyHash &hash) const = 0;
 
         virtual size_t numEntries() const = 0;
 
@@ -151,10 +165,7 @@ namespace tempo_utils {
      * @tparam ValueType
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
-    class HamtValueNode :
-        public HamtNode<KeyType,ValueType,Hash,KeyEqual>,
-        public std::enable_shared_from_this<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>
-    {
+    class HamtValueNode : public HamtNode<KeyType,ValueType,Hash,KeyEqual> {
 
         struct Private { explicit Private() = default; };
 
@@ -177,7 +188,7 @@ namespace tempo_utils {
             return std::make_shared<HamtValueNode>(HamtEntry(key, value), hash, Private{});
         }
 
-        HamtEntry<KeyType,ValueType> find(const KeyType &key, KeyHash hash) const override
+        HamtEntry<KeyType,ValueType> find(const KeyType &key, const KeyHash &hash) const override
         {
             if (m_hash == hash.getInit() && KeyEqual()(key, m_entry.entryKey())) {
                 TU_LOG_INFO << "found entry for key " << m_entry.entryKey()
@@ -202,21 +213,14 @@ namespace tempo_utils {
         size_t m_hash;
     };
 
-    template<class KeyType, class ValueType, class Hash, class KeyEqual>
-    using HamtIndexTable = std::array<
-        std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>>,
-        table_slots(kHamtBitsPerLevel)>;
-
     /**
+     * A HAMT intermediate node which contains a table of pointers to child nodes.
      *
-     * @tparam KeyType
-     * @tparam ValueType
+     * @tparam KeyType The key type.
+     * @tparam ValueType The value type.
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
-    class HamtIndexNode :
-        public HamtNode<KeyType,ValueType,Hash,KeyEqual>,
-        public std::enable_shared_from_this<HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>>
-    {
+    class HamtIndexNode : public HamtNode<KeyType,ValueType,Hash,KeyEqual> {
 
         struct Private {};
 
@@ -232,7 +236,7 @@ namespace tempo_utils {
         }
 
         /**
-         * Create a new index node which is unsealed.
+         * Create a new empty index node.
          *
          * @return shared ptr containing the new index node.
          */
@@ -242,10 +246,10 @@ namespace tempo_utils {
         }
 
         /**
-         * Create a new index node with the specified `table`. The node is sealed to prevent any modifications.
+         * Create a new index node with the specified `table`.
          *
-         * @param table
-         * @return
+         * @param table The index table.
+         * @return shared ptr containing the new index node.
          */
         static std::shared_ptr<HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>> create(
             HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table)
@@ -259,7 +263,7 @@ namespace tempo_utils {
          * @param hash
          * @return
          */
-        HamtEntry<KeyType,ValueType> find(const KeyType &key, KeyHash hash) const override
+        HamtEntry<KeyType,ValueType> find(const KeyType &key, const KeyHash &hash) const override
         {
             TU_ASSERT (!hash.needsRehash());
 
@@ -306,7 +310,7 @@ namespace tempo_utils {
         void insert(
             const KeyType &key,
             const ValueType &value,
-            KeyHash hash)
+            const KeyHash &hash)
         {
             TU_ASSERT (!hash.needsRehash());
 
@@ -340,13 +344,13 @@ namespace tempo_utils {
                         auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(child);
                         TU_LOG_INFO << "splitting entry at index " << (tu_uint8) childIndex
                                     << " level=" << hash.getLevel();
-                        m_table[childIndex] = split(existing, key, value, hash.next());
+                        m_table[childIndex] = hamt_split(existing, key, value, hash.next());
                     }
                     return;
                 }
                 // case 3: table value at index is an index node
                 case HamtNodeType::INDEX: {
-                    auto childNode = std::static_pointer_cast<HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>>(child);
+                    auto childNode = std::static_pointer_cast<HamtIndexNode>(child);
                         TU_LOG_INFO << "continuing insert for key " << key << " at index " << (tu_uint8) childIndex;
                         childNode->insert(key, value, hash.next());
                     return;
@@ -359,45 +363,67 @@ namespace tempo_utils {
 
         /**
          *
-         * @param existing
          * @param key
          * @param value
          * @param hash
          * @return
          */
-        static std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>> split(
-            std::shared_ptr<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>> existing,
+        std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>> update(
             const KeyType &key,
             const ValueType &value,
-            KeyHash hash)
+            const KeyHash &hash)
         {
             TU_ASSERT (!hash.needsRehash());
 
-            KeyHash existingHash(existing->getHash(), hash.getLevel());
-            //size_t existingIndex = existing->getHash() >> (kHashBits - kHamtBitsPerLevel);
-            //size_t addedIndex = hash >> (kHashBits - kHamtBitsPerLevel);
-
+            tu_uint32 index = hash.getIndex();
             HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table;
 
-            if (hash.getIndex() != existingHash.getIndex()) {
-                TU_LOG_INFO << "reinserting entry for existing key " << existing->getEntry().entryKey()
-                            << " at index " << existingHash.getIndex()
-                            << " hash=" << Bin(static_cast<tu_uint64>(existingHash.getInit()))
-                            << " level=" << existingHash.getLevel();
-                table[existingHash.getIndex()] = existing;
+            // copy all slots into updated node except the node at index
+            for (tu_uint32 i = 0; i < m_table.size(); i++) {
+                if (i != index) {
+                    auto node = m_table[i];
+                    table[i] = node;
+                }
+            }
+            auto child = m_table.at(index);
+
+            // case 1: table value at index is nullptr, so key is not present in trie
+            if (child == nullptr) {
                 auto added = HamtValueNode<KeyType,ValueType,Hash,KeyEqual>::create(key, value, hash.getInit());
-                TU_LOG_INFO << "inserting entry for key " << key
-                            << " at index " << hash.getIndex()
-                            << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
-                            << " level=" << hash.getLevel();
-                table[hash.getIndex()] = added;
+                table[index] = added;
                 return HamtIndexNode::create(std::move(table));
             }
 
-            TU_LOG_INFO << "splitting entry at index " << hash.getIndex()
-                        << " level=" << hash.getLevel();
-            table[hash.getIndex()] = split(existing, key, value, hash.next());
-            return HamtIndexNode::create(std::move(table));
+            switch (child->getType()) {
+
+                // case 2: table value at index is a value node
+                case HamtNodeType::VALUE: {
+                    auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(child);
+                    if (HamtNode<KeyType,ValueType,Hash,KeyEqual>::isEqual(existing->entryKey(), key)) {
+                        TU_LOG_INFO << "updating entry for key " << key
+                                    << " at index " << (tu_uint8) index
+                                    << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
+                                    << " level=" << hash.getLevel();
+                        table[index] = HamtValueNode<KeyType,ValueType,Hash,KeyEqual>::create(key, value, hash.getInit());
+                    } else {
+                        auto added = HamtIndexNode::create();
+                        KeyHash existingHash(existing->getHash(), hash.getLevel());
+                        auto entry = existing->getEntry();
+                        added->insert(entry.entryKey(), entry.entryValue(), existingHash);
+                        added->insert(key, value, hash);
+                    }
+                    return HamtIndexNode::create(std::move(table));
+                }
+
+                // case 3: table value at index is an IndexMapNode
+                case HamtNodeType::INDEX: {
+                        auto existing = std::static_pointer_cast<HamtIndexNode>(child);
+                        return existing->update(key, value, hash.next());
+                }
+
+                default:
+                    TU_UNREACHABLE();
+            }
         }
 
     private:
@@ -424,7 +450,46 @@ namespace tempo_utils {
         std::shared_ptr<HamtChainNode> m_next;
     };
 
+    /**
+     *
+     * @param existing
+     * @param key
+     * @param value
+     * @param hash
+     * @return
+     */
+    template<class KeyType, class ValueType, class Hash, class KeyEqual>
+    std::shared_ptr<HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>> hamt_split(
+        std::shared_ptr<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>> existing,
+        const KeyType &key,
+        const ValueType &value,
+        const KeyHash &hash)
+    {
+        TU_ASSERT (!hash.needsRehash());
 
+        KeyHash existingHash(existing->getHash(), hash.getLevel());
+        HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table;
+
+        if (hash.getIndex() != existingHash.getIndex()) {
+            TU_LOG_INFO << "reinserting entry for existing key " << existing->getEntry().entryKey()
+                        << " at index " << existingHash.getIndex()
+                        << " hash=" << Bin(static_cast<tu_uint64>(existingHash.getInit()))
+                        << " level=" << existingHash.getLevel();
+            table[existingHash.getIndex()] = existing;
+            auto added = HamtValueNode<KeyType,ValueType,Hash,KeyEqual>::create(key, value, hash.getInit());
+            TU_LOG_INFO << "inserting entry for key " << key
+                        << " at index " << hash.getIndex()
+                        << " hash=" << Bin(static_cast<tu_uint64>(hash.getInit()))
+                        << " level=" << hash.getLevel();
+            table[hash.getIndex()] = added;
+            return HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>::create(std::move(table));
+        }
+
+        TU_LOG_INFO << "splitting entry at index " << hash.getIndex()
+                    << " level=" << hash.getLevel();
+        table[hash.getIndex()] = hamt_split(existing, key, value, hash.next());
+        return HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>::create(std::move(table));
+    }
 }
 
 #endif // TEMPO_UTILS_HAMT_NODE_H

@@ -123,6 +123,36 @@ namespace tempo_utils {
         }
 
         /**
+         * Returns a new trie containing the entries from the existing trie and the new entry. If the existing
+         * trie already contains an entry with the specified `key` then that entry is replaced with the
+         * specified `value`.
+         *
+         * @param key The key of the entry to insert or replace.
+         * @param value The value of the new entry.
+         * @return The new trie.
+         */
+        HashArrayMappedTrie update(const KeyType &key, const ValueType &value)
+        {
+            if (m_root == nullptr)
+                return of(key, value);
+            KeyHash hash(Hash()(key));
+            switch (m_root->getType()) {
+                case HamtNodeType::VALUE: {
+                    auto existing = std::static_pointer_cast<HamtValueNode<KeyType,ValueType,Hash,KeyEqual>>(m_root);
+                    auto root = hamt_split(existing, key, value, hash);
+                    return HashArrayMappedTrie(root);
+                }
+                case HamtNodeType::INDEX: {
+                    auto existing = std::static_pointer_cast<HamtIndexNode<KeyType,ValueType,Hash,KeyEqual>>(m_root);
+                    auto root = existing->update(key, value, hash);
+                    return HashArrayMappedTrie(root);
+                }
+                default:
+                    return HashArrayMappedTrie();
+            }
+        }
+
+        /**
          *
          * @param key
          * @return

@@ -3,6 +3,7 @@
 
 #include <stack>
 
+#include "abstract_iterator.h"
 #include "rope_operations.h"
 
 namespace tempo_utils {
@@ -255,11 +256,12 @@ namespace tempo_utils {
     };
 
     /**
+     * Iterates over the chunks of the rope.
      *
-     * @tparam ElementType
+     * @tparam ElementType The element type.
      */
     template<class ElementType>
-    class RopeChunkIterator {
+    class RopeChunkIterator : public AbstractIterator<RopeChunk<ElementType>> {
     public:
         explicit RopeChunkIterator(SharedRopeNode<ElementType> rope)
             : m_priv(std::make_shared<Priv>(std::move(rope)))
@@ -272,17 +274,18 @@ namespace tempo_utils {
          *
          * @return true if another chunk is available, otherwise false.
          */
-        bool hasNext() const
+        bool hasNext() const override
         {
             return !m_priv->stack.empty();
         }
 
         /**
-         * Return the next chunk if one is available, otherwise nullptr;
+         * Consumes the next chunk from the iterator if one is available and places it in `chunk`.
          *
-         * @return
+         * @param chunk Mutable reference which will contain the next chunk if one is available.
+         * @return true if a chunk was consumed, otherwise false.
          */
-        bool getNext(RopeChunk<ElementType> &chunk)
+        bool getNext(RopeChunk<ElementType> &chunk) override
         {
             if (m_priv->stack.empty())
                 return false;
@@ -339,8 +342,13 @@ namespace tempo_utils {
         }
     };
 
+    /**
+     * Iterates over the elements of the rope.
+     *
+     * @tparam ElementType The element type.
+     */
     template<class ElementType>
-    class RopeElementIterator {
+    class RopeElementIterator : public AbstractIterator<ElementType> {
     public:
         explicit RopeElementIterator(SharedRopeNode<ElementType> rope)
             : m_priv(std::make_shared<Priv>(RopeChunkIterator(rope)))
@@ -348,12 +356,23 @@ namespace tempo_utils {
             m_priv->done = !m_priv->it.getNext(m_priv->chunk);
         }
 
-        bool hasNext() const
+        /**
+         * Returns whether the iterator has another element available.
+         *
+         * @return true if another element is available, otherwise false.
+         */
+        bool hasNext() const override
         {
             return !m_priv->done;
         }
 
-        bool getNext(ElementType &element)
+        /**
+         * Consumes the next entry from the iterator if one is available and places it in `entry`.
+         *
+         * @param element Mutable reference which will contain the next element if one is available.
+         * @return true if an entry was consumed, otherwise false.
+         */
+        bool getNext(ElementType &element) override
         {
             if (m_priv->done)
                 return false;

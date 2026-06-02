@@ -147,3 +147,26 @@ TEST_F(HashArrayMappedTrie, ExistingEntryRemoved)
     ASSERT_TRUE (trie.contains("1"));
     ASSERT_TRUE (trie.contains("3"));
 }
+
+TEST_F(HashArrayMappedTrie, IterateEntries)
+{
+    std::vector<std::pair<std::string,std::string>> entries = {
+            { "1", "one"},
+            { "2", "two"},
+            { "3", "three"},
+            { "4", "four"},
+            { "5", "five"},
+    };
+    tempo_utils::HashArrayMappedTrie trie(entries);
+
+    auto it = trie.iterate();
+
+    std::vector<std::pair<std::string,std::string>> results;
+
+    tempo_utils::HamtEntry<std::string,std::string> entry;
+    while (it.getNext(entry)) {
+        results.push_back(entry.entryPair());
+    }
+
+    ASSERT_THAT (results, ::testing::UnorderedElementsAreArray(entries));
+}

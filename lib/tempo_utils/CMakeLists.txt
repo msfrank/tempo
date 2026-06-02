@@ -11,6 +11,7 @@ list(APPEND TEMPO_DEVKIT_TARGETS "tempo_utils")
 set(TEMPO_DEVKIT_TARGETS ${TEMPO_DEVKIT_TARGETS} CACHE INTERNAL "")
 
 set(TEMPO_UTILS_INCLUDES
+    include/tempo_utils/abstract_iterator.h
     include/tempo_utils/bytes_appender.h
     include/tempo_utils/bytes_iterator.h
     include/tempo_utils/compressed_bitmap.h
@@ -26,13 +27,13 @@ set(TEMPO_UTILS_INCLUDES
     include/tempo_utils/file_writer.h
     include/tempo_utils/fp_compensation.h
     include/tempo_utils/gap_buffer.h
+    include/tempo_utils/hamt_iterator.h
     include/tempo_utils/hamt_node.h
     include/tempo_utils/hashing.h
     include/tempo_utils/hash_array_mapped_trie.h
     include/tempo_utils/hdr_histogram.h
     include/tempo_utils/immutable_bytes.h
     include/tempo_utils/integer_types.h
-    include/tempo_utils/iterator_template.h
     include/tempo_utils/library_loader.h
     include/tempo_utils/library_result.h
     include/tempo_utils/logging.h

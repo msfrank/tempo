@@ -21,7 +21,7 @@ namespace tempo_utils {}
 #include "fp_compensation.h"
 #include "hdr_histogram.h"
 #include "integer_types.h"
-#include "iterator_template.h"
+#include "abstract_iterator.h"
 #include "log_console.h"
 #include "log_helpers.h"
 #include "log_message.h"

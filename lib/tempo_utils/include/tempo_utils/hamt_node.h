@@ -134,7 +134,7 @@ namespace tempo_utils {
      * @tparam KeyType The key type.
      * @tparam ValueType The value type.
      * @tparam Hash The hash functor type.
-     * @tparam Hash The key equals functor type.
+     * @tparam KeyEqual The key equals functor type.
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
     class HamtNode {
@@ -161,8 +161,10 @@ namespace tempo_utils {
     /**
      * A HAMT leaf node which contains the entry and hash.
      *
-     * @tparam KeyType
-     * @tparam ValueType
+     * @tparam KeyType The key type.
+     * @tparam ValueType The value type.
+     * @tparam Hash The hash functor type.
+     * @tparam KeyEqual The key equals functor type.
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
     class HamtValueNode : public HamtNode<KeyType,ValueType,Hash,KeyEqual> {
@@ -218,6 +220,8 @@ namespace tempo_utils {
      *
      * @tparam KeyType The key type.
      * @tparam ValueType The value type.
+     * @tparam Hash The hash functor type.
+     * @tparam KeyEqual The key equals functor type.
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
     class HamtIndexNode : public HamtNode<KeyType,ValueType,Hash,KeyEqual> {
@@ -255,6 +259,13 @@ namespace tempo_utils {
             HamtIndexTable<KeyType,ValueType,Hash,KeyEqual> table)
         {
             return std::make_shared<HamtIndexNode>(table, Private{});
+        }
+
+        std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>> at(tu_uint32 offset)
+        {
+            if (offset < m_table.size())
+                return m_table.at(offset);
+            return {};
         }
 
         /**
@@ -502,8 +513,10 @@ namespace tempo_utils {
 
     /**
      *
-     * @tparam KeyType
-     * @tparam ValueType
+     * @tparam KeyType The key type.
+     * @tparam ValueType The value type.
+     * @tparam Hash The hash functor type.
+     * @tparam KeyEqual The key equals functor type.
      */
     template<class KeyType, class ValueType, class Hash, class KeyEqual>
     class HamtChainNode : public HamtNode<KeyType,ValueType,Hash,KeyEqual> {

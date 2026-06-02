@@ -23,6 +23,7 @@ set(TEST_CASES
     hash_array_mapped_trie_tests.cpp
     hdr_histogram_tests.cpp
     log_helper_tests.cpp
+    log_stream_tests.cpp
     logging_tests.cpp
     memory_bytes_tests.cpp
     memory_mapped_bytes_tests.cpp

@@ -1,6 +1,7 @@
 #ifndef TEMPO_UTILS_HASH_ARRAY_MAPPED_TRIE_H
 #define TEMPO_UTILS_HASH_ARRAY_MAPPED_TRIE_H
 
+#include "hamt_iterator.h"
 #include "hamt_node.h"
 #include "log_message.h"
 
@@ -193,10 +194,17 @@ namespace tempo_utils {
             return node->entryValue();
         }
 
+        /**
+         *
+         * @return
+         */
+        HamtIterator<KeyType,ValueType,Hash,KeyEqual> iterate()
+        {
+            return HamtIterator<KeyType,ValueType,Hash,KeyEqual>(m_root);
+        }
 
     private:
         std::shared_ptr<HamtNode<KeyType,ValueType,Hash,KeyEqual>> m_root;
-
     };
 }
 
